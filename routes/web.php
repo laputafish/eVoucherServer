@@ -11,6 +11,8 @@
 |
 */
 
+use App\Models\Menu;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -25,3 +27,10 @@ Route::get('/qrcode', function() {
 /*  QRCode::text('QR Code Generator for Laravel!')->setOutfile($path);
   return response()->file($path);*/
 });
+
+Route::resource('menu', 'ApiV2\MenuController');
+Route::get('make_menu_table', 'ApiV2\MenuController@makeMenu');
+
+
+// Vouchers
+Route::resource('vouchers', 'ApiV2\VoucherController');
