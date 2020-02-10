@@ -34,3 +34,7 @@ Route::get('make_menu_table', 'ApiV2\MenuController@makeMenu');
 
 // Vouchers
 Route::resource('vouchers', 'ApiV2\VoucherController');
+
+// Media
+Route::post('media/upload', 'ApiV2\MediaController@upload');
+Route::put('media/upload', 'ApiV2\MediaController@update');
