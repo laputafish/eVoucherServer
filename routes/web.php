@@ -35,6 +35,6 @@ Route::get('make_menu_table', 'ApiV2\MenuController@makeMenu');
 // Vouchers
 Route::resource('vouchers', 'ApiV2\VoucherController');
 
-// Media
-Route::post('media/upload', 'ApiV2\MediaController@upload');
-Route::put('media/upload', 'ApiV2\MediaController@update');
+// Agent Codes
+Route::post('agent_codes/upload', 'ApiV2\AgentCodeController@upload');
+Route::put('agent_codes/upload', 'ApiV2\AgentCodeController@update');
