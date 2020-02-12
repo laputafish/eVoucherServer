@@ -38,3 +38,9 @@ Route::resource('vouchers', 'ApiV2\VoucherController');
 // Agent Codes
 Route::post('agent_codes/upload', 'ApiV2\AgentCodeController@upload');
 Route::put('agent_codes/upload', 'ApiV2\AgentCodeController@update');
+
+// Template Keys
+Route::get('template_keys', 'ApiV2\TemplateKeyController@index');
+
+// Agents
+Route::get('agents', 'ApiV2\AgentController@index');

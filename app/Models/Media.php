@@ -8,7 +8,7 @@ class Media extends Model
 {
   protected $table = 'medias';
 
-  public $fillable = [
+  protected $fillable = [
     'user_id',
     'type',
     'path',

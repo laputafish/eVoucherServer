@@ -9,7 +9,7 @@ class Menu extends Model
 {
   use NodeTrait;
 
-  public $fillable = [
+  protected $fillable = [
     'parent_id',
     'type',
     'label_tag',

@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class VoucherCode extends Model
 {
-  public $fillable = [
+  protected $fillable = [
     'voucher_id',
+    'order',
     'code',
-    'serial_no',
-    'amount',
-    'expiry_date',
-    'activation_date'
+    'extra_fields',
+    'sent_on',
+    'status'
   ];
 
 }

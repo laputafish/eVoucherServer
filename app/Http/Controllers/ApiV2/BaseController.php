@@ -11,11 +11,12 @@ class BaseController extends _Controller
 
   // Generated
   protected $model = null;
+
 //  use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
   public function __construct() {
     if (!empty($this->modelName)) {
-      $modelClassString = "\\App\\Models\\Voucher";
+      $modelClassString = "\\App\\Models\\".$this->modelName;
       $this->model = new $modelClassString;
     }
   }

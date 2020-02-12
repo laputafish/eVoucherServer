@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class VoucherEmail extends Model
 {
-  public $fillable = [
+  protected $fillable = [
     'voucher_id',
     'voucher_code_id',
     'email',
