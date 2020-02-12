@@ -2,7 +2,7 @@
 
 use App\Models\Menu;
 
-class VoucherController extends BaseController
+class VoucherController extends BaseModuleController
 {
   protected $modelName = 'Voucher';
 
