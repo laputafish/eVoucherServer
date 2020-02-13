@@ -11,6 +11,7 @@ class VoucherCode extends Model
     'order',
     'code',
     'extra_fields',
+    'key',
     'sent_on',
     'status'
   ];

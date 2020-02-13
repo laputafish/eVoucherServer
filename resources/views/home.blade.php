@@ -15,7 +15,13 @@
                     @endif
 
                     You are logged in!
-                    <img src="/qrcode"/>
+
+	<h1>Laravel 5.7 - QR Code Generator Example</h1>
+
+                        {!! QrCode::size(250)->generate('ItSolutionStuff.com'); !!}
+
+                        <p>example by ItSolutionStuf.com.</p>
+                    {{--<img src="/qrcode"/>--}}
                 </div>
             </div>
         </div>

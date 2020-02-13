@@ -12,7 +12,9 @@ class Voucher extends Model
     'activation_date',
     'expiry_date',
     'template',
+    'code_fields',
     'qr_code_composition',
+    'qr_code_size',
     'status'
   ];
 

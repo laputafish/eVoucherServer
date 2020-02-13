@@ -1,13 +1,19 @@
 <?php namespace App\Http\Controllers\ApiV2;
 
 use App\Models\Menu;
+use App\Models\VoucherCode;
 
 class VoucherController extends BaseModuleController
 {
   protected $modelName = 'Voucher';
 
   public function index() {
-    $data = $this->model->with('agent', 'codeInfos', 'emails')->get();
+    $data = $this->model
+      ->with(['codeInfos' => function($q) {
+        $q->orderby('order');
+      }])
+      ->with('agent', 'codeInfos', 'emails')->get();
+
     foreach($data as $row) {
       $row->code_count = $row->codeInfos->count();
       $row->code_sent = $row->codeInfos()->whereStatus('completed')->count();
@@ -112,24 +118,31 @@ class VoucherController extends BaseModuleController
     $keepIds = array_intersect($inputIds, $existingIds);
 
     // add new record
-    array_walk($codeInfos, function($info) use($voucher, $newIds, $keepIds) {
-      if (in_array($info['id'], $newIds)) {
+    array_walk($codeInfos, function($walkingCodeInfo) use($voucher, $newIds, $keepIds) {
+      if (in_array($walkingCodeInfo['id'], $newIds)) {
         $codeInfo = new VoucherCode([
-          'order' => $info['order'],
-          'code' => $info['code'],
-          'extra_fields' => $info['extra_fields'],
-          'sent_on' => $info['sent_on'],
-          'status' => $info['status']
+          'order' => $walkingCodeInfo['order'],
+          'code' => $walkingCodeInfo['code'],
+          'extra_fields' => $walkingCodeInfo['extra_fields'],
+          'sent_on' => $walkingCodeInfo['sent_on'],
+          'status' => $walkingCodeInfo['status']
         ]);
         $voucher->codeInfos()->save($codeInfo);
-      } else if (in_array($info['id'], $keepIds)) {
-        $voucher->codeInfos()->whereIn('id', $keepIds)->update([
-          'order' => $info['order'],
-          'code' => $info['code'],
-          'extra_fields' => $info['extra_fields'],
-          'sent_on' => $info['sent_on'],
-          'status' => $info['status']
-        ]);
+      } else if (in_array($walkingCodeInfo['id'], $keepIds)) {
+        $codeInfos = $voucher->codeInfos()->whereIn('id', $keepIds)->get();
+        foreach($codeInfos as $loopCodeInfo) {
+          $loopCodeInfo->update([
+            'order' => $walkingCodeInfo['order'],
+            'code' => $walkingCodeInfo['code'],
+            'extra_fields' => $walkingCodeInfo['extra_fields'],
+            'sent_on' => $walkingCodeInfo['sent_on'],
+            'status' => $walkingCodeInfo['status']
+          ]);
+          if (is_null($loopCodeInfo->key) || is_empty($loopCodeInfo->key)) {
+            $loopCodeInfo->key = newKey();
+            $loopCodeInfo->save();
+          }
+        }
       }
     });
   }

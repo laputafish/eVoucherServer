@@ -11,7 +11,7 @@ class TemplateKeyController extends BaseController
 
   public function index()
   {
-    $rows = $this->model->all();
+    $rows = $this->model->orderby('order')->get();
     return response()->json([
       'status' => true,
       'result' => $rows

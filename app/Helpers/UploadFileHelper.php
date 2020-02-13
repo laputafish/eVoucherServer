@@ -15,9 +15,12 @@ class UploadFileHelper {
   public static function createFilename($filename)
   {
     $ext = pathinfo($filename, PATHINFO_EXTENSION);
-    $result = date('Ymd_His') . '_' . substr((string)microtime(), 2, 8);
-    $encoded = md5($result); // ENCRYPTION_KEY);
-    return $encoded . '.' . $ext;
+    $key = newKey();
+    return $key . '.' . $ext;
   }
 
+  public static function newKey() {
+    $result = date('Ymd_His') . '_' . substr((string)microtime(), 2, 8);
+    return md5($result); // ENCRYPTION_KEY);
+  }
 }
