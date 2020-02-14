@@ -169,6 +169,7 @@ return [
      */
     Maatwebsite\Excel\ExcelServiceProvider::class,
     SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
+    Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
 
     /*
      * Application Service Providers...
@@ -230,6 +231,9 @@ return [
     'Input' => Illuminate\Support\Facades\Input::class,
     'Excel' => Maatwebsite\Excel\Facades\Excel::class,
     'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
+
+    'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
+    'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactgory::class,
   ],
 
 ];
