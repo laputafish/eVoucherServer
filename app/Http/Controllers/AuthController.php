@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
 use App\User;
 
 class AuthController extends Controller
@@ -35,7 +36,7 @@ class AuthController extends Controller
   {
     $credentials = request(['email', 'password']);
 
-    if (! $token = auth('api')->attempt($credentials)) {
+    if (!$token = auth('api')->attempt($credentials)) {
       return response()->json(['error' => 'Unauthorized'], 401);
     }
 
@@ -97,13 +98,75 @@ class AuthController extends Controller
   protected function respondWithToken($token)
   {
     return response()->json([
-      'access_token' => $token,
-      'token_type' => 'bearer',
-      'expires_in' => auth('api')->factory()->getTTL() * 60
+      'status' => true,
+      'result' => [
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'expires_in' => auth('api')->factory()->getTTL() * 60
+      ]
     ]);
   }
 
-  public function register(Request $request) {
+  public function verify(Request $request)
+  {
+    $code = $request->get('code', '');
+
+    $verifying = !empty($code);
+    if ($verifying) {
+      return $this->doVerification($code);
+    } else {
+      $email = $request->get('email');
+      $user = User::whereEmail($email)->first();
+      if (isset($user)) {
+        $this->sendConfirmationEmail($user, $request->get('url'));
+        return response()->json([
+          'status' => true,
+          'result' => [
+            'message' => 'Verification link is sent. Please check your email.',
+            'messageTag' => 'verification_link_is_sent_please_check_your_email'
+          ]
+        ]);
+      } else {
+        return response()->json([
+          'status' => false,
+          'result' => [
+            'message' => 'Email was not registered yet!',
+            'messageTag' => 'email_not_registered_yet'
+          ]
+        ]);
+      }
+    }
+  }
+
+  private function doVerification($code)
+  {
+    $user = User::whereConfirmationCode($code)->first();
+    if (isset($user)) {
+      $user->is_verified = true;
+      $user->confirmation_code = '';
+      $user->save();
+      return response()->json([
+        'status' => true,
+        'result' => [
+          'message' => 'Verification Successful!',
+          'messageTag' => 'verification_successful'
+        ]
+      ]);
+    } else {
+      return response()->json([
+        'status' => false,
+        'result' => [
+          'message' => 'Verification Code is Invalid or Expired! ',
+          'messageTag' => 'verification_code_is_invalid_or_expired'
+        ]
+      ]);
+    }
+  }
+
+  public function register(Request $request)
+  {
+    User::truncate();
+
     $newUser = $request->all();
 
     // check email
@@ -115,6 +178,14 @@ class AuthController extends Controller
       ]);
     }
 
+    if ($newUser['password'] != $newUser['passwordConfirmation']) {
+      return response()->json([
+        'status' => false,
+        'message' => 'Password mismatched.',
+        'messageTag' => 'msg_password_mismatched'
+      ]);
+    }
+
     if (User::whereEmail($newUser['email'])->count() > 0) {
       return response()->json([
         'status' => false,
@@ -122,24 +193,34 @@ class AuthController extends Controller
         'messageTag' => 'email_already_registered'
       ]);
     }
+    $newUser['password'] = bcrypt($newUser['password']);
+    $user = User::create($newUser);
 
-    $confirmationCode = str_random(30);
-    $newUser['confirmation_code'] = $confirmationCode;
+    $this->sendConfirmationEmail($user, $request->get('url'));
 
-    User::create($newUser);
-
-    // Send verification email
-    Mail::send('email.verify', [
-      'confirmationCode' => $confirmationCode
-    ], function( $message) {
-       $message
-         ->to(\Input::get('email'), \Input::get('username'))
-         ->subject('Verify your email');
-    });
     return response()->json([
       'status' => true,
-      'message' => 'Signed up successfully.',
-      'messageTag' => 'msg_sign_up_success'
+      'result' => [
+        'message' => 'Signed up successfully.',
+        'messageTag' => 'sign_up_success_and_check_email'
+      ]
     ]);
+  }
+
+  private function sendConfirmationEmail($user, $url)
+  {
+    // Send verification email
+    $confirmationCode = str_random(30);
+    $user->confirmation_code = $confirmationCode;
+    $user->save();
+
+    Mail::send('email.verify', [
+      'link' => $url . '/' . $confirmationCode,
+      'name' => $user->name
+    ], function ($message) use ($user) {
+      $message
+        ->to($user->email, $user->name)
+        ->subject('Verify your email');
+    });
   }
 }

@@ -41,10 +41,11 @@ Route::group(['prefix' => 'auth'], function ($router) {
   Route::post('refresh', 'AuthController@refresh');
   Route::post('me', 'AuthController@me');
   Route::post('register', 'AuthController@register');
+  Route::post('verify', 'AuthController@verify');
 });
 
-//Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
-Route::namespace('ApiV2')->group(function() {
+Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
+//Route::namespace('ApiV2')->group(function() {
 
   Route::get('/', function () {return view('welcome');});
 
@@ -62,9 +63,12 @@ Route::namespace('ApiV2')->group(function() {
   Route::resource('menu', 'MenuController');
   Route::get('make_menu_table', 'MenuController@makeMenu');
 
-
   // Vouchers
   Route::resource('vouchers', 'VoucherController');
+
+  // Agents
+  Route::resource('agents', 'AgentController');
+
 
   // Agent Codes
   Route::post('agent_codes/upload', 'AgentCodeController@upload');
@@ -73,11 +77,8 @@ Route::namespace('ApiV2')->group(function() {
   // Template Keys
   Route::get('template_keys', 'TemplateKeyController@index');
 
-  // Agents
-  Route::get('agents', 'AgentController@index');
-
   // Template
   Route::post('templates/create_temp', 'TemplateController@createTemp');
-  Route::get('templates/view/{key}', 'TemplateController@view');
 
 });
+
