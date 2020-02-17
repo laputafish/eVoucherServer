@@ -1,8 +1,22 @@
 <?php namespace App\Helpers;
 
 use App\Models\TemplateKey;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TemplateHelper {
+  public static function processTemplate($template, $qrCodeSize, $params) {
+    $qrCode = '';
+    if (!empty($params['qr_code'])) {
+      $qrCode = QrCode::margin(0)->size($qrCodeSize)->generate($params['qr_code']);
+    }
+    $template = str_replace('{qr_code}', $qrCode, $template);
+    foreach($params as $key=>$value) {
+      $template = str_replace( '{'.$key.'}', $value, $template);
+    }
+
+    return $template;
+  }
+
   public static function createParams($record, $codeInfo) {
     $templateKeys = TemplateKey::all();
 

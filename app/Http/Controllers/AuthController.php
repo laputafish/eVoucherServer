@@ -61,7 +61,8 @@ class AuthController extends Controller
   public function logout()
   {
     // can get bearer token only from header
-//    $bearToken = request()->bearerToken();
+    $bearToken = request()->bearerToken();
+    echo 'bearToken = '.$bearToken;
 //    echo 'bearToken: '.$bearToken.PHP_EOL;
 
     // server error with below

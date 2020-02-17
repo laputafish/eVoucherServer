@@ -79,6 +79,11 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 
   // Template
   Route::post('templates/create_temp', 'TemplateController@createTemp');
-
 });
 
+Route::namespace('ApiV2')->group(function() {
+//  Route::post('templates', function() {
+//    return 'ok';
+//  });
+  Route::post('templates',  'TemplateController@getTemplateHtml');
+});

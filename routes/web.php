@@ -5,5 +5,6 @@
 //Route::post('password/reset', 'Auth\ResetPasswordController@postReset')->name('password.reset');
 
 Route::namespace('ApiV2')->group(function() {
-  Route::get('templates/view/{key}', 'TemplateController@view');
+//  Route::get('templates/view/{key}', 'TemplateController@view');
+  Route::get('coupons/{key}', 'TemplateController@view');
 });

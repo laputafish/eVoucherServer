@@ -16,4 +16,7 @@ class VoucherCode extends Model
     'status'
   ];
 
+  public function voucher() {
+    return $this->belongsTo('App\Models\Voucher');
+  }
 }

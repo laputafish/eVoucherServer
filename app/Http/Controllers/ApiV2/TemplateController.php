@@ -1,9 +1,12 @@
 <?php namespace App\Http\Controllers\ApiV2;
 
 use App\Models\Agent;
+use App\Models\VoucherCode;
+
 use App\Helpers\TemplateHelper;
 use App\Helpers\QRCodeHelper;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Http\Request;
 
 class TemplateController extends BaseController
 {
@@ -34,35 +37,68 @@ class TemplateController extends BaseController
     ]);
   }
 
+  public function getTemplateHtml(Request $request)
+  {
+    $key = $request->get('key');
+    $isTemp = $request->get('isTemp');
+
+    if ($isTemp) {
+      $processedTemplate = $this->processTempLeaflet($key);
+    } else {
+      $processedTemplate = $this->processLeaflet($key);
+    }
+    return $processedTemplate;
+  }
+
+  private function processTempLeaflet($key) {
+    $leaflet = $this->model->where('key', $key)->first();
+    $result = TemplateHelper::processTemplate(
+      $leaflet->template,
+      $leaflet->qr_code_size,
+      unserialize($leaflet->params)
+    );
+    return response()->json([
+      'status' => true,
+      'result' => $result
+    ]);
+  }
+  private function processLeaflet($key) {
+    $voucherCode = VoucherCode::where('key', $key)->first();
+    $voucher = $voucherCode->voucher;
+
+    return $voucher->id;
+    $params = TemplateHelper::createParams(
+      $voucher,
+      $voucherCode
+    );
+
+    return view('templates.leaflet', [
+      'title' => 'xx',
+      'template' => $voucher->template
+    ]);
+
+    return response()->json(['code'=>$voucher->template]);
+
+    $result = TemplateHelper::processTemplate(
+      $voucher->template,
+      $voucherCode->qr_code_size,
+      $params
+    );
+    return $result;
+    return response()->json([
+      'status' => true,
+      'result' => $result
+    ]);
+  }
+
   public function view($key) {
     $leaflet = $this->model->where('key', $key)->first();
-
-    $template = $leaflet->template;
-
-//    $qrCode = QrCode::size(250)->generate('ItSolutionStuff.com');
-//
-//
-//    $imgEle = QRCodeHelper::getImg('QR Code generator for laravel!');
-
-
-    // Parameters
     $params =  unserialize($leaflet->params);
-
-    // QR Codes
-    $qrCode = '';
-    if (!empty($params['qr_code'])) {
-      $qrCode = QrCode::margin(0)->size($leaflet->qr_code_size)->generate($params['qr_code']);
-    }
-    $template = str_replace('{qr_code}', $qrCode, $template);
-
-    // Parameters
-    foreach($params as $key=>$value) {
-      $template = str_replace( '{'.$key.'}', $value, $template);
-    }
+    $processed = TemplateHelper::processTemplate($leaflet->template, $leaflet->qr_code_size, $params);
 
     return view('templates.leaflet', [
       'title' => $leaflet->title,
-      'template' => $template
+      'template' => $processed
     ]);
   }
 }

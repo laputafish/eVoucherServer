@@ -2,39 +2,35 @@
 
 use App\Models\Menu;
 
-class AgentController extends BaseController
+class AgentController extends BaseModuleController
 {
   protected $modelName = 'Agent';
+  protected $orderBy = 'name';
 
-  public function index()
-  {
-    $data = $this->model->orderby('name')->get();
-    foreach($data as $row) {
-      $row->voucher_count = $row->vouchers()->count();
-    }
-    return response()->json([
-      'status'=>true,
-      'result' => [
-        'data' => $data,
-        'pageable' => [],
-        'total' => 0
-      ]
-    ]);
-  }
+  protected $updateRules = [
+    'name' => 'string',
+    'alias' => 'nullable|string',
+    'contact' => 'nullable|string',
+    'tel_no' => 'nullable|string',
+    'fax_no' => 'nullable|string',
+    'web_url' => 'nullable|string',
+    'email' => 'nullable|string',
+    'remark' => 'nullable|string'
+  ];
 
   public function getBlankRecord() {
     return [
       'id' => 0,
-      'description' => '',
-      'agent_id' => 0,
-      'activation_date' => '',
-      'expiry_date' => '',
-      'template' => '',
-      'qr_code_composition' => '',
-      'status' => 'pending',
-      'code_fields' => '',
-      'codeInfos' => []
+      'name' => '',
+      'alias' => '',
+      'contact' => '',
+      'teL_no' => '',
+      'fax_no' => '',
+      'web_url' => '',
+      'email' => '',
+      'remark' => ''
     ];
   }
+
 
 }

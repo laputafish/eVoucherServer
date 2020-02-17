@@ -7,27 +7,41 @@ class VoucherController extends BaseModuleController
 {
   protected $modelName = 'Voucher';
 
-  public function index() {
-    $data = $this->model
-      ->with(['codeInfos' => function($q) {
-        $q->orderby('order');
-      }])
-      ->with('agent', 'codeInfos', 'emails')->get();
+  protected $orderBy = 'created_at';
+  protected $orderDirection = 'desc';
 
-    foreach($data as $row) {
+  protected $updateRules = [
+    'description' => 'string',
+    'agent_id' => 'required|integer',
+    'activation_date' => 'nullable|date',
+    'expiry_date' => 'nullable|date',
+    'template' => 'string',
+    'qr_code_composition' => 'nullable|string',
+    'code_fields' => 'string'
+  ];
+
+  protected function prepareIndexQuery($query)
+  {
+    $query = parent::prepareIndexQuery($query);
+    $query = $query
+      ->with(['codeInfos' => function ($q) {
+        $q->orderBy('order');
+      }])
+      ->with('agent', 'codeInfos', 'emails');
+    return $query;
+  }
+
+  protected function onIndexDataReady($rows)
+  {
+    $rows = parent::onIndexDataReady($rows);
+
+    foreach ($rows as $row) {
       $row->code_count = $row->codeInfos->count();
       $row->code_sent = $row->codeInfos()->whereStatus('completed')->count();
       $row->email_count = $row->emails->count();
     }
 
-    return response()->json([
-      'status'=>true,
-      'result'=>[
-        'data'=>$data,
-        'pageable'=>[],
-        'total'=>0
-      ]
-    ]);
+    return $rows;
   }
 
   public function getBlankRecord() {
@@ -45,42 +59,34 @@ class VoucherController extends BaseModuleController
     ];
   }
 
-  public function show($id) {
-    if ($id == 0) {
-      $record = $this->getBlankRecord();
-    } else {
-      $record = $this->getRow($id)->toArray();
-    }
-    return response()->json([
-      'status'=>true,
-      'result'=>[
-        'data'=>$record
-      ]
-    ]);
+  public function onUpdateComplete($request, $row) {
+    $input = $request->all();
+    $this->saveVoucherCodes($row->id, $input['code_infos']);
+    $this->saveEmails($row->id, $input['emails']);
   }
 
-  public function update($id) {
-    $input = \Input::all();
-    $row = $this->model->find($id);
-    $row->update([
-      'description' => $input['description'],
-      'agent_id' => $input['agent_id'],
-      'activation_date' => $input['activation_date'],
-      'expiry_date' => $input['expiry_date'],
-      'template' => $input['template'],
-      'qr_code_composition' => $input['qr_code_composition'],
-      'code_fields' => $input['code_fields'],
-      'status' => $input['status']
-    ]);
-    $this->saveVoucherCodes($id, $input['code_infos']);
-    $this->saveEmails($id, $input['emails']);
-
-    $row = $this->model->find($id);
-    return response()->json([
-      'status' => true,
-      'result' => $row
-    ]);
-  }
+//  public function update($id) {
+//    $input = $this->getInput($this->updateRules);
+//    $row = $this->model->find($id);
+//    $row->update([
+//      'description' => $input['description'],
+//      'agent_id' => $input['agent_id'],
+//      'activation_date' => $input['activation_date'],
+//      'expiry_date' => $input['expiry_date'],
+//      'template' => $input['template'],
+//      'qr_code_composition' => $input['qr_code_composition'],
+//      'code_fields' => $input['code_fields'],
+//      'status' => $input['status'],
+//    ]);
+//    $this->saveVoucherCodes($id, $input['code_infos']);
+//    $this->saveEmails($id, $input['emails']);
+//
+//    $row = $this->model->find($id);
+//    return response()->json([
+//      'status' => true,
+//      'result' => $row
+//    ]);
+//  }
 
   public function store() {
     $newRow = $this->model->create([
@@ -138,7 +144,7 @@ class VoucherController extends BaseModuleController
             'sent_on' => $walkingCodeInfo['sent_on'],
             'status' => $walkingCodeInfo['status']
           ]);
-          if (is_null($loopCodeInfo->key) || is_empty($loopCodeInfo->key)) {
+          if (is_null($loopCodeInfo->key) || empty($loopCodeInfo->key)) {
             $loopCodeInfo->key = newKey();
             $loopCodeInfo->save();
           }
