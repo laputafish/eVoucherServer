@@ -80,7 +80,7 @@ class TemplateController extends BaseController
 
     $result = TemplateHelper::processTemplate(
       $voucher->template,
-      $voucherCode->qr_code_size,
+      $voucher->qr_code_size,
       $params
     );
     return response()->json([
