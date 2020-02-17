@@ -66,25 +66,23 @@ class TemplateController extends BaseController
     $voucherCode = VoucherCode::where('key', $key)->first();
     $voucher = $voucherCode->voucher;
 
-    return $voucher->id;
     $params = TemplateHelper::createParams(
       $voucher,
       $voucherCode
     );
 
-    return view('templates.leaflet', [
-      'title' => 'xx',
-      'template' => $voucher->template
-    ]);
-
-    return response()->json(['code'=>$voucher->template]);
+//    return view('templates.leaflet', [
+//      'title' => 'xx',
+//      'template' => $voucher->template
+//    ]);
+//
+//    return response()->json(['code'=>$voucher->template]);
 
     $result = TemplateHelper::processTemplate(
       $voucher->template,
       $voucherCode->qr_code_size,
       $params
     );
-    return $result;
     return response()->json([
       'status' => true,
       'result' => $result
