@@ -22,7 +22,14 @@ class AuthController extends Controller
     // 这样的结果是，token 只能在有效期以内进行刷新，过期无法刷新
     // 如果把 refresh 也放进去，token 即使过期但仍在刷新期以内也可刷新
     // 不过刷新一次作废
-    $this->middleware('auth:api', ['except' => ['login', 'register', 'verify']]);
+    $this->middleware('auth:api', [
+      'except' => [
+        'login',
+        'register',
+        'verify',
+        'resetPassword'
+      ]
+    ]);
     // 另外关于上面的中间件，官方文档写的是『auth:api』
     // 但是我推荐用 『jwt.auth』，效果是一样的，但是有更加丰富的报错信息返回
   }
@@ -36,8 +43,34 @@ class AuthController extends Controller
   {
     $credentials = request(['email', 'password']);
 
+    // check if not verified
+    $user = User::whereEmail($credentials['email'])->first();
+    if (is_null($user)) {
+      return response()->json([
+        'status' => false,
+        'result' => [
+          'messageTag' => 'unauthorized',
+          'message' => 'Unauthorized'
+        ]
+      ], 401);
+    } else if (!$user->is_verified) {
+      return response()->json([
+        'status' => false,
+        'result' => [
+          'messageTag' => 'unauthorized',
+          'message' => 'Unauthorized'
+        ]
+      ], 401);
+    }
+
     if (!$token = auth('api')->attempt($credentials)) {
-      return response()->json(['error' => 'Unauthorized'], 401);
+      return response()->json([
+        'status' => false,
+        'result' => [
+          'messageTag' => 'unauthorized',
+          'message' => 'Unauthorized'
+        ]
+      ], 401);
     }
 
     return $this->respondWithToken($token);
@@ -119,12 +152,13 @@ class AuthController extends Controller
       $email = $request->get('email');
       $user = User::whereEmail($email)->first();
       if (isset($user)) {
-        $this->sendConfirmationEmail($user, $request->get('url'));
+        $this->sendAuthEmail($user, $request->get('url'), 'email.verify');
         return response()->json([
           'status' => true,
           'result' => [
             'message' => 'Verification link is sent. Please check your email.',
-            'messageTag' => 'verification_link_is_sent_please_check_your_email'
+            'messageTag' => 'verification_link_is_sent_please_check_your_email',
+            'userId' => $user->id
           ]
         ]);
       } else {
@@ -197,7 +231,7 @@ class AuthController extends Controller
     $newUser['password'] = bcrypt($newUser['password']);
     $user = User::create($newUser);
 
-    $this->sendConfirmationEmail($user, $request->get('url'));
+    $this->sendAuthEmail($user, $request->get('url'), 'email.verify');
 
     return response()->json([
       'status' => true,
@@ -208,20 +242,58 @@ class AuthController extends Controller
     ]);
   }
 
-  private function sendConfirmationEmail($user, $url)
+  public function resetPassword(Request $request) {
+    return $this->sendResetPasswordEmail($request, 'email.reset');
+  }
+
+  protected function sendResetPasswordEmail($request, $view ) {
+    $email = $request->get('email');
+    $url = $request->get('url');
+    if (is_null($email)) {
+      return response()->json([
+        'status' => false,
+        'result' => [
+          'message' => 'Email was not provided yet!',
+          'messageTag' => 'email_not_provided_yet'
+        ]
+      ]);
+    } else {
+      $user = User::whereEmail($email)->first();
+      if (is_null($user)) {
+        return response()->json([
+          'status' => false,
+          'result' => [
+            'message' => 'Email was not registered yet!',
+            'messageTag' => 'email_not_registered_yet'
+          ]
+        ]);
+      } else {
+        $this->sendAuthEmail($user, $url, $view);
+        return response()->json([
+          'status' => true,
+          'result' => [
+            'message' => 'Password reset email sent successfully.',
+            'messageTag' => 'please_check_email_to_reset_password'
+          ]
+        ]);
+      }
+    }
+  }
+  private function sendAuthEmail($user, $url, $view)
   {
     // Send verification email
     $confirmationCode = str_random(30);
     $user->confirmation_code = $confirmationCode;
     $user->save();
 
-    Mail::send('email.verify', [
+    $emailSubject = $view == 'email.reset' ? 'Reset Password' : 'Verify your Email';
+    Mail::send($view, [
       'link' => $url . '/' . $confirmationCode,
       'name' => $user->name
-    ], function ($message) use ($user) {
+    ], function ($message) use ($user, $emailSubject) {
       $message
         ->to($user->email, $user->name)
-        ->subject('Verify your email');
+        ->subject($emailSubject);
     });
   }
 }

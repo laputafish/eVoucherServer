@@ -42,6 +42,8 @@ Route::group(['prefix' => 'auth'], function ($router) {
   Route::post('me', 'AuthController@me');
   Route::post('register', 'AuthController@register');
   Route::post('verify', 'AuthController@verify');
+  Route::post('reset_password', 'AuthController@resetPassword');
+  Route::post('change_password', 'AuthController@changePassword');
 });
 
 Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
@@ -51,7 +53,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 
 //  Auth::routes();
 
-  Route::get('/home', 'HomeController@index')->name('home');
+//  Route::get('/home', 'HomeController@index')->name('home');
   Route::get('/qrcode', function() {
 
     $path = storage_path('/app/temp/tmp.png');
@@ -86,4 +88,12 @@ Route::namespace('ApiV2')->group(function() {
 //    return 'ok';
 //  });
   Route::post('templates',  'TemplateController@getTemplateHtml');
+});
+
+Route::get('/info', function() {
+  return 'API Version 2.0';
+});
+
+Route::get('/register/info2', function() {
+  return 'register info2';
 });

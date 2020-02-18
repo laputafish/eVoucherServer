@@ -2,6 +2,7 @@
 
 use App\Models\Menu;
 use App\Models\VoucherCode;
+use Illuminate\Http\Request ;
 
 class VoucherController extends BaseModuleController
 {
@@ -15,9 +16,21 @@ class VoucherController extends BaseModuleController
     'agent_id' => 'required|integer',
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
-    'template' => 'string',
+    'template' => 'nullable|string',
     'qr_code_composition' => 'nullable|string',
-    'code_fields' => 'string'
+    'code_fields' => 'nullable|string',
+    'status' => 'nullable|string'
+  ];
+
+  protected $storeRules = [
+    'description' => 'string',
+    'agent_id' => 'required|integer',
+    'activation_date' => 'nullable|date',
+    'expiry_date' => 'nullable|date',
+    'template' => 'nullable|string',
+    'qr_code_composition' => 'nullable|string',
+    'code_fields' => 'nullable|string',
+    'status' => 'nullable|string'
   ];
 
   protected function prepareIndexQuery($query)
@@ -88,7 +101,8 @@ class VoucherController extends BaseModuleController
 //    ]);
 //  }
 
-  public function store() {
+  public function store(Request $request) {
+    $input = $request->validate($this->storeRules);
     $newRow = $this->model->create([
       'description' => $input['description'],
       'agent_id' => $input['agent_id'],
@@ -99,8 +113,17 @@ class VoucherController extends BaseModuleController
       'status' => $input['status']
     ]);
     $id = $newRow->id;
-    $this->saveVoucherCodes($id, $input['code_infos']);
-    $this->saveEmails($id, $input['emails']);
+
+    $this->saveVoucherCodes($id,
+      array_key_exists('code_infos', $input) ?
+        $input['code_infos'] :
+        []
+    );
+    $this->saveEmails($id,
+      array_key_exists('emails', $input) ?
+      $input['emails'] :
+      []
+    );
 
     $responseRow = $this->getRow($id);
     return response()->json([
@@ -135,18 +158,18 @@ class VoucherController extends BaseModuleController
         ]);
         $voucher->codeInfos()->save($codeInfo);
       } else if (in_array($walkingCodeInfo['id'], $keepIds)) {
-        $codeInfos = $voucher->codeInfos()->whereIn('id', $keepIds)->get();
-        foreach($codeInfos as $loopCodeInfo) {
-          $loopCodeInfo->update([
+        $codeInfo = $voucher->codeInfos()->find($walkingCodeInfo['id']);
+        if (isset($codeInfo)) {
+          $codeInfo->update([
             'order' => $walkingCodeInfo['order'],
             'code' => $walkingCodeInfo['code'],
             'extra_fields' => $walkingCodeInfo['extra_fields'],
             'sent_on' => $walkingCodeInfo['sent_on'],
             'status' => $walkingCodeInfo['status']
           ]);
-          if (is_null($loopCodeInfo->key) || empty($loopCodeInfo->key)) {
-            $loopCodeInfo->key = newKey();
-            $loopCodeInfo->save();
+          if (is_null($codeInfo->key) || empty($codeInfo->key)) {
+            $codeInfo->key = newKey();
+            $codeInfo->save();
           }
         }
       }
@@ -193,5 +216,18 @@ class VoucherController extends BaseModuleController
   public function getRow($id) {
     $row = $this->model->with(['codeInfos', 'emails'])->find($id);
     return $row;
+  }
+
+  public function destroy($id) {
+    $row = $this->model->find($id);
+    $this->beforeDestroy($row);
+    $row->delete();
+    return response()->json([
+      'status'=>true
+    ]);
+  }
+
+  protected function beforeDestroy($row) {
+
   }
 }

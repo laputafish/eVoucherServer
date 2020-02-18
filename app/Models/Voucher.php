@@ -18,6 +18,16 @@ class Voucher extends Model
     'status'
   ];
 
+  protected static function boot() {
+    parent::boot();
+
+    static::deleting(function($voucher) {
+      $voucher->codeInfos()->delete();
+      $voucher->emails()->delete();
+      return true;
+    });
+  }
+
   public function codeInfos() {
     return $this->hasMany('App\Models\VoucherCode');
   }
