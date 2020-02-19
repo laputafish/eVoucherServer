@@ -8,8 +8,14 @@ class VoucherController extends BaseModuleController
 {
   protected $modelName = 'Voucher';
 
-  protected $orderBy = 'created_at';
+  protected $orderBy = 'vouchers.created_at';
   protected $orderDirection = 'desc';
+//  protected $indexWith = 'agents';
+
+  protected $filterFields = [
+    'description',
+    'agents.name'
+  ];
 
   protected $updateRules = [
     'description' => 'string',
@@ -237,5 +243,10 @@ class VoucherController extends BaseModuleController
 
   protected function beforeDestroy($row) {
 
+  }
+
+  protected function onIndexJoin($query) {
+    $query = $query->leftJoin('agents', 'vouchers.agent_id', '=', 'agents.id');
+    return $query;
   }
 }

@@ -2,7 +2,7 @@
 
 use App\Models\Menu;
 
-use Illuminate\Http\Request ;
+use Illuminate\Http\Request;
 
 class BaseModuleController extends BaseController
 {
@@ -10,6 +10,8 @@ class BaseModuleController extends BaseController
   protected $orderDirection = 'asc';
 
   protected $updateRules = [];
+  protected $filterFields = [];
+  protected $indexWith = [];
 
   //****************
   //    Index
@@ -22,16 +24,24 @@ class BaseModuleController extends BaseController
     $query = $this->model;
     $query = $this->prepareIndexQuery($request, $query);
     $query = $this->onIndexOrderBy($query);
+    $query = $this->onIndexWith($query);
+    $query = $this->onIndexJoin($query);
 
     // field selection
 
     if ($isSelection) {
       $selectItems = explode(',', $request->get('select'));
       $query = $query->select(
-        array_values(array_filter($selectItems, function($item) {
+        array_values(array_filter($selectItems, function ($item) {
           return strpos($item, '.') === false;
         }))
       );
+    }
+
+    // Filter
+    $filter = $request->get('filter', '');
+    if (!empty($filter)) {
+      $query = $this->onIndexFilter($query, $filter);
     }
 
     if ($request->has('page')) {
@@ -50,10 +60,65 @@ class BaseModuleController extends BaseController
     ]);
   }
 
+  protected function onIndexJoin($query) {
+    return $query;
+  }
+  protected function onIndexWith($query)
+  {
+    if (!empty($this->indexWith)) {
+      $query = $query->with($this->indexWith);
+    }
+    $query = $query->with('agent');
+    return $query;
+  }
+
+  protected function onIndexFilter($query, $filter)
+  {
+    $filterItems = explode('|', $filter);
+    foreach ($filterItems as $filterItem) {
+      $keyValue = explode(':', $filterItem);
+      $query = $this->onIndexFilterField($query, $keyValue[0], $keyValue[1]);
+    }
+    return $query;
+  }
+
+  protected function onIndexFilterField($query, $fieldName, $fieldValue)
+  {
+    if ($fieldName == '*') {
+      $query = $this->onIndexFilterWildcard($query, $fieldValue);
+    } else {
+      $query = $query->where($fieldName, 'like', '%' . $fieldValue . '%');
+    }
+    return $query;
+  }
+
+  protected function onIndexFilterWildcard($query, $fieldValue)
+  {
+    $query = $query->where(function ($q) use ($fieldValue) {
+      foreach ($this->filterFields as $i => $fieldName) {
+        if ($i == 0) {
+          if (strpos($fieldValue, '.') === false) {
+            $q->where($fieldName, 'like', '%' . $fieldValue . '%');
+          } else {
+            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%']);
+          }
+
+        } else {
+          if (strpos($fieldValue, '.') === false) {
+            $q->orWhere($fieldName, 'like', '%' . $fieldValue . '%');
+          } else {
+            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%'], 'or');
+          }
+        }
+      }
+    });
+    return $query;
+  }
+
   protected function prepareIndexQuery($request, $query)
   {
-    if(is_null($query)) {
-      echo 'query is null'.PHP_EOL;
+    if (is_null($query)) {
+      echo 'query is null' . PHP_EOL;
     }
     return $query;
   }
@@ -65,19 +130,19 @@ class BaseModuleController extends BaseController
       $relationSelects = $this->getRelationSelect($request);
 
       if (!empty($relationSelects)) {
-        foreach($rows as $row) {
+        foreach ($rows as $row) {
           $rowData = '';
-          foreach($relationSelects as $selItem) {
-            $rowData .= $selItem.'; ';
+          foreach ($relationSelects as $selItem) {
+            $rowData .= $selItem . '; ';
             $fieldName = str_replace('.', '_', $selItem);
 
-            $rowData .= 'fieldName='.$fieldName.'; ';
+            $rowData .= 'fieldName=' . $fieldName . '; ';
             $segs = explode('.', $selItem);
             $rel = $row;
             for ($i = 0; $i < count($segs); $i++) {
               $relName = $segs[$i];
 
-              $rowData .= 'rel name = '.$relName.PHP_EOL;
+              $rowData .= 'rel name = ' . $relName . PHP_EOL;
               $rel = $rel->{$relName};
 
             }
@@ -90,14 +155,15 @@ class BaseModuleController extends BaseController
     return $rows;
   }
 
-  protected function getRelationSelect($request) {
+  protected function getRelationSelect($request)
+  {
     $select = $request->get('select', '');
     $result = [];
     if (!empty($select)) {
       $selectItems = explode(',', $select);
 
       $result = array_values(
-        array_filter($selectItems, function($item) {
+        array_filter($selectItems, function ($item) {
           return strpos($item, '.') !== false;
         })
       );
@@ -138,7 +204,8 @@ class BaseModuleController extends BaseController
     ]);
   }
 
-  public function getRow($id) {
+  public function getRow($id)
+  {
     $row = $this->model->find($id);
     return $row;
   }
@@ -146,7 +213,8 @@ class BaseModuleController extends BaseController
   //****************
   //    Update
   //****************
-  public function update(Request $request, $id) {
+  public function update(Request $request, $id)
+  {
     $row = $this->model->find($id);
     $input = $request->validate($this->updateRules);
     $row->update($input);
@@ -159,7 +227,8 @@ class BaseModuleController extends BaseController
     ]);
   }
 
-  protected function onUpdateComplete($request, $row) {
+  protected function onUpdateComplete($request, $row)
+  {
   }
 
 }
