@@ -84,14 +84,24 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 });
 
 Route::namespace('ApiV2')->group(function() {
-//  Route::post('templates', function() {
-//    return 'ok';
-//  });
+
+  // post data = {
+  //    isTemp: true,
+  //    key: "2345234324324234324"
+  // }
   Route::post('templates',  'TemplateController@getTemplateHtml');
+
+
 });
 
 Route::get('/info', function() {
-  return 'API Version 2.0';
+  $result = 'API Version 2.0<br/>';
+  if (!empty(\Input::all())) {
+    foreach(\Input::all() as $key => $value) {
+      $result .= $key.' = '.$value.'<Br/>';
+    }
+  }
+  return $result;
 });
 
 Route::get('/register/info2', function() {

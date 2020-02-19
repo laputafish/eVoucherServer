@@ -4,6 +4,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class TempLeaflet extends Model
 {
+  protected $primaryKey = null;
+  public $incrementing = false;
+
   protected $fillable = [
     'key',
     'title',

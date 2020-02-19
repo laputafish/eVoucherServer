@@ -33,25 +33,31 @@ class VoucherController extends BaseModuleController
     'status' => 'nullable|string'
   ];
 
-  protected function prepareIndexQuery($query)
+  protected function prepareIndexQuery($request, $query)
   {
-    $query = parent::prepareIndexQuery($query);
-    $query = $query
-      ->with(['codeInfos' => function ($q) {
-        $q->orderBy('order');
-      }])
-      ->with('agent', 'codeInfos', 'emails');
+    $query = parent::prepareIndexQuery($request, $query);
+
+    if (!$request->has('select')) {
+      $query = $query
+        ->with(['codeInfos' => function ($q) {
+          $q->orderBy('order');
+        }])
+        ->with('agent', 'codeInfos', 'emails');
+    }
+
     return $query;
   }
 
-  protected function onIndexDataReady($rows)
+  protected function onIndexDataReady($request, $rows)
   {
-    $rows = parent::onIndexDataReady($rows);
+    $rows = parent::onIndexDataReady($request, $rows);
 
-    foreach ($rows as $row) {
-      $row->code_count = $row->codeInfos->count();
-      $row->code_sent = $row->codeInfos()->whereStatus('completed')->count();
-      $row->email_count = $row->emails->count();
+    if (!$request->has('select')) {
+      foreach ($rows as $row) {
+        $row->code_count = $row->codeInfos->count();
+        $row->code_sent = $row->codeInfos()->whereStatus('completed')->count();
+        $row->email_count = $row->emails->count();
+      }
     }
 
     return $rows;
@@ -154,6 +160,7 @@ class VoucherController extends BaseModuleController
           'code' => $walkingCodeInfo['code'],
           'extra_fields' => $walkingCodeInfo['extra_fields'],
           'sent_on' => $walkingCodeInfo['sent_on'],
+          'remark' => $walkingCodeInfo['remark'],
           'status' => $walkingCodeInfo['status']
         ]);
         $voucher->codeInfos()->save($codeInfo);
@@ -165,6 +172,7 @@ class VoucherController extends BaseModuleController
             'code' => $walkingCodeInfo['code'],
             'extra_fields' => $walkingCodeInfo['extra_fields'],
             'sent_on' => $walkingCodeInfo['sent_on'],
+            'remark' => $walkingCodeInfo['remark'],
             'status' => $walkingCodeInfo['status']
           ]);
           if (is_null($codeInfo->key) || empty($codeInfo->key)) {

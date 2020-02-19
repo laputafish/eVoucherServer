@@ -13,7 +13,8 @@ class VoucherCode extends Model
     'extra_fields',
     'key',
     'sent_on',
-    'status'
+    'status',
+    'remark'
   ];
 
   public function voucher() {

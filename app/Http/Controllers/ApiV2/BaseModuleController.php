@@ -14,29 +14,43 @@ class BaseModuleController extends BaseController
   //****************
   //    Index
   //****************
-  public function index()
+  public function index(Request $request)
   {
-    $query = $this->model;
-//    echo '1. query is null: '.(is_null($query) ? 'yes' : 'no').PHP_EOL;
-    $query = $this->prepareIndexQuery($query);
-//    echo '2. query is null: '.(is_null($query) ? 'yes' : 'no').PHP_EOL;
-    $query = $this->onIndexOrderBy($query);
-//    echo '3. query is null: '.(is_null($query) ? 'yes' : 'no').PHP_EOL;
+    // check if for selection purpose (no much details required for selection purpose)
+    $isSelection = $request->has('select');
 
-    $rows = $query->get();
-    $rows = $this->onIndexDataReady($rows);
+    $query = $this->model;
+    $query = $this->prepareIndexQuery($request, $query);
+    $query = $this->onIndexOrderBy($query);
+
+    // field selection
+
+    if ($isSelection) {
+      $selectItems = explode(',', $request->get('select'));
+      $query = $query->select(
+        array_values(array_filter($selectItems, function($item) {
+          return strpos($item, '.') === false;
+        }))
+      );
+    }
+
+    if ($request->has('page')) {
+      $limit = $request->get('limit', 20);
+      $pagedData = $query->paginate($limit);
+      $pagedData->setCollection($this->onIndexDataReady($request, $pagedData->getCollection()));
+      $result = $pagedData;
+    } else {
+      $data = $query->get();
+      $result = $this->onIndexDataReady($request, $data);
+    }
 
     return response()->json([
       'status' => true,
-      'result' => [
-        'data' => $rows,
-        'pageable' => [],
-        'total' => 0
-      ]
+      'result' => $result
     ]);
   }
 
-  protected function prepareIndexQuery($query)
+  protected function prepareIndexQuery($request, $query)
   {
     if(is_null($query)) {
       echo 'query is null'.PHP_EOL;
@@ -44,13 +58,52 @@ class BaseModuleController extends BaseController
     return $query;
   }
 
-  protected function onIndexDataReady($rows)
+  protected function onIndexDataReady($request, $rows)
   {
-//    if(is_null($rows)) {
-//      echo 'onInexDataReady: null'.PHP_EOL;
-//      echo 'query is null'.PHP_EOL;
-//    }
+    $isSelection = $request->has('select');
+    if ($isSelection) {
+      $relationSelects = $this->getRelationSelect($request);
+
+      if (!empty($relationSelects)) {
+        foreach($rows as $row) {
+          $rowData = '';
+          foreach($relationSelects as $selItem) {
+            $rowData .= $selItem.'; ';
+            $fieldName = str_replace('.', '_', $selItem);
+
+            $rowData .= 'fieldName='.$fieldName.'; ';
+            $segs = explode('.', $selItem);
+            $rel = $row;
+            for ($i = 0; $i < count($segs); $i++) {
+              $relName = $segs[$i];
+
+              $rowData .= 'rel name = '.$relName.PHP_EOL;
+              $rel = $rel->{$relName};
+
+            }
+            $row->{'agent_name'} = $rel;
+          }
+          $row->rowData = $rowData;
+        }
+      }
+    }
     return $rows;
+  }
+
+  protected function getRelationSelect($request) {
+    $select = $request->get('select', '');
+    $result = [];
+    if (!empty($select)) {
+      $selectItems = explode(',', $select);
+
+      $result = array_values(
+        array_filter($selectItems, function($item) {
+          return strpos($item, '.') !== false;
+        })
+      );
+    }
+
+    return $result;
   }
 
   protected function onIndexOrderBy($query)

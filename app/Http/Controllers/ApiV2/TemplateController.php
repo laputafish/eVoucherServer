@@ -2,6 +2,7 @@
 
 use App\Models\Agent;
 use App\Models\VoucherCode;
+use App\Models\TempLeaflet;
 
 use App\Helpers\TemplateHelper;
 use App\Helpers\QRCodeHelper;
@@ -51,12 +52,13 @@ class TemplateController extends BaseController
   }
 
   private function processTempLeaflet($key) {
-    $leaflet = $this->model->where('key', $key)->first();
+    $leaflet = TempLeaflet::where('key', $key)->first();
     $result = TemplateHelper::processTemplate(
       $leaflet->template,
       $leaflet->qr_code_size,
       unserialize($leaflet->params)
     );
+    TempLeaflet::where('key', $key)->delete();
     return response()->json([
       'status' => true,
       'result' => $result
