@@ -24,6 +24,7 @@ class VoucherController extends BaseModuleController
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
     'template' => 'nullable|string',
+    'qr_code_size' => 'nullable|integer',
     'qr_code_composition' => 'nullable|string',
     'code_fields' => 'nullable|string',
     'status' => 'nullable|string'
@@ -35,6 +36,7 @@ class VoucherController extends BaseModuleController
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
     'template' => 'nullable|string',
+    'qr_code_size' => 'nullable|integer',
     'qr_code_composition' => 'nullable|string',
     'code_fields' => 'nullable|string',
     'status' => 'nullable|string'
