@@ -31,11 +31,7 @@ class BaseModuleController extends BaseController
 
     if ($isSelection) {
       $selectItems = explode(',', $request->get('select'));
-      $query = $query->select(
-        array_values(array_filter($selectItems, function ($item) {
-          return strpos($item, '.') === false;
-        }))
-      );
+      $query = $this->onIndexSelect($query, $selectItems);
     }
 
     // Filter
@@ -44,9 +40,33 @@ class BaseModuleController extends BaseController
       $query = $this->onIndexFilter($query, $filter);
     }
 
+
+//    print_r($rows->toArray());
+//    echo PHP_EOL.PHP_EOL;
+//    echo 'sql='.$query->toSql().PHP_EOL.PHP_EOL;
+
+//    $rows = $query->get();
+//    return response()->json($rows);
+
+
     if ($request->has('page')) {
+      $page = $request->get('page', 1);
       $limit = $request->get('limit', 20);
-      $pagedData = $query->paginate($limit);
+//      $offset = ($request->get('page', 1)-1)*$limit;
+      $totalCount = $query->count();
+      $lastPage = ceil($totalCount/$limit);
+      if ($page > $lastPage) {
+        $page = $lastPage;
+      }
+      // $data = $query->get();
+      $offset = ($page - 1) * $limit;
+      $data = $query->skip($offset)->take($limit)->get();
+
+      $pagedData = new \Illuminate\Pagination\LengthAwarePaginator($data, $totalCount, $limit, $page);
+//      $offset = ($page - 1) * $limit;
+
+//      $pagedData = $query->skip($offset)->take($limit)->get();
+
       $pagedData->setCollection($this->onIndexDataReady($request, $pagedData->getCollection()));
       $result = $pagedData;
     } else {
@@ -60,6 +80,14 @@ class BaseModuleController extends BaseController
     ]);
   }
 
+  protected function onIndexSelect($query, $fields) {
+    $query = $query->select(
+      array_values(array_filter($fields, function ($item) {
+        return strpos($item, '.') === false;
+      }))
+    );
+    return $query;
+  }
   protected function onIndexJoin($query) {
     return $query;
   }
@@ -68,7 +96,6 @@ class BaseModuleController extends BaseController
     if (!empty($this->indexWith)) {
       $query = $query->with($this->indexWith);
     }
-    $query = $query->with('agent');
     return $query;
   }
 
@@ -96,18 +123,33 @@ class BaseModuleController extends BaseController
   {
     $query = $query->where(function ($q) use ($fieldValue) {
       foreach ($this->filterFields as $i => $fieldName) {
+//        echo 'i='.$i.'  fieldName='.$fieldName.PHP_EOL;
         if ($i == 0) {
-          if (strpos($fieldValue, '.') === false) {
-            $q->where($fieldName, 'like', '%' . $fieldValue . '%');
+          if (strpos($fieldName, '.') === false) {
+            $q = $q->where($fieldName, 'like', '%' . $fieldValue . '%');
           } else {
-            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%']);
+//            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%']);
+            $relationAndField = explode(',', $fieldName);
+//            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%'], 'or');
+//            echo 'relationAndField: '.PHP_EOL;
+//            echo '0: '.$relationAndField[0].PHP_EOL;
+//            echo '1: '.$relationAndField[1].PHP_EOL;
+
+            $q = $q->whereHas($relationAndField[0], function($q) use ($relationAndField, $fieldValue) {
+              $q = $q->where($relationAndField[1], 'like', '%'.$fieldValue.'%');
+            });
+
           }
 
         } else {
-          if (strpos($fieldValue, '.') === false) {
-            $q->orWhere($fieldName, 'like', '%' . $fieldValue . '%');
+          if (strpos($fieldName, '.') === false) {
+            $q = $q->orWhere($fieldName, 'like', '%' . $fieldValue . '%');
           } else {
-            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%'], 'or');
+            $relationAndField = explode('.', $fieldName);
+//            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%'], 'or');
+            $q = $q->orWhereHas($relationAndField[0], function($q) use ($relationAndField, $fieldValue) {
+              $q = $q->where($relationAndField[1], 'like', '%'.$fieldValue.'%');
+            });
           }
         }
       }
@@ -141,7 +183,6 @@ class BaseModuleController extends BaseController
             $rel = $row;
             for ($i = 0; $i < count($segs); $i++) {
               $relName = $segs[$i];
-
               $rowData .= 'rel name = ' . $relName . PHP_EOL;
               $rel = $rel->{$relName};
 

@@ -53,14 +53,23 @@ class TemplateController extends BaseController
 
   private function processTempLeaflet($key) {
     $leaflet = TempLeaflet::where('key', $key)->first();
-    $result = TemplateHelper::processTemplate(
-      $leaflet->template,
-      $leaflet->qr_code_size,
-      unserialize($leaflet->params)
-    );
-    TempLeaflet::where('key', $key)->delete();
+    $status = true;
+    if (isset($leaflet)) {
+      $result = TemplateHelper::processTemplate(
+        $leaflet->template,
+        $leaflet->qr_code_size,
+        unserialize($leaflet->params)
+      );
+      TempLeaflet::where('key', $key)->delete();
+    } else {
+      $status = false;
+      $result = [
+        'message' => 'Temporary Key Expired.',
+        'messageTag' => 'temporary_key_expired'
+      ];
+    }
     return response()->json([
-      'status' => true,
+      'status' => $status,
       'result' => $result
     ]);
   }

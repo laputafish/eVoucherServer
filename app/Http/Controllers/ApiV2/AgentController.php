@@ -7,6 +7,15 @@ class AgentController extends BaseModuleController
   protected $modelName = 'Agent';
   protected $orderBy = 'name';
 
+  protected $filterFields = [
+    'name',
+    'alias',
+    'tel_no',
+    'fax_no',
+    'web_url',
+    'email'
+  ];
+
   protected $updateRules = [
     'name' => 'string',
     'alias' => 'nullable|string',
@@ -31,6 +40,5 @@ class AgentController extends BaseModuleController
       'remark' => ''
     ];
   }
-
 
 }

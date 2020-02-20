@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers\ApiV2;
 
 use App\Models\Menu;
+use App\Models\Voucher;
 use App\Models\VoucherCode;
 use Illuminate\Http\Request ;
 
@@ -14,7 +15,7 @@ class VoucherController extends BaseModuleController
 
   protected $filterFields = [
     'description',
-    'agents.name'
+    'agent.name'
   ];
 
   protected $updateRules = [
@@ -51,6 +52,22 @@ class VoucherController extends BaseModuleController
         ->with('agent', 'codeInfos', 'emails');
     }
 
+    return $query;
+  }
+
+  protected function onIndexSelect($query, $fields) {
+    // Ignore fields from relation at this moment
+    $directFields = array_filter($fields, function ($field) {
+      return strpos($field, '.') === false;
+    });
+
+    foreach($directFields as $i=>$field) {
+      if (strpos($field, '.') === false) {
+        $directFields[$i] = 'vouchers.'.$field;
+      }
+    }
+
+    $query = $query->select($directFields);
     return $query;
   }
 
@@ -206,7 +223,7 @@ class VoucherController extends BaseModuleController
 
     // add new record
     array_walk($emails, function($email) use($voucher, $newIds, $keepIds) {
-      if (in_array($info['id'], $newIds)) {
+      if (in_array($email['id'], $newIds)) {
         $new = new VoucherEmail([
           'voucher_code_id' => $email['voucher_code_in'],
           'email' => $email['email'],
@@ -215,7 +232,7 @@ class VoucherController extends BaseModuleController
           'remark' => $email['remark']
         ]);
         $voucher->emails()->save($new);
-      } else if (in_array($info['id'], $keepIds)) {
+      } else if (in_array($email['id'], $keepIds)) {
         $voucher->emails()->whereIn('id', $keepIds)->update([
           'voucher_code_id' => $email['voucher_code_in'],
           'email' => $email['email'],
@@ -245,8 +262,24 @@ class VoucherController extends BaseModuleController
 
   }
 
-  protected function onIndexJoin($query) {
-    $query = $query->leftJoin('agents', 'vouchers.agent_id', '=', 'agents.id');
-    return $query;
-  }
+//  protected function onIndexJoin($query) {
+//    $query = $query->leftJoin('agents', 'vouchers.agent_id', '=', 'agents.id');
+//    return $query;
+//  }
+
+//  public function index(Request $request) {
+//    $filterValue = 'shell';
+//    $query = Voucher::where(function ($q) use($filterValue) {
+//      $q->whereHas('agent', function($q) {
+//        $q->where('name', 'like', '%ell%');
+//      });
+//      $q->orWhere('description', 'like', '%ell%');
+//    });
+//    $rows = $query->get();
+//    return response()->json([
+//      'status' => true,
+//      'result' => $rows
+//    ]);
+//  }
+
 }
