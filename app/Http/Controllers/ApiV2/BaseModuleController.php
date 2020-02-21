@@ -184,7 +184,13 @@ class BaseModuleController extends BaseController
             for ($i = 0; $i < count($segs); $i++) {
               $relName = $segs[$i];
               $rowData .= 'rel name = ' . $relName . PHP_EOL;
-              $rel = $rel->{$relName};
+
+              if (!is_null($rel)) {
+                $rel = $rel->{$relName};
+              } else {
+                $rel = '';
+                break;
+              }
 
             }
             $row->{'agent_name'} = $rel;

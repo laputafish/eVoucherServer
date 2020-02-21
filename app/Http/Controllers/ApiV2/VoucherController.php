@@ -2,6 +2,7 @@
 
 use App\Models\Menu;
 use App\Models\Voucher;
+use App\Models\Agent;
 use App\Models\VoucherCode;
 use Illuminate\Http\Request ;
 
@@ -92,7 +93,7 @@ class VoucherController extends BaseModuleController
     return [
       'id' => 0,
       'description' => '',
-      'agent_id' => 0,
+      'agent_id' => Agent::first()->id,
       'activation_date' => '',
       'expiry_date' => '',
       'template' => '',
