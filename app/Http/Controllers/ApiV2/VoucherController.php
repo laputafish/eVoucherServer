@@ -200,13 +200,18 @@ class VoucherController extends BaseModuleController
             'remark' => $walkingCodeInfo['remark'],
             'status' => $walkingCodeInfo['status']
           ]);
-          if (is_null($codeInfo->key) || empty($codeInfo->key)) {
-            $codeInfo->key = newKey();
-            $codeInfo->save();
-          }
+//          if (is_null($codeInfo->key) || empty($codeInfo->key)) {
+//            $codeInfo->key = newKey();
+//            $codeInfo->save();
+//          }
         }
       }
     });
+    $codeInfosNoKey = $voucher->codeInfos()->where('key', '')->orWhere('key', null)->get();
+    foreach($codeInfosNoKey as $row) {
+      $row->key = newKey();
+      $row->save();
+    }
   }
 
   private function saveEmails($id, $emails) {

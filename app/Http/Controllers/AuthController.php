@@ -12,16 +12,14 @@ class AuthController extends Controller
 {
   /**
    * Create a new AuthController instance.
-   * 要求附带email和password（数据来源users表）
+   * requires:
+   *
+   * email, password
    *
    * @return void
    */
   public function __construct()
   {
-    // 这里额外注意了：官方文档样例中只除外了『login』
-    // 这样的结果是，token 只能在有效期以内进行刷新，过期无法刷新
-    // 如果把 refresh 也放进去，token 即使过期但仍在刷新期以内也可刷新
-    // 不过刷新一次作废
     $this->middleware('auth:api', [
       'except' => [
         'login',
@@ -30,8 +28,8 @@ class AuthController extends Controller
         'resetPassword'
       ]
     ]);
-    // 另外关于上面的中间件，官方文档写的是『auth:api』
-    // 但是我推荐用 『jwt.auth』，效果是一样的，但是有更加丰富的报错信息返回
+    // It is recommended to use "jwt.auth", instead of "auth:api".
+    // Functioning the same.
   }
 
   /**
@@ -96,15 +94,11 @@ class AuthController extends Controller
     // can get bearer token only from header
     $bearToken = request()->bearerToken();
     echo 'bearToken = '.$bearToken;
-//    echo 'bearToken: '.$bearToken.PHP_EOL;
 
     // server error with below
 //    $jwtToken = JWTAuth::getToken();
 
     auth('api')->logout();
-//
-//
-//
 //    $token = request()->get('token');
 //    JWTAuth::invalidate(JWTAuth::getToken());
 
@@ -113,8 +107,11 @@ class AuthController extends Controller
 
   /**
    * Refresh a token.
-   * 刷新token，如果开启黑名单，以前的token便会失效。
-   * 值得注意的是用上面的getToken再获取一次Token并不算做刷新，两次获得的Token是并行的，即两个都可用。
+   * if open black list, previous token will be invalidated.
+   *
+   * getToken doesn't refresh the token
+   * two tokens works at the same time.
+   *
    * @return \Illuminate\Http\JsonResponse
    */
   public function refresh()
@@ -279,6 +276,7 @@ class AuthController extends Controller
       }
     }
   }
+
   private function sendAuthEmail($user, $url, $view)
   {
     // Send verification email

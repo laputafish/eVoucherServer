@@ -90,7 +90,7 @@ Route::namespace('ApiV2')->group(function() {
   //    key: "2345234324324234324"
   // }
   Route::post('templates',  'TemplateController@getTemplateHtml');
-
+  Route::get('samples/download', 'SampleController@download');
 
 });
 
