@@ -66,6 +66,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::get('make_menu_table', 'MenuController@makeMenu');
 
   // Vouchers
+  Route::post('vouchers/{id}/export', 'VoucherController@export');
   Route::resource('vouchers', 'VoucherController');
 
   // Agents
@@ -91,7 +92,7 @@ Route::namespace('ApiV2')->group(function() {
   // }
   Route::post('templates',  'TemplateController@getTemplateHtml');
   Route::get('samples/download', 'SampleController@download');
-
+  Route::get('/files/{key}', 'AccessKeyController@downloadFile');
 });
 
 Route::get('/info', function() {
@@ -107,3 +108,4 @@ Route::get('/info', function() {
 Route::get('/register/info2', function() {
   return 'register info2';
 });
+

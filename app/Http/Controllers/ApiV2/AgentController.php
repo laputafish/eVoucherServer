@@ -41,4 +41,10 @@ class AgentController extends BaseModuleController
     ];
   }
 
+  protected function onIndexDataReady( $request, $rows) {
+    foreach($rows as $row) {
+      $row->voucher_count = $row->vouchers()->count();
+    }
+    return $rows;
+  }
 }

@@ -4,6 +4,9 @@ use App\Models\Menu;
 use App\Models\Voucher;
 use App\Models\Agent;
 use App\Models\VoucherCode;
+
+use App\Helpers\AccessKeyHelper;
+
 use Illuminate\Http\Request ;
 
 class VoucherController extends BaseModuleController
@@ -43,6 +46,14 @@ class VoucherController extends BaseModuleController
     'status' => 'nullable|string'
   ];
 
+  protected function onIndexFilter($request, $query) {
+    $query = parent::onIndexFilter($request, $query);
+    if ($request->has('agentId')) {
+      $query = $query->where('agent_id', $request->get('agentId'));
+    }
+    return $query;
+  }
+
   protected function prepareIndexQuery($request, $query)
   {
     $query = parent::prepareIndexQuery($request, $query);
@@ -58,26 +69,48 @@ class VoucherController extends BaseModuleController
     return $query;
   }
 
-  protected function onIndexSelect($query, $fields) {
-    // Ignore fields from relation at this moment
-    $directFields = array_filter($fields, function ($field) {
-      return strpos($field, '.') === false;
-    });
+  public function export($id) {
+    $accessKey = AccessKeyHelper::create(
+      $this->user,
+      'voucher',
+      'export',
+      serialize(['id'=>$id])
+    );
+    return response()->json([
+      'status'=>true,
+      'result'=>[
+        'key'=>$accessKey
+      ]
+    ]);
+  }
 
-    foreach($directFields as $i=>$field) {
-      if (strpos($field, '.') === false) {
-        $directFields[$i] = 'vouchers.'.$field;
+  protected function onIndexSelect($request, $query) {
+    if ($request->get('type','')=='selection') {
+      $query = $query->select('id', 'description', 'created_at', 'code_count');
+    } else {
+      if ($request->has('select')) {
+        $fields = explode(',', $request->get('select'));
+        // Ignore fields from relation at this moment
+        $directFields = array_filter($fields, function ($field) {
+          return strpos($field, '.') === false;
+        });
+
+        foreach ($directFields as $i => $field) {
+          if (strpos($field, '.') === false) {
+            $directFields[$i] = 'vouchers.' . $field;
+          }
+        }
+        $query = $query->select($directFields);
+      } else {
+        $query = parent::onIndexSelect($request, $query);
       }
     }
-
-    $query = $query->select($directFields);
     return $query;
   }
 
   protected function onIndexDataReady($request, $rows)
   {
     $rows = parent::onIndexDataReady($request, $rows);
-
     if (!$request->has('select')) {
       foreach ($rows as $row) {
         $row->code_count = $row->codeInfos->count();

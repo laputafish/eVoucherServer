@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class BaseController extends _Controller
 {
   protected $modelName = '';
+  protected $user = null;
 
   // Generated
   protected $model = null;
@@ -19,5 +20,6 @@ class BaseController extends _Controller
       $modelClassString = "\\App\\Models\\".$this->modelName;
       $this->model = new $modelClassString;
     }
+    $this->user = Auth()->user();
   }
 }

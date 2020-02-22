@@ -18,28 +18,19 @@ class BaseModuleController extends BaseController
   //****************
   public function index(Request $request)
   {
-    // check if for selection purpose (no much details required for selection purpose)
-    $isSelection = $request->has('select');
-
     $query = $this->model;
+
     $query = $this->prepareIndexQuery($request, $query);
+
     $query = $this->onIndexOrderBy($query);
+
     $query = $this->onIndexWith($query);
+
     $query = $this->onIndexJoin($query);
 
-    // field selection
+    $query = $this->onIndexSelect($request, $query);
 
-    if ($isSelection) {
-      $selectItems = explode(',', $request->get('select'));
-      $query = $this->onIndexSelect($query, $selectItems);
-    }
-
-    // Filter
-    $filter = $request->get('filter', '');
-    if (!empty($filter)) {
-      $query = $this->onIndexFilter($query, $filter);
-    }
-
+    $query = $this->onIndexFilter($request, $query);
 
 //    print_r($rows->toArray());
 //    echo PHP_EOL.PHP_EOL;
@@ -80,14 +71,18 @@ class BaseModuleController extends BaseController
     ]);
   }
 
-  protected function onIndexSelect($query, $fields) {
-    $query = $query->select(
-      array_values(array_filter($fields, function ($item) {
-        return strpos($item, '.') === false;
-      }))
-    );
+  protected function onIndexSelect($request, $query) {
+    if ($request->has('select')) {
+      $fields = explode(',', $request->get('select'));
+      $query = $query->select(
+        array_values(array_filter($fields, function ($item) {
+          return strpos($item, '.') === false;
+        }))
+      );
+    }
     return $query;
   }
+
   protected function onIndexJoin($query) {
     return $query;
   }
@@ -99,12 +94,15 @@ class BaseModuleController extends BaseController
     return $query;
   }
 
-  protected function onIndexFilter($query, $filter)
+  protected function onIndexFilter($request, $query)
   {
-    $filterItems = explode('|', $filter);
-    foreach ($filterItems as $filterItem) {
-      $keyValue = explode(':', $filterItem);
-      $query = $this->onIndexFilterField($query, $keyValue[0], $keyValue[1]);
+    $filter = $request->get('filter', '');
+    if (!empty($filter)) {
+      $filterItems = explode('|', $filter);
+      foreach ($filterItems as $filterItem) {
+        $keyValue = explode(':', $filterItem);
+        $query = $this->onIndexFilterField($query, $keyValue[0], $keyValue[1]);
+      }
     }
     return $query;
   }
