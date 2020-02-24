@@ -1,7 +1,8 @@
 <?php
 
 use App\Models\Voucher;
-use App\Models\VoucherCode;
+use App\User;
+
 
 //Route::get('user/verify/{verification_code}', 'AuthController@verifyUser');
 //Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.request');
@@ -40,4 +41,40 @@ Route::get('/get_data', function() {
 //    $voucher->codeInfos()->save($codeInfo);
 //  }
   return 'ok';
+});
+
+Route::get('create_roles', function() {
+  $roles = [
+    ['superuser', 'Super User'],
+    ['member', 'Member'],
+    ['admin', 'Admin'],
+    ['user', 'User']
+  ];
+  foreach($roles as $role) {
+    $name = $role[0];
+    $title = $role[1];
+    Bouncer::role()->firstOrCreate([
+      'name' => $name,
+      'title' => $title
+    ]);
+  }
+});
+
+Route::get('assign_roles', function() {
+    $assigns = [
+      'superuser' => ['yoovsuper@gmail.com'],
+      'member' => ['yoovcoupon@gmail.com'],
+      'admin' => ['yoovcoupon@gmail.com']
+    ];
+    foreach($assigns as $role=>$emails) {
+      foreach($emails as $email) {
+        $user = User::whereEmail($email)->first();
+        if (isset($user)) {
+          Bouncer::assign($role)->to($user);
+        } else {
+          echo 'user "'.$user->email.'" not assigned.'.PHP_EOL;
+        }
+      }
+    }
+    return 'ok';
 });

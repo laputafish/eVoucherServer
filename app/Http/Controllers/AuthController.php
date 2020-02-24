@@ -81,7 +81,10 @@ class AuthController extends Controller
    */
   public function me()
   {
-    return response()->json(auth('api')->user());
+    return response()->json([
+      'status' => true,
+      'result' => auth('api')->user()
+    ]);
   }
 
   /**
@@ -197,8 +200,6 @@ class AuthController extends Controller
 
   public function register(Request $request)
   {
-    User::truncate();
-
     $newUser = $request->all();
 
     // check email
