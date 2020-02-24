@@ -100,8 +100,9 @@ return [
     |
     */
 
-    'ttl' => env('JWT_TTL', 1440), // 1 day
-//    'ttl' => env('JWT_TTL', 60), // 1 hour
+//    'ttl' => env('JWT_TTL', null), // 1 day
+//    'ttl' => env('JWT_TTL', l440), // 1 day
+    'ttl' => env('JWT_TTL', 60), // 1 hour
 //    'ttl' => env('JWT_TTL', 1), // 1 min
 
     /*
@@ -151,7 +152,7 @@ return [
     'required_claims' => [
         'iss',
         'iat',
-        'exp',
+//        'exp',
         'nbf',
         'sub',
         'jti',
@@ -185,7 +186,7 @@ return [
     |
     */
 
-    'blacklist_enabled' => env('JWT_BLACKLIST_ENABLED', true),
+    'blacklist_enabled' => env('JWT_BLACKLIST_ENABLED', false),
 
     /*
     | -------------------------------------------------------------------------

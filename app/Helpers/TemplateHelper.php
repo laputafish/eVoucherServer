@@ -6,10 +6,21 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class TemplateHelper {
   public static function processTemplate($template, $qrCodeSize, $params) {
     $qrCode = '';
+
+    // Fill QR Code
+//    if (!empty($params['qr_code'])) {
+//      $qrCode = QrCode::margin(0)->size($qrCodeSize)->generate($params['qr_code']);
+//    }
+//    $template = str_replace('{qr_code}', $qrCode, $template);
+
+    // Fill Barcode
     if (!empty($params['qr_code'])) {
-      $qrCode = QrCode::margin(0)->size($qrCodeSize)->generate($params['qr_code']);
+      $imgBase64 = \DNS1D::getBarcodePNG($params['qr_code'], 'C128', 2, 30);
+      $qrCode = '<img src="data:image/png;base64,'.$imgBase64.'" alt="barcode" />';
     }
     $template = str_replace('{qr_code}', $qrCode, $template);
+
+    // Fill fields
     foreach($params as $key=>$value) {
       $template = str_replace( '{'.$key.'}', $value, $template);
     }

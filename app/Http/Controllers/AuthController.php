@@ -103,7 +103,7 @@ class AuthController extends Controller
 
     auth('api')->logout();
 //    $token = request()->get('token');
-//    JWTAuth::invalidate(JWTAuth::getToken());
+    JWTAuth::invalidate(JWTAuth::getToken());
 
     return response()->json(['message' => 'Successfully logged out']);
   }
@@ -119,7 +119,27 @@ class AuthController extends Controller
    */
   public function refresh()
   {
-    return $this->respondWithToken(auth('api')->refresh());
+//    return $this->respondWithToken(auth('api')->refresh());
+
+    $token = \JWTAuth::getToken();
+    if (!$token) {
+      return response()->json([
+        'status'  => 'error',
+        'message' => 'Token no proporcionado.',
+        'data'    => null
+      ], 401);
+    }
+
+    $token = \JWTAuth::refresh(false); // <--- THE FIX
+
+    return response()->json([
+      'status' => true,
+      'result' => [
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'expires_in' => 0
+      ]
+    ]);
   }
 
   /**

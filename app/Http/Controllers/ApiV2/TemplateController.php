@@ -103,7 +103,10 @@ class TemplateController extends BaseController
   public function view($key) {
     $leaflet = $this->model->where('key', $key)->first();
     $params =  unserialize($leaflet->params);
-    $processed = TemplateHelper::processTemplate($leaflet->template, $leaflet->qr_code_size, $params);
+    $processed = TemplateHelper::processTemplate(
+      $leaflet->template,
+      $leaflet->qr_code_size,
+      $params);
 
     return view('templates.leaflet', [
       'title' => $leaflet->title,
