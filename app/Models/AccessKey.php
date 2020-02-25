@@ -14,8 +14,7 @@ class AccessKey extends Model
     'key',
     'module',
     'command',
-    'params',
-    'remark'
+    'params'
   ];
 
   public function user() {

@@ -111,3 +111,22 @@ Route::get('/register/info2', function() {
   return 'register info2';
 });
 
+Route::get('/clear_cache', function() {
+  \Artisan::call('cache:clear');
+  echo 'Cache is cleared.'.PHP_EOL;
+
+  \Artisan::call('route:clear');
+  echo 'Route is cleared.'.PHP_EOL;
+
+  \Artisan::call('config:clear');
+  echo 'Config is cleared.'.PHP_EOL;
+
+  \Artisan::call('view:clear');
+  echo 'View is cleared.'.PHP_EOL;
+});
+
+Route::get('/updateapp', function()
+{
+  \Artisan::call('dump-autoload');
+  echo 'dump-autoload complete';
+});

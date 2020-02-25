@@ -3,8 +3,6 @@
 use App\Models\TemplateKey;
 use App\Models\Voucher;
 
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-
 class TemplateHelper {
   private static function findCodeConfig($codeConfigs, $codeGroup) {
     $result = null;
