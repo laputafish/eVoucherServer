@@ -39,4 +39,8 @@ class Voucher extends Model
   public function agent() {
     return $this->belongsTo('App\Models\Agent');
   }
+
+  public function codeConfigs() {
+    return $this->hasMany('App\Models\VoucherCodeConfig');
+  }
 }

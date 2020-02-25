@@ -234,13 +234,16 @@ class BaseModuleController extends BaseController
   //****************
   //    Show
   //****************
-  public function show($id)
+  public function show(Request $request, $id)
   {
     if ($id == 0) {
       $record = $this->getBlankRecord();
     } else {
-      $record = $this->getRow($id)->toArray();
+      $row = $this->getRow($id);
+      $row = $this->onShowDataReady($request, $row);
+      $record = $row->toArray();
     }
+
     return response()->json([
       'status' => true,
       'result' => [
@@ -249,6 +252,9 @@ class BaseModuleController extends BaseController
     ]);
   }
 
+  protected function onShowDataReady($request, $row) {
+    return $row;
+  }
   public function getRow($id)
   {
     $row = $this->model->find($id);

@@ -26,7 +26,8 @@ class TemplateController extends BaseController
     $new = $this->model->create([
       'user_id' => 0,
       'title' => $record['description'],
-      'qr_code_size' => $record['qr_code_size'],
+      'code_configs' => serialize($record['code_configs']),
+//      'qr_code_size' => $record['qr_code_size'],
       'key' => $key,
       'template' => $record['template'],
       'params' => serialize($params)
@@ -82,16 +83,9 @@ class TemplateController extends BaseController
       $voucherCode
     );
 
-//    return view('templates.leaflet', [
-//      'title' => 'xx',
-//      'template' => $voucher->template
-//    ]);
-//
-//    return response()->json(['code'=>$voucher->template]);
-
     $result = TemplateHelper::processTemplate(
       $voucher->template,
-      $voucher->qr_code_size,
+      $voucher->codeConfigs,
       $params
     );
     return response()->json([
@@ -105,7 +99,7 @@ class TemplateController extends BaseController
     $params =  unserialize($leaflet->params);
     $processed = TemplateHelper::processTemplate(
       $leaflet->template,
-      $leaflet->qr_code_size,
+      $leaflet->codeConfigs,
       $params);
 
     return view('templates.leaflet', [

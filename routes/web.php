@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Voucher;
+use App\Models\VoucherCodeConfig;
 use App\User;
 
 
@@ -77,4 +78,67 @@ Route::get('assign_roles', function() {
       }
     }
     return 'ok';
+});
+
+Route::get('fix_code_composition', function() {
+  $vouchers = Voucher::all();
+  foreach($vouchers as $voucher) {
+    if (!is_null($voucher->qr_code_composition) && !empty($voucher->qr_code_composition)) {
+      $qrcodeConfig = $voucher->codeConfigs()->where('code_group', 'qrcode')->first();
+      $qrcodeConfig->update([
+        'composition' => $voucher->qr_code_composition ?: '',
+        'width' => $voucher->qr_code_size,
+        'height' => $voucher->qr_code_size
+      ]);
+      $voucher->qr_code_composition = '';
+      $voucher->save();
+    }
+  }
+  return 'ok';
+});
+
+Route::get('init_code_configs', function() {
+  $vouchers = Voucher::all();
+  foreach($vouchers as $voucher) {
+    if ($voucher->codeConfigs()->count()<2) {
+      $qrCodeConfig = $voucher->codeConfigs()->where('code_group', 'qrcode')->first();
+      if (is_null($qrCodeConfig)) {
+        // if no qrcode config
+        $codeConfig = new VoucherCodeConfig([
+          'composition' => $voucher->qr_code_composition ?: '',
+          'width' => $voucher->qr_code_size,
+          'height' => $voucher->qr_code_size,
+          'code_group' => 'qrcode',
+          'code_type' => 'QRCODE'
+        ]);
+        $voucher->codeConfigs()->save($codeConfig);
+      } else {
+        // if new config exist
+        if (!empty(trim($voucher->qr_code_composition))) {
+          $qrCodeConfig->update([
+            'composition' => $voucher->qr_code_composition ?: '',
+            'width' => $voucher->qr_code_size,
+            'height' => $voucher->qr_code_size,
+          ]);
+        }
+      }
+      if (!is_null($voucher->qr_code_composition) && !empty($voucher->qr_code_composition)) {
+        $voucher->qr_code_composition = '';
+        $voucher->save();
+      }
+
+      $barcodeConfig = $voucher->codeConfigs()->where('code_group', 'barcode')->first();
+      if (is_null($barcodeConfig)) {
+        $barcodeConfig = new VoucherCodeConfig([
+          'composition' => '',
+          'width' => 3,
+          'height' => 67,
+          'code_group' => 'barcode',
+          'code_type' => 'C128'
+        ]);
+        $voucher->codeConfigs()->save($barcodeConfig);
+      }
+    }
+  }
+  return 'ok';
 });

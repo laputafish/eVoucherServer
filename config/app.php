@@ -168,7 +168,6 @@ return [
      * Package Service Providers...
      */
     Maatwebsite\Excel\ExcelServiceProvider::class,
-    SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
     Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
     Milon\Barcode\BarcodeServiceProvider::class,
 
@@ -231,7 +230,6 @@ return [
 
     'Input' => Illuminate\Support\Facades\Input::class,
     'Excel' => Maatwebsite\Excel\Facades\Excel::class,
-    'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
     'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
     'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
 
