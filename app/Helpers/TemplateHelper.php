@@ -29,7 +29,7 @@ class TemplateHelper {
 //    echo 'qrcode width = '.$codeConfig->width.PHP_EOL;
 //    echo 'qrcode height = '.$codeConfig->height.PHP_EOL;
     if (isset($codeConfig) && !empty($params['qrcode'])) {
-      $imgBase64 = \DNS2D::getBarcodePNG($params['qrcode'], $codeConfig->code_type, 20,20); // $codeConfig->width, $codeConfig->height);
+      $imgBase64 = \DNS2D::getBarcodePNG($params['qrcode'], $codeConfig->code_type, $codeConfig->width, $codeConfig->width); // $codeConfig->width, $codeConfig->height);
       $qrCode = '<img src="data:image/png;base64,'.$imgBase64.'" alt="qrcode" />';
     }
     $template = str_replace('{qrcode}', $qrCode, $template);

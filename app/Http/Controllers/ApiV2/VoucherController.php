@@ -222,50 +222,44 @@ class VoucherController extends BaseModuleController
 
   private function saveCodeConfigs($id, $codeConfigs) {
     $voucher = $this->model->find($id);
-    $inputIds = array_map(function($codeInfo) {
-      return $codeInfo['id'];
-    }, $codeInfos);
+    $inputIds = array_map(function($codeConfig {
+      return $codeConfig['id'];
+    }, $codeConfigs);
 
     // Delete obsolate codes
     $voucher->codeConfigs()->whereNotIn('id', $inputIds)->delete();
 
     // Add/Update
-    $existingIds = $voucher->codeInfos()->pluck('id')->toArray();
+    $existingIds = $voucher->$codeConfigs()->pluck('id')->toArray();
     $newIds = array_diff($inputIds, $existingIds);
     $keepIds = array_intersect($inputIds, $existingIds);
 
     // add new record
-    array_walk($codeInfos, function($walkingCodeInfo) use($voucher, $newIds, $keepIds) {
-      if (in_array($walkingCodeInfo['id'], $newIds)) {
-        $codeInfo = new VoucherCode([
-          'order' => $walkingCodeInfo['order'],
-          'code' => $walkingCodeInfo['code'],
-          'extra_fields' => $walkingCodeInfo['extra_fields'],
-          'sent_on' => $walkingCodeInfo['sent_on'],
-          'remark' => $walkingCodeInfo['remark'],
-          'status' => $walkingCodeInfo['status']
+    array_walk($codeConfigs, function($walkingCodeConfig) use($voucher, $newIds, $keepIds) {
+      if (in_array($walkingCodeConfig['id'], $newIds)) {
+        $codeConfig = new VoucherCodeConfig([
+          'composition' => $walkingCodeConfig['composition'],
+          'code_group' => $walkingCodeConfig['code_group'],
+          'code_type' => $walkingCodeConfig['code_type'],
+          'width' => $walkingCodeConfig['width'],
+          'height' => $walkingCodeConfig['height']
         ]);
-        $voucher->codeInfos()->save($codeInfo);
-      } else if (in_array($walkingCodeInfo['id'], $keepIds)) {
-        $codeInfo = $voucher->codeInfos()->find($walkingCodeInfo['id']);
-        if (isset($codeInfo)) {
-          $codeInfo->update([
-            'order' => $walkingCodeInfo['order'],
-            'code' => $walkingCodeInfo['code'],
-            'extra_fields' => $walkingCodeInfo['extra_fields'],
-            'sent_on' => $walkingCodeInfo['sent_on'],
-            'remark' => $walkingCodeInfo['remark'],
-            'status' => $walkingCodeInfo['status']
+        $voucher->codeConfigs()->save($codeConfig);
+      } else if (in_array($walkingCodeConfig['id'], $keepIds)) {
+        $codeConfig = $voucher->codeConfigs()->find($walkingCodeConfig['id']);
+        if (isset($codeConfig)) {
+          $codeConfig->update([
+            'composition' => $walkingCodeConfig['composition'],
+            'code_group' => $walkingCodeConfig['code_group'],
+            'code_type' => $walkingCodeConfig['code_type'],
+            'width' => $walkingCodeConfig['width'],
+            'height' => $walkingCodeConfig['height']
           ]);
-//          if (is_null($codeInfo->key) || empty($codeInfo->key)) {
-//            $codeInfo->key = newKey();
-//            $codeInfo->save();
-//          }
         }
       }
     });
-    $codeInfosNoKey = $voucher->codeInfos()->where('key', '')->orWhere('key', null)->get();
-    foreach($codeInfosNoKey as $row) {
+    $codeConfigsNoKey = $voucher->codeConfigs()->where('key', '')->orWhere('key', null)->get();
+    foreach($codeConfigsNoKey as $row) {
       $row->key = newKey();
       $row->save();
     }
