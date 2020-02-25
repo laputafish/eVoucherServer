@@ -10,7 +10,7 @@ class TempLeaflet extends Model
   protected $fillable = [
     'key',
     'title',
-    'qr_code_size',
+    'code_configs',
     'template',
     'params'
   ];

@@ -27,7 +27,6 @@ class TemplateController extends BaseController
       'user_id' => 0,
       'title' => $record['description'],
       'code_configs' => serialize($record['code_configs']),
-//      'qr_code_size' => $record['qr_code_size'],
       'key' => $key,
       'template' => $record['template'],
       'params' => serialize($params)
@@ -58,10 +57,10 @@ class TemplateController extends BaseController
     if (isset($leaflet)) {
       $result = TemplateHelper::processTemplate(
         $leaflet->template,
-        $leaflet->qr_code_size,
+        unserialize($leaflet->code_configs),
         unserialize($leaflet->params)
       );
-      TempLeaflet::where('key', $key)->delete();
+      // TempLeaflet::where('key', $key)->delete();
     } else {
       $status = false;
       $result = [
@@ -77,9 +76,10 @@ class TemplateController extends BaseController
   private function processLeaflet($key) {
     $voucherCode = VoucherCode::where('key', $key)->first();
     $voucher = $voucherCode->voucher;
+    $voucher->codeConfigs;
 
     $params = TemplateHelper::createParams(
-      $voucher,
+      $voucher->toArray(),
       $voucherCode
     );
 

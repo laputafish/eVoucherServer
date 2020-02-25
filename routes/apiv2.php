@@ -105,6 +105,8 @@ Route::get('/info', function() {
   return $result;
 });
 
+Route::get('/system/config', 'SystemController@getConfig');
+
 Route::get('/register/info2', function() {
   return 'register info2';
 });

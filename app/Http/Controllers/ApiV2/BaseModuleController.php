@@ -282,4 +282,8 @@ class BaseModuleController extends BaseController
   {
   }
 
+  protected function getInput($rules) {
+    $input = \Input::only(array_keys($rules));
+    return $input;
+  }
 }

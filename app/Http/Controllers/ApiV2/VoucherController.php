@@ -4,6 +4,7 @@ use App\Models\Menu;
 use App\Models\Voucher;
 use App\Models\Agent;
 use App\Models\VoucherCode;
+use app\Models\VoucherCodeConfig;
 
 use App\Helpers\AccessKeyHelper;
 
@@ -154,8 +155,25 @@ class VoucherController extends BaseModuleController
       'qr_code_composition' => '',
       'status' => 'pending',
       'code_fields' => '',
-      'codeInfos' => [],
-      'codeConfigs' => [],
+      'code_infos' => [],
+      'code_configs' => [
+        [
+          'id' => 0,
+          'composition' => '',
+          'code_group' => 'qrcode',
+          'code_type' => 'QRCODE',
+          'width' => 13,
+          'height' => 13
+        ],
+        [
+          'id' => 0,
+          'composition' => '',
+          'code_group' => 'barcode',
+          'code_type' => 'C128',
+          'width' => 3,
+          'height' => 67
+        ]
+      ],
     ];
   }
 
@@ -222,7 +240,7 @@ class VoucherController extends BaseModuleController
 
   private function saveCodeConfigs($id, $codeConfigs) {
     $voucher = $this->model->find($id);
-    $inputIds = array_map(function($codeConfig {
+    $inputIds = array_map(function($codeConfig) {
       return $codeConfig['id'];
     }, $codeConfigs);
 
@@ -230,12 +248,15 @@ class VoucherController extends BaseModuleController
     $voucher->codeConfigs()->whereNotIn('id', $inputIds)->delete();
 
     // Add/Update
-    $existingIds = $voucher->$codeConfigs()->pluck('id')->toArray();
+    $existingIds = $voucher->codeConfigs()->pluck('id')->toArray();
     $newIds = array_diff($inputIds, $existingIds);
     $keepIds = array_intersect($inputIds, $existingIds);
 
     // add new record
     array_walk($codeConfigs, function($walkingCodeConfig) use($voucher, $newIds, $keepIds) {
+      if ($walkingCodeConfig['code_group'] == 'qrcode') {
+        $walkingCodeConfig['height'] = $walkingCodeConfig['width'];
+      }
       if (in_array($walkingCodeConfig['id'], $newIds)) {
         $codeConfig = new VoucherCodeConfig([
           'composition' => $walkingCodeConfig['composition'],
@@ -258,11 +279,6 @@ class VoucherController extends BaseModuleController
         }
       }
     });
-    $codeConfigsNoKey = $voucher->codeConfigs()->where('key', '')->orWhere('key', null)->get();
-    foreach($codeConfigsNoKey as $row) {
-      $row->key = newKey();
-      $row->save();
-    }
   }
   private function saveVoucherCodes($id, $codeInfos) {
     $voucher = $this->model->find($id);

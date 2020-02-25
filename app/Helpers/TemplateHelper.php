@@ -1,9 +1,36 @@
 <?php namespace App\Helpers;
 
 use App\Models\TemplateKey;
+use App\Models\Voucher;
+
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TemplateHelper {
+  private static function findCodeConfig($codeConfigs, $codeGroup) {
+    $result = null;
+    for($i = 0; $i < count($codeConfigs); $i++) {
+      if ($codeConfigs[$i]['code_group'] == $codeGroup) {
+        $result = $codeConfigs[$i];
+        break;
+      }
+    }
+    return $result;
+  }
+
+  private static function getCodeImage($codeConfigs, $params, $codeGroup) {
+    $result = '';
+    $codeConfig = static::findCodeConfig($codeConfigs, $codeGroup);
+    if (isset($codeConfig) && !empty($params[$codeGroup])) {
+      if ($codeGroup === 'qrcode') {
+        $imgBase64 = \DNS2D::getBarcodePNG($params[$codeGroup], $codeConfig['code_type'], $codeConfig['width'], $codeConfig['width']);
+      } else {
+        $imgBase64 = \DNS1D::getBarcodePNG($params[$codeGroup], $codeConfig['code_type'], $codeConfig['width'], $codeConfig['height']);
+      }
+      $result = '<img src="data:image/png;base64,' . $imgBase64 . '" alt="'.$codeGroup.'" />';
+    }
+    return $result;
+  }
+
   public static function processTemplate($template, $codeConfigs, $params) {
 
     // Fill QR Code
@@ -13,25 +40,11 @@ class TemplateHelper {
 //    $template = str_replace('{qr_code}', $qrCode, $template);
 
     // Fill Barcode
-    $barcode = '';
-    $codeConfig = $codeConfigs->where('code_group', 'barcode')->first();
-//    echo 'barcode width = '.$codeConfig->width.PHP_EOL;
-//    echo 'barcode height = '.$codeConfig->height.PHP_EOL;
-    if (isset($codeConfig) && !empty($params['barcode'])) {
-      $imgBase64 = \DNS1D::getBarcodePNG($params['barcode'], $codeConfig->code_type, $codeConfig->width, $codeConfig->height);
-      $barcode = '<img src="data:image/png;base64,' . $imgBase64 . '" alt="barcode" />';
-    }
+    $barcode = static::getCodeImage($codeConfigs, $params, 'barcode');
     $template = str_replace('{barcode}', $barcode, $template);
 
     // Fill  QR Code
-    $qrCode = '';
-    $codeConfig = $codeConfigs->where('code_group', 'qrcode')->first();
-//    echo 'qrcode width = '.$codeConfig->width.PHP_EOL;
-//    echo 'qrcode height = '.$codeConfig->height.PHP_EOL;
-    if (isset($codeConfig) && !empty($params['qrcode'])) {
-      $imgBase64 = \DNS2D::getBarcodePNG($params['qrcode'], $codeConfig->code_type, $codeConfig->width, $codeConfig->width); // $codeConfig->width, $codeConfig->height);
-      $qrCode = '<img src="data:image/png;base64,'.$imgBase64.'" alt="qrcode" />';
-    }
+    $qrCode = static::getCodeImage($codeConfigs, $params, 'qrcode');
     $template = str_replace('{qrcode}', $qrCode, $template);
 
     // Fill fields
@@ -64,9 +77,15 @@ class TemplateHelper {
 //    return '';
 
     $valueStr = '';
-    $codeConfig = $codeConfigs->where('code_group', $codeGroup)->first();
+    $codeConfig = null;
+    for($i = 0; $i < count($codeConfigs); $i++) {
+      if ($codeConfigs[$i]['code_group'] == $codeGroup) {
+        $codeConfig = $codeConfigs[$i];
+        break;
+      }
+    }
     if (isset($codeConfig)) {
-      $valueStr = $codeConfig->composition;
+      $valueStr = $codeConfig['composition'];
       foreach ($params as $key => $value) {
         $valueStr = str_replace('{' . $key . '}', $value, $valueStr);
       }
@@ -74,27 +93,29 @@ class TemplateHelper {
     return $valueStr;
   }
 
-  public static function createParams($record, $codeInfo) {
+  public static function createParams($arRecord, $codeInfo) {
     $templateKeys = TemplateKey::all();
-    $voucherParams = static::createVoucherParams($record, $templateKeys);
-    $codeParams = static::createCodeParams($codeInfo, $record->code_fields, $templateKeys);
+    $voucherParams = static::createVoucherParams($arRecord, $templateKeys);
+    $codeParams = static::createCodeParams($codeInfo, $arRecord['code_fields'], $templateKeys);
     $basicParams = array_merge($voucherParams, $codeParams);
 
-    $imageCodeParams = static::createImageCodeParams($basicParams, $record->codeConfigs);
+    $imageCodeParams = static::createImageCodeParams($basicParams, $arRecord['code_configs']);
 //    $qrCodeParams = static::createQrCodeParams($basicParams, $record['qr_code_composition']);
     return array_merge($imageCodeParams, $basicParams);
   }
 
-  public static function createVoucherParams($record, $templateKeys) {
+  public static function createVoucherParams($arRecord, $templateKeys) {
     $keyInfos = $templateKeys->filter(function($obj) {
       return in_array($obj->category, ['voucher', 'agent']);
     });
+
+    $voucher = Voucher::find($arRecord['id']);
 
     $result = [];
     foreach($keyInfos as $keyInfo) {
       $fieldPath = $keyInfo->field_path;
       $fieldSegs = explode('.', $fieldPath);
-      $value = $record;
+      $value = $voucher;
       for($i = 0; $i < count($fieldSegs); $i++) {
         $value = $value[$fieldSegs[$i]];
       }
