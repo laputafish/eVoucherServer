@@ -3,17 +3,55 @@
 use App\Models\Menu;
 use App\Models\Media;
 
+use App\Helpers\MediaHelper;
+
 class MediaController extends BaseController
 {
-  protected $modalName = 'Media';
+  protected $modelName = 'Media';
 
   public function __construct() {
     parent::__construct();
   }
+
+  public function index() {
+    $images = $this->model->all();
+    return response()->json([
+      'status' => true,
+      'result' => $images
+    ]);
+  }
+
+  public function uploadImage()
+  {
+    $outputDir = MediaHelper::checkMediaFolder();
+    if (isset($_FILES["file"])) {
+      if ($_FILES["file"]["error"] > 0) {
+        echo "Error: " . $_FILES["file"]["error"] . "		";
+      } else {
+        $originalName = $_FILES['file']['name'];
+        $filename = $this->createFilename($originalName);
+        $partialPath = $this->createPartialPath($filename);
+        $outputPath = $outputDir . '/' . $partialPath . '/' . $filename; //$_FILES["file"]["name"];
+        mkdir($outputDir . '/' . $partialPath, 0777, true);
+        move_uploaded_file($_FILES["file"]["tmp_name"], $outputPath);
+        $media = $this->addMedia($filename, $partialPath, 'image');
+        $fileType = pathinfo($originalName, PATHINFO_EXTENSION);
+
+        return response()->json([
+          'status' => 'ok',
+          'imageId' => $media->id,
+          'filename' => pathinfo($originalName, PATHINFO_FILENAME),
+          'fileType' => $fileType,
+          'imageUrl' => url('/media/image/'.$media->id)
+        ]);
+      }
+    } else {
+      return 'no';
+    }
+  }
   public function upload()
   {
     $outputDir = base_path('storage/app/temp'); //"uploads/";
-    // dd('FILES[file] = ' . $_FILES["file"]);
     if (isset($_FILES["file"])) {
       //Filter the file types , if you want.
       if ($_FILES["file"]["error"] > 0) {
@@ -89,5 +127,39 @@ class MediaController extends BaseController
     return $media;
   }
 
+  public function showImage($id, $size=null) {
+    $defaultImageFolder = 'images';
 
+    $media = Media::find($id);
+    if (!is_null($media)) {
+      $ext = pathinfo($media->filename, PATHINFO_EXTENSION);
+      $pathPrefix = $media->type == 'temp' ? 'temp' : $defaultImageFolder;
+      switch (strtolower($ext)) {
+        case 'jpg':
+        case 'png':
+        case 'gif':
+        case 'jpeg':
+          if ($media->type == 'image') {
+            if (!is_null($size) && is_file(storage_path('app/images_' . $size . '/' . $media->path . '/' . $media->filename))) {
+              $pathPrefix = 'images_' . $size;
+            }
+          }
+          $filePath = storage_path('app/' . $pathPrefix . '/' . $media->path . '/' . $media->filename);
+          if (file_exists($filePath)) {
+            $fileContent = \Storage::get($pathPrefix . '/' . $media->path . '/' . $media->filename);
+          } else {
+            $fileContent = file_get_contents(storage_path('images/missing_product_image.jpg'));
+          }
+          return Response($fileContent, 200)->header('Content-Type', 'image/' . $ext);
+      }
+    }
+    return response()->json([
+      'status'=>false,
+      'result'=>[
+        'messageTag'=>'fileNotFound',
+        'message' => 'File Not Found!'
+      ]
+    ]);
+
+  }
 }

@@ -82,6 +82,10 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 
   // Template
   Route::post('templates/create_temp', 'TemplateController@createTemp');
+
+  // Media
+  Route::post('media/upload', 'MediaController@uploadImage');
+  Route::resource('medias', 'MediaController');
 });
 
 Route::namespace('ApiV2')->group(function() {

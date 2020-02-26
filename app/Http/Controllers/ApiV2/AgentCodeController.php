@@ -75,8 +75,10 @@ class AgentCodeController extends BaseController
             }
           }
         }
+        unlink($tempFilePath);
       }
     }
+
     return response()->json([
       'status' => $status,
       'result' => [
