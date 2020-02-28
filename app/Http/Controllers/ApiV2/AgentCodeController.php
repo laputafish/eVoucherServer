@@ -26,10 +26,15 @@ class AgentCodeController extends BaseController
           $sheet0 = $ar[0];
           if (count($sheet0)>0) {
             $row0 = $sheet0[0];
+            // Cells of first row is heading/field names
             if (count($row0)>0) {
               // iterate on each cell
               $cells = [];
-              foreach($row0 as $loopCell) {
+              foreach($row0 as $i=>$loopCell) {
+//                echo 'cell #'.$i.': "'.$loopCell.'  is empty = '.(empty($loopCell) ? 'yes' : 'no').PHP_EOL;
+                if (empty($loopCell)) {
+                  break;
+                }
                  $cells[] = [
                    'title' => $loopCell,
                    'type' => 'string'
@@ -37,23 +42,30 @@ class AgentCodeController extends BaseController
               }
               $fields = $cells;
             }
-            for ($i = 1; $i <count($sheet0); $i++) {
+            for ($rowNo = 1; $rowNo <count($sheet0); $rowNo++) {
+//              echo 'rowNo: '.$rowNo.PHP_EOL;
               // check first cell if empty
-              if (!empty($sheet0[$i][0])) {
+              if (!empty($sheet0[$rowNo][0])) {
                 $cells = [];
-                for ($j = 0; $j < count($fields); $j++) {
-                  if ($j < count($sheet0[$i])) {
-                    $value = $sheet0[$i][$j];
+                for ($cellNo = 0; $cellNo < count($fields); $cellNo++) {
+//                  echo '    cellNo: '.$cellNo.PHP_EOL;
+                  if ($cellNo < count($sheet0[$rowNo])) {
+                    $value = $sheet0[$rowNo][$cellNo];
                     $type = getType($value);
-
+//                    echo 'value = '.$value.PHP_EOL;
+//                    echo 'value is ""'.($value == '' ? 'yes' : 'no').'  type='.$type.PHP_EOL;
+                    if (empty($value) || $type == 'null') {
+                      break;
+                    }
+//                    echo 'value='.$value.'   => type='.$type.PHP_EOL;
 //                    if ($type == 'integer') {
 //                      $value = $this->excel2Date($value).': '.$value;
 //                    }
-                    if ($type == 'integer' && $value >= 36526 && $value <= 55153) {
+                    if (($type == 'integer'||$type == 'double') && $value >= 36526 && $value <= 55153) {
                       $type = 'date';
                       $value = $this->excel2Date($value);
                     }
-                    $fields[$j]['type'] = $type;
+                    $fields[$cellNo]['type'] = $type;
                     $cells[] = $value;
                   } else {
                     $cells[] = '';
