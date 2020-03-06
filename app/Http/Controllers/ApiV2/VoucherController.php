@@ -4,7 +4,7 @@ use App\Models\Menu;
 use App\Models\Voucher;
 use App\Models\Agent;
 use App\Models\VoucherCode;
-use app\Models\VoucherCodeConfig;
+use App\Models\VoucherCodeConfig;
 
 use App\Helpers\AccessKeyHelper;
 
@@ -21,6 +21,24 @@ class VoucherController extends BaseModuleController
   protected $filterFields = [
     'description',
     'agent.name'
+  ];
+
+  protected $defaultQrcode = [
+    'id' => 0,
+    'composition' => '',
+    'code_group' => 'qrcode',
+    'code_type' => 'QRCODE',
+    'width' => 13,
+    'height' => 13
+  ];
+
+  protected $defaultBarcode = [
+    'id' => 0,
+    'composition' => '',
+    'code_group' => 'barcode',
+    'code_type' => 'C128',
+    'width' => 3,
+    'height' => 67
   ];
 
   protected $updateRules = [
@@ -48,9 +66,13 @@ class VoucherController extends BaseModuleController
   ];
 
   protected function onShowDataReady($request, $row) {
+    // include code configs
     $row->codeConfigs;
-    $this->checkOrInit($row->codeConfigs);
 
+//    $this->checkOrInit($row->codeConfigs);
+
+    // remove qr_code_composition
+    // this field is obsolate
     if (!empty(trim($row->qr_code_composition))) {
       $codeConfig = $row->codeConfigs->filter(function($config) {
         return $config->code_group === 'qrcode';
@@ -61,13 +83,14 @@ class VoucherController extends BaseModuleController
       $row->qr_code_composition = '';
       $row->save();
     }
+    unset($row->codeInfos);
     return $row;
   }
 
-  private function checkOrInit($codeConfigs) {
-
-  }
-
+//  private function checkOrInit($codeConfigs) {
+//
+//  }
+//
   protected function onIndexFilter($request, $query) {
     $query = parent::onIndexFilter($request, $query);
     if ($request->has('agentId')) {
@@ -144,7 +167,36 @@ class VoucherController extends BaseModuleController
     return $rows;
   }
 
-  public function getBlankRecord() {
+  public function show(Request $request, $id) {
+    if ($id == 0) {
+      $id = $this->createNewVoucher();
+    }
+    return parent::show($request, $id);
+  }
+
+  public function createNewVoucher() {
+    $newVoucher = [
+      'description' => '',
+      'agent_id' => Agent::first()->id,
+      'activation_date' => null,
+      'expiry_date' => null,
+      'template' => '',
+      'qr_code_composition' => '',
+      'status' => 'pending',
+      'code_fields' => ''
+    ];
+    $voucher = $this->model->create($newVoucher);
+
+    $defaultQrcode = new VoucherCodeConfig($this->defaultQrcode);
+    $voucher->codeConfigs()->save($defaultQrcode);
+
+    $defaultBarcode = new VoucherCodeConfig($this->defaultBarcode);
+    $voucher->codeConfigs()->save($defaultBarcode);
+    return $voucher->id;
+  }
+
+
+  public function getBlankRecord2() {
     return [
       'id' => 0,
       'description' => '',
@@ -155,31 +207,16 @@ class VoucherController extends BaseModuleController
       'qr_code_composition' => '',
       'status' => 'pending',
       'code_fields' => '',
-      'code_infos' => [],
       'code_configs' => [
-        [
-          'id' => 0,
-          'composition' => '',
-          'code_group' => 'qrcode',
-          'code_type' => 'QRCODE',
-          'width' => 13,
-          'height' => 13
-        ],
-        [
-          'id' => 0,
-          'composition' => '',
-          'code_group' => 'barcode',
-          'code_type' => 'C128',
-          'width' => 3,
-          'height' => 67
-        ]
+        $this->defaultQrCode,
+        $this->defaultBarcode
       ],
     ];
   }
 
   public function onUpdateComplete($request, $row) {
     $input = $request->all();
-    $this->saveVoucherCodes($row->id, $input['code_infos']);
+//    $this->saveVoucherCodes($row->id, $input['code_infos']);
     $this->saveCodeConfigs($row->id, $input['code_configs']);
     $this->saveEmails($row->id, $input['emails']);
   }
@@ -220,11 +257,12 @@ class VoucherController extends BaseModuleController
     ]);
     $id = $newRow->id;
 
-    $this->saveVoucherCodes($id,
-      array_key_exists('code_infos', $input) ?
-        $input['code_infos'] :
-        []
-    );
+//    $this->saveVoucherCodes($id,
+//      array_key_exists('code_infos', $input) ?
+//        $input['code_infos'] :
+//        []
+//    );
+
     $this->saveEmails($id,
       array_key_exists('emails', $input) ?
       $input['emails'] :
@@ -406,4 +444,32 @@ class VoucherController extends BaseModuleController
 //    ]);
 //  }
 
+  public function getCodes(Request $request, $id) {
+    $voucher = $this->model->find($id);
+    if (isset($voucher)) {
+      if ($request->has('page')) {
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 20);
+        $query = $voucher->codeInfos();
+        $totalCount = $query->count();
+        $lastPage = ceil($totalCount / $limit);
+        if ($page > $lastPage) {
+          $page = $lastPage;
+        }
+        // $data = $query->get();
+        $offset = ($page - 1) * $limit;
+        $data = $query->skip($offset)->take($limit)->get();
+        $pagedData = new \Illuminate\Pagination\LengthAwarePaginator($data, $totalCount, $limit, $page);
+        $result = $pagedData;
+        return response()->json([
+          'status' => true,
+          'result' => $result
+        ]);
+      }
+    }
+    return response()->json([
+      'status' => true,
+      'result' => []
+    ]);
+  }
 }

@@ -242,6 +242,8 @@ class BaseModuleController extends BaseController
       $row = $this->getRow($id);
       $row = $this->onShowDataReady($request, $row);
       $record = $row->toArray();
+
+
     }
 
     return response()->json([
