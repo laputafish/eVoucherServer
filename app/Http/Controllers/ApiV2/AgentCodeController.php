@@ -31,7 +31,6 @@ class AgentCodeController extends BaseController
               // iterate on each cell
               $cells = [];
               foreach($row0 as $i=>$loopCell) {
-//                echo 'cell #'.$i.': "'.$loopCell.'  is empty = '.(empty($loopCell) ? 'yes' : 'no').PHP_EOL;
                 if (empty($loopCell)) {
                   break;
                 }
@@ -43,24 +42,16 @@ class AgentCodeController extends BaseController
               $fields = $cells;
             }
             for ($rowNo = 1; $rowNo <count($sheet0); $rowNo++) {
-//              echo 'rowNo: '.$rowNo.PHP_EOL;
               // check first cell if empty
               if (!empty($sheet0[$rowNo][0])) {
                 $cells = [];
                 for ($cellNo = 0; $cellNo < count($fields); $cellNo++) {
-//                  echo '    cellNo: '.$cellNo.PHP_EOL;
                   if ($cellNo < count($sheet0[$rowNo])) {
                     $value = $sheet0[$rowNo][$cellNo];
                     $type = getType($value);
-//                    echo 'value = '.$value.PHP_EOL;
-//                    echo 'value is ""'.($value == '' ? 'yes' : 'no').'  type='.$type.PHP_EOL;
                     if (empty($value) || $type == 'null') {
                       break;
                     }
-//                    echo 'value='.$value.'   => type='.$type.PHP_EOL;
-//                    if ($type == 'integer') {
-//                      $value = $this->excel2Date($value).': '.$value;
-//                    }
                     if (($type == 'integer'||$type == 'double') && $value >= 36526 && $value <= 55153) {
                       $type = 'date';
                       $value = $this->excel2Date($value);
