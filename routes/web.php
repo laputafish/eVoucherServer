@@ -14,6 +14,8 @@ use App\User;
 //  Route::get('coupons/{key}', 'TemplateController@view');
 //});
 
+Route::get('/media/image/{id}/{size?}', 'ApiV2\MediaController@showImage');
+
 Route::get('/get_data', function() {
   for ($i = 0; $i < 2000; $i++) {
     Voucher::create([

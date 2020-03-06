@@ -28,9 +28,9 @@ class BaseModuleController extends BaseController
 
     $query = $this->onIndexJoin($query);
 
-    $query = $this->onIndexSelect($request, $query);
-
-    $query = $this->onIndexFilter($request, $query);
+//    $query = $this->onIndexSelect($request, $query);
+//
+//    $query = $this->onIndexFilter($request, $query);
 
 //    print_r($rows->toArray());
 //    echo PHP_EOL.PHP_EOL;
@@ -54,10 +54,6 @@ class BaseModuleController extends BaseController
       $data = $query->skip($offset)->take($limit)->get();
 
       $pagedData = new \Illuminate\Pagination\LengthAwarePaginator($data, $totalCount, $limit, $page);
-//      $offset = ($page - 1) * $limit;
-
-//      $pagedData = $query->skip($offset)->take($limit)->get();
-
       $pagedData->setCollection($this->onIndexDataReady($request, $pagedData->getCollection()));
       $result = $pagedData;
     } else {
@@ -219,12 +215,6 @@ class BaseModuleController extends BaseController
 
   protected function onIndexOrderBy($query)
   {
-//    echo 'onIndexOrderBy: '.PHP_EOL;
-//    echo 'query: ';
-//    return $query;
-//    if(is_null($query)) {
-//      echo 'onIndexOrderBy: null'.PHP_EOL;
-//    }
     if (!empty($this->orderBy)) {
       $query->orderBy($this->orderBy, $this->orderDirection);
     }
@@ -242,6 +232,8 @@ class BaseModuleController extends BaseController
       $row = $this->getRow($id);
       $row = $this->onShowDataReady($request, $row);
       $record = $row->toArray();
+
+
     }
 
     return response()->json([
@@ -252,12 +244,18 @@ class BaseModuleController extends BaseController
     ]);
   }
 
+  protected function onShowWith($query) {
+    return $query;
+  }
+
   protected function onShowDataReady($request, $row) {
     return $row;
   }
   public function getRow($id)
   {
-    $row = $this->model->find($id);
+    $query = $this->model;
+    $query = $this->onShowWith($query);
+    $row = $query->find($id);
     return $row;
   }
 

@@ -19,10 +19,10 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings
   public function headings(): array
   {
     $voucher = Voucher::find($this->voucherId);
-    $this->codeFieldNames = $this->getCodeFieldNames($voucher->code_fields);
+    $this->codeFields = $this->getCodeFields($voucher->code_fields);
     $headingLabels = [];
-    foreach($this->codeFieldNames as $fieldName) {
-      $headingLabels[] = $fieldName;
+    foreach($this->codeFields as $codeField) {
+      $headingLabels[] = $codeField['fieldName'];
     }
     $headingLabels[] = 'Key';
     $headingLabels[] = 'Link';
@@ -32,12 +32,15 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings
     return $headingLabels;
   }
 
-  private function getCodeFieldNames($codeFieldsStr) {
+  private function getCodeFields($codeFieldsStr) {
     $fieldInfos = explode('|', $codeFieldsStr);
     $result = [];
     foreach($fieldInfos as $fieldInfo) {
       $keyValue = explode(':', $fieldInfo);
-      $result[] = $keyValue[0];
+      $result[] = [
+        'fieldName' => $keyValue[0],
+        'fieldType' => $keyValue[1]
+      ];
     }
     return $result;
   }
@@ -48,7 +51,8 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings
       $excelCells = [$row->code];
       if (!empty(trim($row->extra_fields))) {
         $extraFields = explode('|', $row->extra_fields);
-        foreach ($extraFields as $fieldValue) {
+        foreach ($extraFields as $i=>$fieldValue) {
+          $fieldType = $this->codeFields[$i+1]['fieldType'];
           $excelCells[] = $fieldValue;
         }
       }

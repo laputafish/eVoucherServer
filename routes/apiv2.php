@@ -68,6 +68,8 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   // Vouchers
   Route::post('vouchers/{id}/export', 'VoucherController@export');
   Route::resource('vouchers', 'VoucherController');
+  Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
+  Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 
   // Agents
   Route::resource('agents', 'AgentController');
@@ -82,6 +84,10 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 
   // Template
   Route::post('templates/create_temp', 'TemplateController@createTemp');
+
+  // Media
+  Route::post('media/upload', 'MediaController@uploadImage');
+  Route::resource('medias', 'MediaController');
 });
 
 Route::namespace('ApiV2')->group(function() {
