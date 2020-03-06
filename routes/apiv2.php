@@ -69,6 +69,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::post('vouchers/{id}/export', 'VoucherController@export');
   Route::resource('vouchers', 'VoucherController');
   Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
+  Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 
   // Agents
   Route::resource('agents', 'AgentController');

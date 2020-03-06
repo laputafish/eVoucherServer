@@ -102,7 +102,7 @@ return [
 
 //    'ttl' => env('JWT_TTL', null), // 1 day
 //    'ttl' => env('JWT_TTL', l440), // 1 day
-    'ttl' => env('JWT_TTL', 60), // 1 hour
+    'ttl' => env('JWT_TTL', 4320), // 1 hour
 //    'ttl' => env('JWT_TTL', 1), // 1 min
 
     /*
