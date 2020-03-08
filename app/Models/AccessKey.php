@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class AccessKey extends Model
 {
+  protected $primaryKey = null;
+  public $incrementing = false;
+
   protected $fillable = [
     'user_id',
     'key',

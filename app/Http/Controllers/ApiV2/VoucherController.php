@@ -20,6 +20,7 @@ class VoucherController extends BaseModuleController
 
   protected $filterFields = [
     'description',
+    'notes',
     'agent.name'
   ];
 
@@ -43,6 +44,7 @@ class VoucherController extends BaseModuleController
 
   protected $updateRules = [
     'description' => 'nullable|string',
+    'notes' => 'nullable|string',
     'agent_id' => 'required|integer',
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
@@ -55,6 +57,7 @@ class VoucherController extends BaseModuleController
 
   protected $storeRules = [
     'description' => 'nullable|string',
+    'notes' => 'nullable|string',
     'agent_id' => 'required|integer',
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
@@ -63,6 +66,16 @@ class VoucherController extends BaseModuleController
     'qr_code_composition' => 'nullable|string',
     'code_fields' => 'nullable|string',
     'status' => 'nullable|string'
+  ];
+
+  protected $updateRulesCode = [
+    'order' => 'nullable|integer',
+    'code' => 'string',
+    'extra_fields' => 'nullable|string',
+    'key' => 'string',
+    'sent_on' => 'nullable|date',
+    'status' => 'in:pending,ready,completed',
+    'remark' => 'nullable|string'
   ];
 
   public function indexxx(Request $request)
@@ -183,7 +196,7 @@ class VoucherController extends BaseModuleController
   protected function onIndexSelect($request, $query)
   {
     if ($request->get('type', '') == 'selection') {
-      $query = $query->select('id', 'description', 'created_at', 'code_count');
+      $query = $query->select('id', 'description', 'notes', 'created_at', 'code_count');
     } else {
       if ($request->has('select')) {
         $fields = explode(',', $request->get('select'));
@@ -284,6 +297,7 @@ class VoucherController extends BaseModuleController
     return [
       'id' => 0,
       'description' => '',
+      'notes' => '',
       'agent_id' => Agent::first()->id,
       'activation_date' => '',
       'expiry_date' => '',
@@ -318,6 +332,10 @@ class VoucherController extends BaseModuleController
     if (array_key_exists('emails', $input)) {
       $this->saveEmails($row->id, $input['emails']);
     }
+
+    $codeCount = $row->codeInfos()->count();
+    $row->code_count = $codeCount;
+    $row->save();
   }
 
 //  public function update($id) {
@@ -348,6 +366,7 @@ class VoucherController extends BaseModuleController
     $input = $request->validate($this->storeRules);
     $newRow = $this->model->create([
       'description' => is_null($input['description']) ? '' : $input['description'],
+      'notes' => is_null($input['notes']) ? '' : $input['notes'],
       'agent_id' => $input['agent_id'],
       'activation_date' => $input['activation_date'],
       'expiry_date' => $input['expiry_date'],
@@ -574,6 +593,22 @@ class VoucherController extends BaseModuleController
 //      'result' => $rows
 //    ]);
 //  }
+
+  public function updateCode(Request $request, $voucherId, $id) {
+    $status = false;
+    $result = [];
+    $input = $this->getInput($this->updateRulesCode);
+    $voucher = $this->model->find($voucherId);
+    if (isset($voucher)) {
+      $voucher->codeInfos()->whereId($id)->update($input);
+      $status = true;
+      $result = $voucher->codeInfos()->whereId($id)->first();
+    }
+    return response()->json([
+      'status' => $status,
+      'result' => $result
+    ]);
+  }
 
   public function getCodes(Request $request, $id)
   {

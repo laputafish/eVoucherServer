@@ -8,6 +8,7 @@ class Voucher extends Model
 {
   protected $fillable = [
     'description',
+    'notes',
     'agent_id',
     'activation_date',
     'expiry_date',
