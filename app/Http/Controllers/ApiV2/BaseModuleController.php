@@ -30,7 +30,7 @@ class BaseModuleController extends BaseController
 
 //    $query = $this->onIndexSelect($request, $query);
 //
-//    $query = $this->onIndexFilter($request, $query);
+    $query = $this->onIndexFilter($request, $query);
 
 //    print_r($rows->toArray());
 //    echo PHP_EOL.PHP_EOL;
@@ -224,6 +224,14 @@ class BaseModuleController extends BaseController
   //****************
   //    Show
   //****************
+  public function getRow($id)
+  {
+    $query = $this->model;
+    $query = $this->onShowWith($query);
+    $row = $query->find($id);
+    return $row;
+  }
+
   public function show(Request $request, $id)
   {
     if ($id == 0) {
@@ -251,13 +259,7 @@ class BaseModuleController extends BaseController
   protected function onShowDataReady($request, $row) {
     return $row;
   }
-  public function getRow($id)
-  {
-    $query = $this->model;
-    $query = $this->onShowWith($query);
-    $row = $query->find($id);
-    return $row;
-  }
+
 
   //****************
   //    Update

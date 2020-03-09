@@ -125,6 +125,16 @@ class VoucherController extends BaseModuleController
 //      ]
 //    ]);
 //  }
+
+  protected function onShowDataReady($request, $row) {
+    if ($row->codeInfos()->count()===0) {
+      if (!empty($row->code_fields)) {
+        $row->code_fields = '';
+        $row->save();
+      }
+    }
+    return $row;
+  }
   protected function onShowDataReady2($request, $row)
   {
     // include code configs
@@ -274,6 +284,7 @@ class VoucherController extends BaseModuleController
           'composition' => ''
         ]);
       $voucher->code_count = 0;
+      $voucher->code_fields = '';
       $voucher->save();
 
       return response()->json([
