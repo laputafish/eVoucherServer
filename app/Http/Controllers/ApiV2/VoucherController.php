@@ -108,6 +108,16 @@ class VoucherController extends BaseModuleController
     ]);
   }
 
+  protected function onUpdating($input) {
+    if (is_null($input['description'])) {
+      $input['description'] = '';
+    }
+    if (is_null($input['notes'])) {
+      $input['notes'] = '';
+    }
+    return $input;
+  }
+
 //  public function show(Request $request, $id) {
 //    if ($id == 0) {
 //      $record = $this->getBlankRecord();

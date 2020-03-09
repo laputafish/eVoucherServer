@@ -39,7 +39,6 @@ class BaseModuleController extends BaseController
 //    $rows = $query->get();
 //    return response()->json($rows);
 
-
     if ($request->has('page')) {
       $page = $request->get('page', 1);
       $limit = $request->get('limit', 20);
@@ -216,7 +215,7 @@ class BaseModuleController extends BaseController
   protected function onIndexOrderBy($query)
   {
     if (!empty($this->orderBy)) {
-      $query->orderBy($this->orderBy, $this->orderDirection);
+      $query = $query->orderBy($this->orderBy, $this->orderDirection);
     }
     return $query;
   }
@@ -268,6 +267,7 @@ class BaseModuleController extends BaseController
   {
     $row = $this->model->find($id);
     $input = $request->validate($this->updateRules);
+    $input = $this->onUpdating($input);
     $row->update($input);
     $this->onUpdateComplete($request, $row);
 
@@ -276,6 +276,10 @@ class BaseModuleController extends BaseController
       'status' => true,
       'result' => $row
     ]);
+  }
+
+  protected function onUpdating($input) {
+    return $input;
   }
 
   protected function onUpdateComplete($request, $row)
