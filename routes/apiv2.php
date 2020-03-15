@@ -87,7 +87,9 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::post('templates/create_temp', 'TemplateController@createTemp');
 
   // Media
-  Route::post('media/upload', 'MediaController@uploadImage');
+  Route::post('media/upload_image', 'MediaController@uploadImage');
+  Route::post('media/upload', 'MediaController@upload');
+//  Route::get('media/image/{id}', 'MediaController@showImage');
   Route::resource('medias', 'MediaController');
 });
 

@@ -14,7 +14,11 @@ class MediaController extends BaseController
   }
 
   public function index() {
-    $images = $this->model->all();
+    $query = $this->user->medias();
+    if (\Input::has('scope')) {
+      $query = $query->where('scope', \Input::get('scope'));
+    }
+    $images =  $query->get();
     return response()->json([
       'status' => true,
       'result' => $images
@@ -34,15 +38,19 @@ class MediaController extends BaseController
         $outputPath = $outputDir . '/' . $partialPath . '/' . $filename; //$_FILES["file"]["name"];
         mkdir($outputDir . '/' . $partialPath, 0777, true);
         move_uploaded_file($_FILES["file"]["tmp_name"], $outputPath);
-        $media = $this->addMedia($filename, $partialPath, 'image');
+
+        $scope = \Input::get('scope', 'general');
+        $media = $this->addMedia($filename, $partialPath, 'image', $scope);
         $fileType = pathinfo($originalName, PATHINFO_EXTENSION);
 
         return response()->json([
           'status' => 'ok',
-          'imageId' => $media->id,
-          'filename' => pathinfo($originalName, PATHINFO_FILENAME),
-          'fileType' => $fileType,
-          'imageUrl' => url('/media/image/'.$media->id)
+          'result' => [
+            'imageId' => $media->id,
+            'filename' => pathinfo($originalName, PATHINFO_FILENAME),
+            'fileType' => $fileType,
+            'imageUrl' => url('/media/image/'.$media->id)
+          ]
         ]);
       }
     } else {
@@ -51,7 +59,7 @@ class MediaController extends BaseController
   }
   public function upload()
   {
-    $outputDir = base_path('storage/app/temp'); //"uploads/";
+    $outputDir = MediaHelper::checkMediaFolder('app/temp'); //"uploads/";
     if (isset($_FILES["file"])) {
       //Filter the file types , if you want.
       if ($_FILES["file"]["error"] > 0) {
@@ -63,7 +71,8 @@ class MediaController extends BaseController
         $outputPath = $outputDir . '/' . $partialPath . '/' . $filename; //$_FILES["file"]["name"];
         mkdir($outputDir . '/' . $partialPath, 0777, true);
         move_uploaded_file($_FILES["file"]["tmp_name"], $outputPath);
-        $media = $this->addMedia($filename, $partialPath, 'temp');
+        $scope = \Input::get('scope', 'general');
+        $media = $this->addMedia($filename, $partialPath, 'temp', $scope);
         $fileType = pathinfo($originalName, PATHINFO_EXTENSION);
 
         $tags = [];
@@ -90,10 +99,12 @@ class MediaController extends BaseController
 
         return response()->json([
           'status' => 'ok',
-          'imageId' => $media->id,
-          'filename' => pathinfo($originalName, PATHINFO_FILENAME),
-          'fileType' => $fileType,
-          'tags' => $tags
+          'result' => [
+            'imageId' => $media->id,
+            'filename' => pathinfo($originalName, PATHINFO_FILENAME),
+            'fileType' => $fileType,
+            'tags' => $tags
+          ]
         ]);
       }
     } else {
@@ -116,13 +127,14 @@ class MediaController extends BaseController
     return substr($md5, 0, 2) . '/' . substr($md5, 2, 2);
   }
 
-  public function addMedia($filename, $partialPath, $mediaType)
+  public function addMedia($filename, $partialPath, $mediaType, $scope='general')
   {
     $media = new Media();
     $media->type = $mediaType;
     $media->path = $partialPath;
     $media->filename = $filename;
-    $media->user_id = 0; // $this->user->id;
+    $media->user_id = $this->user->id;
+    $media->scope = $scope;
     $media->save();
     return $media;
   }

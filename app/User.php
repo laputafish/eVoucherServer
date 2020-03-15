@@ -6,6 +6,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Silber\Bouncer\Database\HasRolesAndAbilities;
+use App\Models\Media;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -35,6 +36,10 @@ class User extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function medias() {
+      return $this->hasMany(Media::class);
+    }
 
 
 }

@@ -3,15 +3,15 @@
 use LaravelQRCode\Facades\QRCode;
 
 class MediaHelper {
-  public static function checkMediaFolder() {
-    $mediaPath = static::getMediaFolder();
+  public static function checkMediaFolder($folder='app/images') {
+    $mediaPath = static::getMediaFolder($folder);
     if (!file_exists($mediaPath)) {
       mkdir($mediaPath, 755, true);
     }
     return $mediaPath;
   }
 
-  public static function getMediaFolder() {
-    return storage_path('app/images');
+  public static function getMediaFolder($folder='app/images') {
+    return storage_path($folder);
   }
 }
