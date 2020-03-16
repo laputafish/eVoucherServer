@@ -21,5 +21,10 @@ class Media extends Model
   public function user() {
     return $this->belongsTo(User::class);
   }
-    //
+  
+  public function getFilePathAttribute() {
+  	$isTemp = $this->type === 'temp';
+  	$partialPath = ($isTemp ? 'temp/' : 'images/').$this->path.'/';
+  	return storage_path('app/'.$partialPath.$this->filename);
+  }
 }

@@ -7,6 +7,7 @@ use App\Models\VoucherCode;
 use App\Models\VoucherCodeConfig;
 
 use App\Helpers\AccessKeyHelper;
+use App\Helpers\MediaHelper;
 
 use Illuminate\Http\Request;
 
@@ -114,13 +115,25 @@ class VoucherController extends BaseModuleController
     ]);
   }
 
-  protected function onUpdating($input) {
+  protected function onUpdating($input, $row=null) {
     if (is_null($input['description'])) {
       $input['description'] = '';
     }
     if (is_null($input['notes'])) {
       $input['notes'] = '';
     }
+    $newSharingMediaId = $input['sharing_media_id'];
+    if (!empty($row->sharing_media_id) &&
+	   $row->sharing_media_id !== $newSharingMediaId) {
+    	MediaHelper::deleteMedia($row->sharing_media_id);
+    	
+    	// Change to image from temporary
+	    if (!empty($newSharingMediaId)) {
+		    MediaHelper::changeMediaType($newSharingMediaId, 'image');
+		    MediaHelper::changeImageResolution($newSharingMediaId, 256);
+	    }
+    }
+    
     return $input;
   }
 

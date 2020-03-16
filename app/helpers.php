@@ -13,3 +13,31 @@ function getKeyFromKeyValue($keyValue) {
   }
   return $result;
 }
+
+function is_dir_empty($dir)
+{
+	if (!is_readable($dir)) {
+		return NULL;
+	} else {
+		return (count(scandir($dir)) == 2);
+	}
+}
+
+function platformSlashes($path ) {
+	if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
+		$path = str_replace('/', '\\', $path);
+	}
+	return $path;
+}
+
+function cascadePurgeFolders($dir, $baseDir)
+{
+	if ($dir != $baseDir) {
+		$folder = dirname($dir);
+		if (is_dir_empty($dir)) {
+			
+			rmdir($dir);
+		}
+		cascadePurgeFolders($folder, $baseDir);
+	}
+}

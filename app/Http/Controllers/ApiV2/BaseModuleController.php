@@ -267,7 +267,7 @@ class BaseModuleController extends BaseController
   {
     $row = $this->model->find($id);
     $input = $request->validate($this->updateRules);
-    $input = $this->onUpdating($input);
+    $input = $this->onUpdating($input, $row);
     $row->update($input);
     $this->onUpdateComplete($request, $row);
 
@@ -278,7 +278,7 @@ class BaseModuleController extends BaseController
     ]);
   }
 
-  protected function onUpdating($input) {
+  protected function onUpdating($input, $row=null) {
     return $input;
   }
 

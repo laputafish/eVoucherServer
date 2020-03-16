@@ -46,6 +46,9 @@ Route::get('/get_data', function() {
   return 'ok';
 });
 
+// $id is 'key' if timestamp not exists
+Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
+
 Route::get('create_roles', function() {
   $roles = [
     ['superuser', 'Super User'],

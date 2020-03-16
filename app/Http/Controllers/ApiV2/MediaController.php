@@ -96,7 +96,15 @@ class MediaController extends BaseController
           abort(500);
           return;
         }
-
+        
+        $newWidth = \Input::get('width', 0);
+        $newHeight = \Input::get('height', 0);
+        if ($newWidth != 0 || $newHeight != 0) {
+					MediaHelper::changeImageResolution($media->id, $newWidth, $newHeight);
+					
+	      }
+	      
+	      
         return response()->json([
           'status' => 'ok',
           'result' => [
@@ -156,21 +164,47 @@ class MediaController extends BaseController
             }
           }
           $filePath = storage_path('app/' . $pathPrefix . '/' . $media->path . '/' . $media->filename);
+          
           if (file_exists($filePath)) {
             $fileContent = \Storage::get($pathPrefix . '/' . $media->path . '/' . $media->filename);
           } else {
-            $fileContent = file_get_contents(storage_path('images/missing_product_image.jpg'));
+            $fileContent = file_get_contents(storage_path('images/blank.png'));
           }
           return Response($fileContent, 200)->header('Content-Type', 'image/' . $ext);
       }
     }
-    return response()->json([
-      'status'=>false,
-      'result'=>[
-        'messageTag'=>'fileNotFound',
-        'message' => 'File Not Found!'
-      ]
-    ]);
-
+	  $fileContent = file_get_contents(storage_path('images/blank.png'));
+		return Response($fileContent, 200)->header('Content-Type', 'image/png');
+//
+//    return response()->json([
+//      'status'=>false,
+//      'result'=>[
+//        'messageTag'=>'fileNotFound',
+//        'message' => 'File Not Found!'
+//      ]
+//    ]);
+  }
+  
+  public function update($id) {
+  	$media = $this->model->find($id);
+  	if (!is_null($media)) {
+  		$input = \Input::all();
+  		$media->update($input);
+	  }
+	  return response()->json([
+	  	'status'=>true,
+		  'result' => [
+		  	'message' => 'Updated Successfully.'
+		  ]
+	  ]);
+  }
+  public function destroy($id) {
+		MediaHelper::deleteMedia($id);
+		return response()->json([
+			'status' => true,
+			'result' => [
+				'message' => 'Deleted Successfully.'
+			]
+		]);
   }
 }
