@@ -52,6 +52,9 @@ class VoucherController extends BaseModuleController
     'qr_code_size' => 'nullable|integer',
     'qr_code_composition' => 'nullable|string',
     'code_fields' => 'nullable|string',
+	  'sharing_title' => 'nullable|string',
+	  'sharing_description' => 'nullable|string',
+	  'sharing_media_id' => 'integer',
     'status' => 'nullable|string'
   ];
 
@@ -65,6 +68,9 @@ class VoucherController extends BaseModuleController
     'qr_code_size' => 'nullable|integer',
     'qr_code_composition' => 'nullable|string',
     'code_fields' => 'nullable|string',
+	  'sharing_title' => 'nullable|string',
+	  'sharing_description' => 'nullable|string',
+	  'sharing_media_id' => 'integer',
     'status' => 'nullable|string'
   ];
 

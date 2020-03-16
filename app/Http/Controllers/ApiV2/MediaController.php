@@ -141,7 +141,6 @@ class MediaController extends BaseController
 
   public function showImage($id, $size=null) {
     $defaultImageFolder = 'images';
-
     $media = Media::find($id);
     if (!is_null($media)) {
       $ext = pathinfo($media->filename, PATHINFO_EXTENSION);

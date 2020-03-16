@@ -16,6 +16,9 @@ class Voucher extends Model
     'code_fields',
     'qr_code_composition',
     'qr_code_size',
+	  'sharing_title',
+	  'sharing_description',
+	  'sharing_media_id',
     'status'
   ];
 
@@ -43,5 +46,9 @@ class Voucher extends Model
 
   public function codeConfigs() {
     return $this->hasMany('App\Models\VoucherCodeConfig');
+  }
+  
+  public function sharingMedia() {
+  	return $this->belongsTo(Media::class, 'sharing_media_id');
   }
 }
