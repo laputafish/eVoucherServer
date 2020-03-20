@@ -22,8 +22,12 @@ class CouponController extends BaseController {
 			$ogTitle = $voucher->sharing_title;
 			$ogDescription = $voucher->sharing_description;
 			$ogMediaId = $voucher->sharing_media_id;
-			$ogUrl = request()->fullUrl();
+		} else {
+			$ogTitle = 'Sample: Title';
+			$ogDescription = 'Sample: Description';
+			$ogMediaId = 0;
 		}
+		$ogUrl = request()->fullUrl();
 		
 		return view('templates.coupon', [
 			'ogTitle' => $ogTitle,
