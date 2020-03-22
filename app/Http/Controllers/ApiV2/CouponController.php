@@ -28,7 +28,6 @@ class CouponController extends BaseController {
 			$ogMediaId = 0;
 		}
 		$ogUrl = request()->fullUrl();
-		
 		return view('templates.coupon', [
 			'ogTitle' => $ogTitle,
 			'ogDescription' => $ogDescription,

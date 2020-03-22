@@ -55,7 +55,7 @@ class VoucherController extends BaseModuleController
     'code_fields' => 'nullable|string',
 	  'sharing_title' => 'nullable|string',
 	  'sharing_description' => 'nullable|string',
-	  'sharing_media_id' => 'integer',
+	  'sharing_image_id' => 'integer',
     'status' => 'nullable|string'
   ];
 
@@ -71,7 +71,7 @@ class VoucherController extends BaseModuleController
     'code_fields' => 'nullable|string',
 	  'sharing_title' => 'nullable|string',
 	  'sharing_description' => 'nullable|string',
-	  'sharing_media_id' => 'integer',
+	  'sharing_image_id' => 'integer',
     'status' => 'nullable|string'
   ];
 
@@ -122,10 +122,10 @@ class VoucherController extends BaseModuleController
     if (is_null($input['notes'])) {
       $input['notes'] = '';
     }
-    $newSharingMediaId = $input['sharing_media_id'];
-    if (!empty($row->sharing_media_id) &&
-	   $row->sharing_media_id !== $newSharingMediaId) {
-    	MediaHelper::deleteMedia($row->sharing_media_id);
+    $newSharingMediaId = $input['sharing_image_id'];
+    if (!empty($row->sharing_image_id) &&
+	   $row->sharing_image_id !== $newSharingMediaId) {
+    	MediaHelper::deleteMedia($row->sharing_image_id);
     	
     	// Change to image from temporary
 	    if (!empty($newSharingMediaId)) {

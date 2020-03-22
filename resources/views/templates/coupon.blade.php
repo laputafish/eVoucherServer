@@ -30,14 +30,21 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <style>
-        body img {
+        body img.yoov-logo {
             width: 480px;
             max-width: 90%;
+        }
+        body p {
+            margin: 15px 0;
         }
     </style>
     <!-- Styles -->
 </head>
-<body class="h-100 d-flex flex-column justify-content-center align-items-center">
-    <img src="{!! URL::asset('/images/yoov_ticket_logo.png') !!}"/>
+<body class="{{ empty($template) ? 'h-100 d-flex flex-column justify-content-center align-items-center' : '' }}">
+    @if(empty($template))
+        <img class="yoov-logo" src="{!! URL::asset('/images/yoov_ticket_logo.png') !!}"/>
+    @else
+        {!! $template !!}
+    @endif
 </body>
 </html>
