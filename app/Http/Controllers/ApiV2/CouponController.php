@@ -21,7 +21,7 @@ class CouponController extends BaseController {
 		if (isset($voucher)) {
 			$ogTitle = $voucher->sharing_title;
 			$ogDescription = $voucher->sharing_description;
-			$ogMediaId = $voucher->sharing_media_id;
+			$ogMediaId = $voucher->sharing_image_id;
 		} else {
 			$ogTitle = 'Sample: Title';
 			$ogDescription = 'Sample: Description';

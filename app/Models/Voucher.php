@@ -18,7 +18,7 @@ class Voucher extends Model
     'qr_code_size',
 	  'sharing_title',
 	  'sharing_description',
-	  'sharing_media_id',
+	  'sharing_image_id',
     'status'
   ];
 
@@ -49,6 +49,6 @@ class Voucher extends Model
   }
   
   public function sharingMedia() {
-  	return $this->belongsTo(Media::class, 'sharing_media_id');
+  	return $this->belongsTo(Media::class, 'sharing_image_id');
   }
 }
