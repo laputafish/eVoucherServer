@@ -122,15 +122,21 @@ class VoucherController extends BaseModuleController
     if (is_null($input['notes'])) {
       $input['notes'] = '';
     }
-    $newSharingMediaId = $input['sharing_image_id'];
-    if (!empty($row->sharing_image_id) &&
-	   $row->sharing_image_id !== $newSharingMediaId) {
-    	MediaHelper::deleteMedia($row->sharing_image_id);
+    
+    if (!empty($row->sharing_image_id)) {
     	
-    	// Change to image from temporary
-	    if (!empty($newSharingMediaId)) {
-		    MediaHelper::changeMediaType($newSharingMediaId, 'image');
-		    MediaHelper::changeImageResolution($newSharingMediaId, 256);
+	    $newSharingMediaId = array_key_exists('sharing_image_id', $input) ?
+		    $input['sharing_image_id'] :
+	      0;
+	    
+    	if ($row->sharing_image_id !== $newSharingMediaId) {
+		    MediaHelper::deleteMedia($row->sharing_image_id);
+		
+		    // Change to image from temporary
+		    if (!empty($newSharingMediaId)) {
+			    MediaHelper::changeMediaType($newSharingMediaId, 'image');
+			    MediaHelper::changeImageResolution($newSharingMediaId, 256);
+		    }
 	    }
     }
     
@@ -259,7 +265,15 @@ class VoucherController extends BaseModuleController
 
   protected function onIndexDataReady($request, $rows)
   {
-//    $rows = parent::onIndexDataReady($request, $rows);
+    $rows = parent::onIndexDataReady($request, $rows);
+    foreach($rows as $row) {
+    	$codeConfigs = $row->codeConfigs;
+    	$qrCodes = $codeConfigs->where('code_group', 'qrcode')->pluck('composition');
+    	$barCodes = $codeConfigs->where('code_group', 'barcode')->pluck('composition');
+    	$row->qrcode_comp = $qrCodes->count() > 0 && !is_null($qrCodes[0]) ? $qrCodes[0] : '';
+    	$row->barcode_comp = $barCodes->count() > 0 && !is_null($barCodes[0]) ? $barCodes[0] : '';
+	    unset($row->codeConfigs);
+    }
 //    if (!$request->has('select')) {
 //      foreach ($rows as $row) {
 //        $row->code_count = $row->codeInfos->count();
