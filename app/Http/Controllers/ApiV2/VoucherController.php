@@ -50,6 +50,8 @@ class VoucherController extends BaseModuleController
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
     'template' => 'nullable|string',
+    'has_questionnaire' => 'boolean',
+    'questionnaire' => 'nullable|string',
     'qr_code_size' => 'nullable|integer',
     'qr_code_composition' => 'nullable|string',
     'code_fields' => 'nullable|string',
@@ -66,6 +68,8 @@ class VoucherController extends BaseModuleController
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
     'template' => 'nullable|string',
+    'has_questionnaire' => 'boolean',
+    'questionnaire' => 'nullable|string',
     'qr_code_size' => 'nullable|integer',
     'qr_code_composition' => 'nullable|string',
     'code_fields' => 'nullable|string',
@@ -389,6 +393,10 @@ class VoucherController extends BaseModuleController
 
     $codeCount = $row->codeInfos()->count();
     $row->code_count = $codeCount;
+
+    if (empty($row->questionnaire_key)) {
+      $row->questionnaire_key = newKey();
+    }
     $row->save();
   }
 
@@ -426,7 +434,10 @@ class VoucherController extends BaseModuleController
       'expiry_date' => $input['expiry_date'],
       'template' => $input['template'],
       'code_fields' => $input['code_fields'],
-      'status' => $input['status']
+      'status' => $input['status'],
+      'has_questionnaire' => $input['has_questionnaire'],
+      'questionnaire' => $input['questionnaire'],
+      'questionnaire_key' => newKey(),
     ]);
     $id = $newRow->id;
 
