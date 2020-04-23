@@ -14,16 +14,28 @@ class Voucher extends Model
     'expiry_date',
     'template',
     'has_template',
+	  'has_custom_link',
+	  
+	  'entrance_page_type',
+	  'entrance_page_id',
+	  'entrance_page_type_after_quota',
+	  'entrance_page_id_after_quota',
+	  
+	  'custom_link_key',
+	  
     'questionnaire',
-    'has_questionnaire',
-    'questionnaire_key',
+    'questionnaire_fields',
+	  
     'code_fields',
     'code_count',
+	  
     'qr_code_composition',
     'qr_code_size',
+	  
 	  'sharing_title',
 	  'sharing_description',
 	  'sharing_image_id',
+	  
     'status'
   ];
 
@@ -55,5 +67,9 @@ class Voucher extends Model
   
   public function sharingMedia() {
   	return $this->belongsTo(Media::class, 'sharing_image_id');
+  }
+  
+  public function customTemplates() {
+  	return $this->hasMany(VoucherTemplate::class);
   }
 }

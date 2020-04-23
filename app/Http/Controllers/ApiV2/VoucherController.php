@@ -50,14 +50,27 @@ class VoucherController extends BaseModuleController
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
     'template' => 'nullable|string',
-    'has_questionnaire' => 'boolean',
+	  'has_template' => 'boolean',
+	  'has_custom_link' => 'boolean',
+	  
+	  'entrance_page_type' => 'none',
+	  'entrance_page_id' => 0,
+	  'entrance_page_type_after_quota' => 'none',
+	  'entrance_page_id_after_quota' => 0,
+	  
+	  'custom_link_key' => 0,
     'questionnaire' => 'nullable|string',
+	  
     'qr_code_size' => 'nullable|integer',
     'qr_code_composition' => 'nullable|string',
+	  
     'code_fields' => 'nullable|string',
+	  'code_count' => 'integer',
+	  
 	  'sharing_title' => 'nullable|string',
 	  'sharing_description' => 'nullable|string',
 	  'sharing_image_id' => 'integer',
+	  
     'status' => 'nullable|string'
   ];
 
@@ -68,14 +81,27 @@ class VoucherController extends BaseModuleController
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
     'template' => 'nullable|string',
-    'has_questionnaire' => 'boolean',
-    'questionnaire' => 'nullable|string',
+	  'has_template' => 'boolean',
+	  'has_custom_link' => 'boolean',
+	
+	  'entrance_page_type' => 'none',
+	  'entrance_page_id' => 0,
+	  'entrance_page_type_after_quota' => 'none',
+	  'entrance_page_id_after_quota' => 0,
+	
+	  'custom_link_key' => 0,
+	  'questionnaire' => 'nullable|string',
+	  
     'qr_code_size' => 'nullable|integer',
     'qr_code_composition' => 'nullable|string',
+	  
     'code_fields' => 'nullable|string',
+	  'code_count' => 'integer',
+	  
 	  'sharing_title' => 'nullable|string',
 	  'sharing_description' => 'nullable|string',
 	  'sharing_image_id' => 'integer',
+	  
     'status' => 'nullable|string'
   ];
 
@@ -172,6 +198,7 @@ class VoucherController extends BaseModuleController
         $row->save();
       }
     }
+    $row->customTemplates;
     return $row;
   }
   protected function onShowDataReady2($request, $row)
@@ -360,9 +387,29 @@ class VoucherController extends BaseModuleController
       'activation_date' => '',
       'expiry_date' => '',
       'template' => '',
+	    'has_template' => 0,
+	    'has_custom_link' => 0,
+	    
+	    'entrance_page_type' => 'none',
+	    'entrance_page_id' => 0,
+	    'entrance_page_type_after_quota' => 'none',
+	    'entrance_page_id_after_quota' => 0,
+	    
+	    'custom_link_key' => '',
+
+	    'questionnaire' => '',
+	    'questionnaire_fields' => '',
+	    
 //      'qr_code_composition' => '',
       'status' => 'pending',
       'code_fields' => '',
+	    'code_count' => 0,
+	
+	    'sharing_image_id' => 0,
+	    'sharing_title' => '',
+	    'sharing_description' => '',
+	    
+	    'custom_template' => null,
       'code_configs' => [
         $this->defaultQrcode,
         $this->defaultBarcode
