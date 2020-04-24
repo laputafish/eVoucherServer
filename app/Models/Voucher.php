@@ -12,19 +12,27 @@ class Voucher extends Model
     'agent_id',
     'activation_date',
     'expiry_date',
-    'template',
+	  'voucher_type',
+	
+	  'template',
     'has_template',
+	
 	  'has_custom_link',
-	  
+	  'custom_link_key',
+	
 	  'entrance_page_type',
 	  'entrance_page_id',
 	  'entrance_page_type_after_quota',
 	  'entrance_page_id_after_quota',
 	  
-	  'custom_link_key',
-	  
     'questionnaire',
     'questionnaire_fields',
+	  
+	  'goal_type', // fixed, codes, none
+	  'goal_count',
+	  
+	  'action_type_after_goal', // form, custom, none
+	  'action_page_after_goal', // custom_12, custom_34, custom_44, ...
 	  
     'code_fields',
     'code_count',
@@ -35,7 +43,7 @@ class Voucher extends Model
 	  'sharing_title',
 	  'sharing_description',
 	  'sharing_image_id',
-	  
+	
     'status'
   ];
 

@@ -44,34 +44,43 @@ class VoucherController extends BaseModuleController
   ];
 
   protected $updateRules = [
-    'description' => 'nullable|string',
-    'notes' => 'nullable|string',
-    'agent_id' => 'required|integer',
-    'activation_date' => 'nullable|date',
-    'expiry_date' => 'nullable|date',
-    'template' => 'nullable|string',
+	  'description' => 'nullable|string',
+	  'notes' => 'nullable|string',
+	  'agent_id' => 'required|integer',
+	  'activation_date' => 'nullable|date',
+	  'expiry_date' => 'nullable|date',
+	  'voucher_type' => 'in:voucher,form',
+	
+	  'template' => 'nullable|string',
 	  'has_template' => 'boolean',
+	
 	  'has_custom_link' => 'boolean',
-	  
-	  'entrance_page_type' => 'none',
-	  'entrance_page_id' => 0,
-	  'entrance_page_type_after_quota' => 'none',
-	  'entrance_page_id_after_quota' => 0,
-	  
-	  'custom_link_key' => 0,
-    'questionnaire' => 'nullable|string',
-	  
-    'qr_code_size' => 'nullable|integer',
-    'qr_code_composition' => 'nullable|string',
-	  
-    'code_fields' => 'nullable|string',
+	
+	  'entrance_page_type' => 'in:questionnaire,custom,none',
+	  'entrance_page_id' => 'integer',
+	  'entrance_page_type_after_quota' => 'in:questionnaire,custom,none',
+	  'entrance_page_id_after_quota' => 'integer',
+	
+	  'questionnaire' => 'nullable|string',
+	  'questionnaire_fields' => 'nullable|string',
+	
+	  'goal_type' => 'in:fixed,codes,none',
+	  'goal_count' => 'integer',
+	
+	  'action_type_after_goal' => 'in:form,custom,none',
+	  'action_page_after_goal' => 'nullable|string',
+	
+	  'code_fields' => 'nullable|string',
 	  'code_count' => 'integer',
-	  
+	
+	  'qr_code_size' => 'nullable|integer',
+	  'qr_code_composition' => 'nullable|string',
+	
 	  'sharing_title' => 'nullable|string',
 	  'sharing_description' => 'nullable|string',
 	  'sharing_image_id' => 'integer',
-	  
-    'status' => 'nullable|string'
+	
+	  'status' => 'in:preparing,pending,ready_to_send,completed'
   ];
 
   protected $storeRules = [
@@ -80,29 +89,38 @@ class VoucherController extends BaseModuleController
     'agent_id' => 'required|integer',
     'activation_date' => 'nullable|date',
     'expiry_date' => 'nullable|date',
+	  'voucher_type' => 'in:voucher,form',
+
     'template' => 'nullable|string',
 	  'has_template' => 'boolean',
+
 	  'has_custom_link' => 'boolean',
+
+	  'entrance_page_type' => 'in:questionnaire,custom,none',
+	  'entrance_page_id' => 'integer',
+	  'entrance_page_type_after_quota' => 'in:questionnaire,custom,none',
+	  'entrance_page_id_after_quota' => 'integer',
 	
-	  'entrance_page_type' => 'none',
-	  'entrance_page_id' => 0,
-	  'entrance_page_type_after_quota' => 'none',
-	  'entrance_page_id_after_quota' => 0,
-	
-	  'custom_link_key' => 0,
 	  'questionnaire' => 'nullable|string',
-	  
-    'qr_code_size' => 'nullable|integer',
-    'qr_code_composition' => 'nullable|string',
-	  
-    'code_fields' => 'nullable|string',
+	  'questionnaire_fields' => 'nullable|string',
+	
+	  'goal_type' => 'in:fixed,codes,none',
+	  'goal_count' => 'integer',
+	
+	  'action_type_after_goal' => 'in:form,custom,none',
+	  'action_page_after_goal' => 'nullable|string',
+	
+	  'code_fields' => 'nullable|string',
 	  'code_count' => 'integer',
-	  
+
+	  'qr_code_size' => 'nullable|integer',
+    'qr_code_composition' => 'nullable|string',
+
 	  'sharing_title' => 'nullable|string',
 	  'sharing_description' => 'nullable|string',
 	  'sharing_image_id' => 'integer',
-	  
-    'status' => 'nullable|string'
+
+    'status' => 'in:preparing,pending,ready_to_send,completed'
   ];
 
   protected $updateRulesCode = [
@@ -386,22 +404,29 @@ class VoucherController extends BaseModuleController
       'agent_id' => Agent::first()->id,
       'activation_date' => '',
       'expiry_date' => '',
+	    'voucher_type' => 'voucher',
+	    
       'template' => '',
 	    'has_template' => 0,
-	    'has_custom_link' => 0,
+	    
+	    'has_custom_link' => 0, // obsolate
+	    'custom_link_key' => '',
 	    
 	    'entrance_page_type' => 'none',
 	    'entrance_page_id' => 0,
 	    'entrance_page_type_after_quota' => 'none',
 	    'entrance_page_id_after_quota' => 0,
 	    
-	    'custom_link_key' => '',
-
 	    'questionnaire' => '',
 	    'questionnaire_fields' => '',
 	    
+	    'goal_type' => 'fixed',
+	    'goal_count' => 0,
+	
+	    'action_type_after_goal' => 'none',
+	    'action_page_after_goal' => '',
+
 //      'qr_code_composition' => '',
-      'status' => 'pending',
       'code_fields' => '',
 	    'code_count' => 0,
 	
@@ -409,11 +434,16 @@ class VoucherController extends BaseModuleController
 	    'sharing_title' => '',
 	    'sharing_description' => '',
 	    
-	    'custom_template' => null,
+	    'status' => 'pending',
+
+	    // from voucher_code_configs
       'code_configs' => [
         $this->defaultQrcode,
         $this->defaultBarcode
       ],
+	    
+	    // voucher_templates
+	    'templates' => []
     ];
   }
 
@@ -441,8 +471,8 @@ class VoucherController extends BaseModuleController
     $codeCount = $row->codeInfos()->count();
     $row->code_count = $codeCount;
 
-    if (empty($row->questionnaire_key)) {
-      $row->questionnaire_key = newKey();
+    if (empty($row->custom_link_key)) {
+      $row->custom_link_key = newKey();
     }
     $row->save();
   }
@@ -473,19 +503,26 @@ class VoucherController extends BaseModuleController
   public function store(Request $request)
   {
     $input = $request->validate($this->storeRules);
-    $newRow = $this->model->create([
-      'description' => is_null($input['description']) ? '' : $input['description'],
-      'notes' => is_null($input['notes']) ? '' : $input['notes'],
-      'agent_id' => $input['agent_id'],
-      'activation_date' => $input['activation_date'],
-      'expiry_date' => $input['expiry_date'],
-      'template' => $input['template'],
-      'code_fields' => $input['code_fields'],
-      'status' => $input['status'],
-      'has_questionnaire' => $input['has_questionnaire'],
-      'questionnaire' => $input['questionnaire'],
-      'questionnaire_key' => newKey(),
-    ]);
+    if (empty($input['custom_link_key'])) {
+    	$input['custom_link_key'] = newKey();
+    }
+    $input['description'] = nullOrBlank($input['description']);
+    $input['notes'] = nullOrBlank($input['notes']);
+    
+    $newRow = $this->model->create($input);
+//    [
+//      'description' => is_null($input['description']) ? '' : $input['description'],
+//      'notes' => is_null($input['notes']) ? '' : $input['notes'],
+//      'agent_id' => $input['agent_id'],
+//      'activation_date' => $input['activation_date'],
+//      'expiry_date' => $input['expiry_date'],
+//      'template' => $input['template'],
+//      'code_fields' => $input['code_fields'],
+//      'status' => $input['status'],
+//      'has_questionnaire' => $input['has_questionnaire'],
+//      'questionnaire' => $input['questionnaire'],
+//      'questionnaire_key' => newKey(),
+//    ]);
     $id = $newRow->id;
 
 //    $this->saveVoucherCodes($id,

@@ -5,6 +5,9 @@ function newKey() {
   return md5($result); // ENCRYPTION_KEY);
 }
 
+function nullOrBlank($value) {
+	return is_null($value) ? '' : $value;
+}
 function getKeyFromKeyValue($keyValue) {
   $result = '';
   if (!empty($keyValue)) {
