@@ -69,21 +69,15 @@ class AgentCodeController extends BaseController
                   }
                 }
                 $data[] = $cells;
-//                [
-//                  $sheet0[$i][0],
-//                  $sheet0[$i][1],
-//
-//                  getType($sheet0[$i][2]).': '.$sheet0[$i][2],
-//                  getType($sheet0[$i][3]).': '.$sheet0[$i][3]
-////                  $this->excel2Date($sheet0[$i][2]),
-////                  $this->excel2Date($sheet0[$i][3])
-//                ];
               } else {
                 break;
               }
             }
           }
           $codeFieldsStr = $this->createCodeFieldsStr($fields);
+
+          // Check codeFieldsStr and any code exists
+
 
           $id = \Input::get('id', 0);
           $voucher = Voucher::find($id);

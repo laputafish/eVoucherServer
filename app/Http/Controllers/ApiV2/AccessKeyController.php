@@ -32,7 +32,8 @@ class AccessKeyController extends BaseModuleController
       case 'export':
         $voucherId = $params['id'];
         $voucher = Voucher::find($voucherId);
-        $filename = str_replace(' ', '_', $voucher->description).'.xlsx';
+        $description = empty($voucher->description) ? 'no_description' : $voucher->description;
+        $filename = str_replace(' ', '_', $description).'.xlsx';
         return \Excel::download(new VoucherCodeExport($params['id']), $filename);
         break;
     }
