@@ -80,6 +80,9 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::post('agent_codes/upload', 'AgentCodeController@upload');
   Route::put('agent_codes/upload', 'AgentCodeController@update');
 
+  // Form Questions
+	Route::post('form_questions/upload', 'FormQuestionController@upload');
+	
   // Template Keys
   Route::get('template_keys', 'TemplateKeyController@index');
 

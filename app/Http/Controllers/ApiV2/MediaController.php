@@ -5,6 +5,8 @@ use App\Models\Media;
 
 use App\Helpers\MediaHelper;
 
+use Illuminate\Http\Request;
+
 class MediaController extends BaseController
 {
   protected $modelName = 'Media';
@@ -25,7 +27,39 @@ class MediaController extends BaseController
     ]);
   }
 
-  public function uploadImage()
+  public function uploadImage(Request $request) {
+	  $outputDir = MediaHelper::checkMediaFolder();
+	  if ($request->hasFile('file')) {
+		  if ($request->file('file')->isValid()) {
+			  $originalName = $request->file->getClientOriginalName();
+			  $filename = $this->createFilename($originalName);
+			  $partialPath = $this->createPartialPath($filename);
+			  $outputPath = $outputDir . '/' . $partialPath . '/' . $filename; //$_FILES["file"]["name"];
+			  mkdir($outputDir . '/' . $partialPath, 0777, true);
+			  move_uploaded_file($_FILES["file"]["tmp_name"], $outputPath);
+			
+			  $scope = \Input::get('scope', 'general');
+			  $media = $this->addMedia($filename, $partialPath, 'image', $scope);
+			  $fileType = pathinfo($originalName, PATHINFO_EXTENSION);
+			
+			  return response()->json([
+				  'status' => 'ok',
+				  'result' => [
+					  'imageId' => $media->id,
+					  'filename' => pathinfo($originalName, PATHINFO_FILENAME),
+					  'fileType' => $fileType,
+					  'imageUrl' => url('/media/image/'.$media->id)
+				  ]
+			  ]);
+		  } else {
+		  	return 'no';
+		  }
+	  } else {
+		  return 'no';
+	  }
+  }
+  
+  public function uploadImage2()
   {
     $outputDir = MediaHelper::checkMediaFolder();
     if (isset($_FILES["file"])) {
