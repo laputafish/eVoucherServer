@@ -226,5 +226,19 @@ class FormQuestionController extends BaseController
 	  ]);
 	}
 	
+	private function getTempFormConfigs($key) {
+		$row = TempQuestionForm::where('form_key', $key)->first();
+		return isset($row) ? json_decode($row->form_configs, true) : null;
+	}
+	
+	public function showQuestionForm($key) {
+		$isTemp = substr($key, 0, 1)=='_';
+		$formConfigs = [];
+		if ($isTemp) {
+			$key = substr($key, 1);
+			$formConfigs = $this->getTempFormConfigs($key);
+		}
+		return view('templates.question_form')->with(['formConfigs' => $formConfigs]);
+	}
 
 }

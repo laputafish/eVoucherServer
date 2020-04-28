@@ -16,6 +16,7 @@ class FormConfigController extends _Controller
 		if ($isTemp) {
 			$key = substr($key, 1);
 			$formConfigs = $this->getTempFormConfigs($key);
+			print_r($formConfigs);
 		}
 		return response()->json([
 			'status' => true,
@@ -27,6 +28,7 @@ class FormConfigController extends _Controller
 	
 	private function getTempFormConfigs($key) {
 		$row = TempQuestionForm::where('form_key', $key)->first();
-		return isset($row) ? json_decode($row->form_configs) : null;
+		return isset($row) ? json_decode($row->form_configs, true) : null;
 	}
+
 }
