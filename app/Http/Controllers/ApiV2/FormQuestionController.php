@@ -3,6 +3,7 @@
 use App\Models\Menu;
 use App\Models\Media;
 use App\Models\Voucher;
+use App\Models\TempQuestionForm;
 
 use App\Helpers\UploadFileHelper;
 use App\Helpers\VoucherHelper;
@@ -172,7 +173,8 @@ class FormQuestionController extends BaseController
 		]);
 	}
 	
-	private function isValidQuestionFile($fields) {
+	private function isValidQuestionFile($fields)
+	{
 		$correctColHeaders = [
 			'type',
 			'description',
@@ -191,10 +193,11 @@ class FormQuestionController extends BaseController
 		return $result;
 	}
 	
-	private function createCodeFieldsStr($fields) {
+	private function createCodeFieldsStr($fields)
+	{
 		$ar = [];
-		foreach($fields as $field) {
-			$ar[] = $field['title'].':'.$field['type'];
+		foreach ($fields as $field) {
+			$ar[] = $field['title'] . ':' . $field['type'];
 		}
 		return implode('|', $ar);
 	}
@@ -204,4 +207,24 @@ class FormQuestionController extends BaseController
 		$dateTimeObject = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($excelDateValue);
 		return $dateTimeObject->format('Y-m-d');
 	}
+	
+	public function createPreview(Request $request)
+	{
+		$this->user->questionForms()->delete();
+		$key = newKey();
+		$formConfigs = $request->get('formConfigs');
+		$temp = new TempQuestionForm([
+			'form_key' => $key,
+			'form_configs' => json_encode($formConfigs)
+		]);
+		$this->user->questionForms()->save($temp);
+	 	return response()->json([
+	 		'status' => true,
+		  'result' => [
+		  	'key' => $key
+		  ]
+	  ]);
+	}
+	
+
 }

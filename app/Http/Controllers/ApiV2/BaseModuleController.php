@@ -12,22 +12,17 @@ class BaseModuleController extends BaseController
   protected $updateRules = [];
   protected $filterFields = [];
   protected $indexWith = [];
-
+ 
   //****************
   //    Index
   //****************
   public function index(Request $request)
   {
     $query = $this->model;
-
     $query = $this->prepareIndexQuery($request, $query);
-
     $query = $this->onIndexOrderBy($query);
-
     $query = $this->onIndexWith($query);
-
     $query = $this->onIndexJoin($query);
-
 //    $query = $this->onIndexSelect($request, $query);
 //
     $query = $this->onIndexFilter($request, $query);
@@ -223,11 +218,12 @@ class BaseModuleController extends BaseController
   //****************
   //    Show
   //****************
-  public function getRow($id)
+  protected function getRow($id)
   {
     $query = $this->model;
     $query = $this->onShowWith($query);
     $row = $query->find($id);
+    
     return $row;
   }
 

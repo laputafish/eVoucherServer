@@ -6,7 +6,9 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Silber\Bouncer\Database\HasRolesAndAbilities;
+
 use App\Models\Media;
+use App\Models\TempQuestionForm;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -41,5 +43,8 @@ class User extends Authenticatable implements JWTSubject
       return $this->hasMany(Media::class);
     }
 
+    public function questionForms() {
+    	return $this->hasMany(TempQuestionForm::class);
+    }
 
 }

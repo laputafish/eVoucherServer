@@ -44,7 +44,7 @@ class VoucherController extends BaseModuleController
     'height' => 67
   ];
 
-  protected $updateRules = [
+  protected $storeRules = [
 	  'description' => 'nullable|string',
 	  'notes' => 'nullable|string',
 	  'agent_id' => 'required|integer',
@@ -56,7 +56,8 @@ class VoucherController extends BaseModuleController
 	  'has_template' => 'boolean',
 	
 	  'has_custom_link' => 'boolean',
-	
+		// 'custom_link_key' => 'string',
+	  
 	  'entrance_page_type' => 'in:questionnaire,custom,none',
 	  'entrance_page_id' => 'integer',
 	  'entrance_page_type_after_quota' => 'in:questionnaire,custom,none',
@@ -64,6 +65,7 @@ class VoucherController extends BaseModuleController
 	
 	  'questionnaire' => 'nullable|string',
 	  'questionnaire_fields' => 'nullable|string',
+		// 'questionnaire_configs' => [],
 	
 	  'goal_type' => 'in:fixed,codes,none',
 	  'goal_count' => 'integer',
@@ -84,19 +86,20 @@ class VoucherController extends BaseModuleController
 	  'status' => 'in:preparing,pending,ready_to_send,completed'
   ];
 
-  protected $storeRules = [
-    'description' => 'nullable|string',
-    'notes' => 'nullable|string',
-    'agent_id' => 'required|integer',
-    'activation_date' => 'nullable|date',
-    'expiry_date' => 'nullable|date',
+  protected $updateRules = [
+	  'description' => 'nullable|string',
+	  'notes' => 'nullable|string',
+	  'agent_id' => 'required|integer',
+	  'activation_date' => 'nullable|date',
+	  'expiry_date' => 'nullable|date',
 	  'voucher_type' => 'in:voucher,form',
-
-    'template' => 'nullable|string',
+	
+	  'template' => 'nullable|string',
 	  'has_template' => 'boolean',
-
+	
 	  'has_custom_link' => 'boolean',
-
+	  // 'custom_link_key' => 'string',
+	
 	  'entrance_page_type' => 'in:questionnaire,custom,none',
 	  'entrance_page_id' => 'integer',
 	  'entrance_page_type_after_quota' => 'in:questionnaire,custom,none',
@@ -104,6 +107,7 @@ class VoucherController extends BaseModuleController
 	
 	  'questionnaire' => 'nullable|string',
 	  'questionnaire_fields' => 'nullable|string',
+	  // 'questionnaire_configs' => [],
 	
 	  'goal_type' => 'in:fixed,codes,none',
 	  'goal_count' => 'integer',
@@ -113,17 +117,22 @@ class VoucherController extends BaseModuleController
 	
 	  'code_fields' => 'nullable|string',
 	  'code_count' => 'integer',
-
+	
 	  'qr_code_size' => 'nullable|integer',
-    'qr_code_composition' => 'nullable|string',
-
+	  'qr_code_composition' => 'nullable|string',
+	
 	  'sharing_title' => 'nullable|string',
 	  'sharing_description' => 'nullable|string',
 	  'sharing_image_id' => 'integer',
-
-    'status' => 'in:preparing,pending,ready_to_send,completed'
+	
+	  'status' => 'in:preparing,pending,ready_to_send,completed'
   ];
 
+//  public function __construct() {
+//    $this->updateRules = $this->storeRules;
+//    parent::__construct();
+//  }
+  
   protected $updateRulesCode = [
     'order' => 'nullable|integer',
     'code' => 'string',
@@ -217,14 +226,25 @@ class VoucherController extends BaseModuleController
         $row->save();
       }
     }
-    $row->customTemplates;
-    $row->form_configs = json_decode($row->questionnaire_configs, true);
-    if (is_null($row->form_configs)) {
-    	$row->form_configs = QuestionnaireHelper::getBlankFormConfigs();
-    }
-    unset($row->questionnaire_configs);
     return $row;
   }
+  
+  protected function getRow($id) {
+  	$row = parent::getRow($id);
+  	
+  	// get custom templates
+	  $row->customTemplates;
+	  
+	  // get form configs
+	  $row->form_configs = json_decode($row->questionnaire_configs, true);
+	  if (is_null($row->form_configs)) {
+		  $row->form_configs = QuestionnaireHelper::getBlankFormConfigs();
+	  }
+	  
+	  unset($row->questionnaire_configs);
+	  return $row;
+  }
+  
   protected function onShowDataReady2($request, $row)
   {
     // include code configs
@@ -453,34 +473,62 @@ class VoucherController extends BaseModuleController
     ];
   }
 
+  private function onVoucherUpdated($request, $row) {
+	  // Voucher codes is saved independently
+	  $input = $request->all();
+	  if (array_key_exists('code_configs', $input)) {
+		  $this->saveCodeConfigs($row->id, $input['code_configs']);
+	  }
+	
+	  if (array_key_exists('emails', $input)) {
+		  $this->saveEmails($row->id, $input['emails']);
+	  }
+
+	  // Update Code count
+	  $codeCount = $row->codeInfos()->count();
+	  $row->code_count = $codeCount;
+	
+	  // Update custom link key
+	  if (empty($row->custom_link_key)) {
+		  $row->custom_link_key = newKey();
+	  }
+	  
+	  // Update form configs
+	  $row->questionnaire_configs = json_encode($input['form_configs']);
+	  
+	  $row->save();
+  }
   protected function onStoreComplete($request, $row)
   {
-    $input = $request->all();
-//    $this->saveVoucherCodes($row->id, $input['code_infos']);
-    $this->saveCodeConfigs($row->id, $input['code_configs']);
-    $this->saveEmails($row->id, array_key_exists('emails', $input) ? $input['emails'] : []);
+		$this->onVoucherUpdated($request, $row);
+		
+  	// Voucher codes is saved independently
+//    $input = $request->all();
+//    $this->saveCodeConfigs($row->id, $input['code_configs']);
+//    $this->saveEmails($row->id, array_key_exists('emails', $input) ? $input['emails'] : []);
   }
 
   protected function onUpdateComplete($request, $row)
   {
-    $input = $request->all();
-//    $this->saveVoucherCodes($row->id, $input['code_infos']);
+  	$this->onVoucherUpdated($request, $row);
 
-    if (array_key_exists('code_configs', $input)) {
-      $this->saveCodeConfigs($row->id, $input['code_configs']);
-    }
-
-    if (array_key_exists('emails', $input)) {
-      $this->saveEmails($row->id, $input['emails']);
-    }
-
-    $codeCount = $row->codeInfos()->count();
-    $row->code_count = $codeCount;
-
-    if (empty($row->custom_link_key)) {
-      $row->custom_link_key = newKey();
-    }
-    $row->save();
+	  // Voucher codes is saved independently
+//    $input = $request->all();
+//    if (array_key_exists('code_configs', $input)) {
+//      $this->saveCodeConfigs($row->id, $input['code_configs']);
+//    }
+//
+//    if (array_key_exists('emails', $input)) {
+//      $this->saveEmails($row->id, $input['emails']);
+//    }
+//
+//    $codeCount = $row->codeInfos()->count();
+//    $row->code_count = $codeCount;
+//
+//    if (empty($row->custom_link_key)) {
+//      $row->custom_link_key = newKey();
+//    }
+//    $row->save();
   }
 
 //  public function update($id) {

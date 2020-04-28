@@ -151,3 +151,7 @@ Route::get('assign_roles', function() {
 //  }
 //  return 'ok';
 //});
+
+Route::get('vouchers', 'ApiV2\VoucherController@index');
+
+Route::get('form_questions/{key}', 'ApiV2\FormConfigController@getFormConfigs');
