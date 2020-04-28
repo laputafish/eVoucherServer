@@ -8,6 +8,7 @@ use App\Models\VoucherCodeConfig;
 
 use App\Helpers\AccessKeyHelper;
 use App\Helpers\MediaHelper;
+use App\Helpers\QuestionnaireHelper;
 
 use Illuminate\Http\Request;
 
@@ -217,6 +218,11 @@ class VoucherController extends BaseModuleController
       }
     }
     $row->customTemplates;
+    $row->form_configs = json_decode($row->questionnaire_configs, true);
+    if (is_null($row->form_configs)) {
+    	$row->form_configs = QuestionnaireHelper::getBlankFormConfigs();
+    }
+    unset($row->questionnaire_configs);
     return $row;
   }
   protected function onShowDataReady2($request, $row)

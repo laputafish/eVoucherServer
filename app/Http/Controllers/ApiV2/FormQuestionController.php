@@ -32,7 +32,7 @@ class FormQuestionController extends BaseController
 		$fields = [];
 		$data = [];
 		if ($request->hasFile('file')) {
-			if (!$request->file('file')->isValid) {
+			if (!$request->file('file')->isValid()) {
 				echo "Error: " . $_FILES["file"]["error"] . "		";
 			} else {
 				$tempFilePath = UploadFileHelper::saveTempFile($_FILES['file']);
@@ -75,8 +75,10 @@ class FormQuestionController extends BaseController
 										'notes' => ''
 									];
 									$values = ['', '', '', '', '', ''];
-									for ($j = 1; $j < count($sheet0[$rowNo]); $j++) {
-										$values[$j] = $sheet0[$rowNo][$j];
+									for ($j = 1; $j < 6; $j++) {
+										if (!is_null($sheet0[$rowNo][$j])) {
+											$values[$j] = $sheet0[$rowNo][$j];
+										}
 									}
 									switch ($objType) {
 										case 'simple-text':
@@ -87,27 +89,34 @@ class FormQuestionController extends BaseController
 										case 'text':
 										case 'single-choice':
 										case 'multiple-choice':
-											$newInput['name'] = $values[1];
+											$newInputObj['name'] = $values[1];
 											if (in_array(strtolower($values[2]), ['yes', 'true'])) {
-												$newInput['required'] = true;
+												$newInputObj['required'] = true;
 											} else if ($values[2] === true) {
-												$newInput['required'] = true;
+												$newInputObj['required'] = true;
 											}
-											$newInput['question'] = $values[3];
-											$newInput['notes'] = $values[4];
-											$newInput['options'][] = $values[5];
-											for ($k = 6; $k < count($sheet0[$rowNo]); $k++) {
-												$newInput['options'][] = $sheet0[$rowNo][$k];
+											$newInputObj['question'] = $values[3];
+											$newInputObj['notes'] = $values[4];
+											$newInputObj['options'][] = $values[5];
+											
+											if ($objType == 'single-choice' || $objType == 'multiple-choice') {
+												for ($k = 6; $k < count($sheet0[$rowNo]); $k++) {
+													if (!is_null($sheet0[$rowNo][$k]) && !empty($sheet0[$rowNo][$k])) {
+														$newInputObj['options'][] = $sheet0[$rowNo][$k];
+													} else {
+														break;
+													}
+												}
 											}
 											break;
-										case 'notes':
+										case 'remark':
 										case 'images':
-											$newInput['question'] = $values[3];
+											$newInputObj['question'] = $values[3];
 											break;
 										case 'submit':
 											break;
 									}
-									$inputObjs[] = $newInput;
+									$inputObjs[] = $newInputObj;
 								} else { // first cell is empty, exit
 									break;
 								}
@@ -168,13 +177,13 @@ class FormQuestionController extends BaseController
 			'type',
 			'description',
 			'required',
-			'question',
+			'question/remark/image link',
 			'notes',
 			'options'
 		];
 		$result = true;
 		for ($i = 0; $i < count($fields); $i++) {
-			if (strtolower($fields[i]) != $correctColHeaders[$i]) {
+			if (strtolower($fields[$i]['title']) != $correctColHeaders[$i]) {
 				$result = false;
 				break;
 			}
