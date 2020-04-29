@@ -238,7 +238,10 @@ class FormQuestionController extends BaseController
 			$key = substr($key, 1);
 			$formConfigs = $this->getTempFormConfigs($key);
 		}
-		return view('templates.question_form')->with(['formConfigs' => $formConfigs]);
+		return view('templates.question_form')->with([
+			'key' => $key,
+			'formConfigs' => $formConfigs
+		]);
 	}
 
 }

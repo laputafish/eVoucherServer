@@ -152,6 +152,7 @@ Route::get('assign_roles', function() {
 //  return 'ok';
 //});
 
-Route::get('vouchers', 'ApiV2\VoucherController@index');
+// Testing purpose
+//
+// Route::get('vouchers', 'ApiV2\VoucherController@index');
 
-//Route::get('q/{key}', 'ApiV2\FormConfigController@showForm');
