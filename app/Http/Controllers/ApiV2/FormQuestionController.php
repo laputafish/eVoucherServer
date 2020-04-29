@@ -7,6 +7,7 @@ use App\Models\TempQuestionForm;
 
 use App\Helpers\UploadFileHelper;
 use App\Helpers\VoucherHelper;
+use App\Helpers\QuestionnaireHelper;
 
 use App\Imports\AgentCodeImport;
 use Illuminate\Http\Request;
@@ -212,10 +213,10 @@ class FormQuestionController extends BaseController
 	{
 		$this->user->questionForms()->delete();
 		$key = newKey();
-		$formConfigs = $request->get('formConfigs');
+		$formConfigs = QuestionnaireHelper::getFormConfigsFromInput($request->get('formConfigs'));
 		$temp = new TempQuestionForm([
 			'form_key' => $key,
-			'form_configs' => json_encode($formConfigs)
+			'form_configs' => $formConfigs
 		]);
 		$this->user->questionForms()->save($temp);
 	 	return response()->json([
@@ -228,7 +229,11 @@ class FormQuestionController extends BaseController
 	
 	private function getTempFormConfigs($key) {
 		$row = TempQuestionForm::where('form_key', $key)->first();
-		return isset($row) ? json_decode($row->form_configs, true) : null;
+		$formConfigs = isset($row) ? json_decode($row->form_configs, true) : null;
+		if (!is_null($formConfigs)) {
+			QuestionnaireHelper::getUserPageConfigFromInputObj($formConfigs);
+		}
+		return $formConfigs;
 	}
 	
 	public function showQuestionForm($key) {
@@ -250,6 +255,18 @@ class FormQuestionController extends BaseController
 	}
 	
 	private function processFormConfigs($key) {
-	
+		$isTemp = false;
+		if (substr($key,0,1) === '_') {
+			$key = substr($key, 1);
+			$isTemp = true;
+		}
+		
+		if ($isTemp) {
+			$formConfigs = TempQuestionForm::where('app_key', $key)->value('form_configs');
+		}
+		
+		if (isset($formConfigs)) {
+			print_r($formConfigs);
+		}
 	}
 }

@@ -126,7 +126,7 @@
 		<input type="hidden" name="key" value="{{ $key }}"/>
 	<div class="container" style="max-width:{{ $maxWidth }}">
 		@foreach($inputObjs as $i=>$inputObj)
-			<div class="row">
+			<div class="row mt-4">
 				@if($inputObj['inputType']=='simple-text')
 					<div class="col-sm-5 question-label">
 						@include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
