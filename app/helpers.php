@@ -1,20 +1,33 @@
 <?php
 
-function newKey() {
-  $result = date('Ymd_His') . '_' . substr((string)microtime(), 2, 8);
-  return md5($result); // ENCRYPTION_KEY);
+function newKey()
+{
+	$result = date('Ymd_His') . '_' . substr((string)microtime(), 2, 8);
+	return md5($result); // ENCRYPTION_KEY);
 }
 
-function nullOrBlank($value) {
+function keyValueArrayToStr($ar, $keyValueSeparator = ':', $itemSeparator = ';')
+{
+	$lines = [];
+	foreach ($ar as $key => $value) {
+		$lines[] = $key . $keyValueSeparator . $value;
+	}
+	return implode($itemSeparator, $lines);
+}
+
+function nullOrBlank($value)
+{
 	return is_null($value) ? '' : $value;
 }
-function getKeyFromKeyValue($keyValue) {
-  $result = '';
-  if (!empty($keyValue)) {
-    $segs = explode(':', $keyValue);
-    $result = $segs[0];
-  }
-  return $result;
+
+function getKeyFromKeyValue($keyValue)
+{
+	$result = '';
+	if (!empty($keyValue)) {
+		$segs = explode(':', $keyValue);
+		$result = $segs[0];
+	}
+	return $result;
 }
 
 function is_dir_empty($dir)
@@ -26,7 +39,8 @@ function is_dir_empty($dir)
 	}
 }
 
-function platformSlashes($path ) {
+function platformSlashes($path)
+{
 	if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
 		$path = str_replace('/', '\\', $path);
 	}

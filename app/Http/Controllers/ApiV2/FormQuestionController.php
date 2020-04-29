@@ -208,7 +208,7 @@ class FormQuestionController extends BaseController
 		return $dateTimeObject->format('Y-m-d');
 	}
 	
-	public function createPreview(Request $request)
+	public function saveFormConfigs(Request $request)
 	{
 		$this->user->questionForms()->delete();
 		$key = newKey();
@@ -244,4 +244,12 @@ class FormQuestionController extends BaseController
 		]);
 	}
 
+	public function downloadFormConfigs($key)
+	{
+		return $this->processFormConfigs($key);
+	}
+	
+	private function processFormConfigs($key) {
+	
+	}
 }

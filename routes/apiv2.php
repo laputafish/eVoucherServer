@@ -82,8 +82,9 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 
   // Form Questions
 	Route::post('form_questions/upload', 'FormQuestionController@upload');
-	Route::post('form_questions/preview/create', 'FormQuestionController@createPreview');
-	
+	Route::post('form_questions/temp/create', 'FormQuestionController@saveFormConfigs');
+
+		
   // Template Keys
   Route::get('template_keys', 'TemplateKeyController@index');
 
@@ -118,7 +119,7 @@ Route::get('/info', function() {
   return $result;
 });
 
-Route::get('/system/config', 'SystemController@getConfig');
+Route::get('/system/config', 'ApiV2\SystemController@getConfig');
 
 Route::get('/register/info2', function() {
   return 'register info2';

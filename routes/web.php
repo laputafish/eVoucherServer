@@ -48,7 +48,12 @@ Route::get('/get_data', function() {
 
 // $id is 'key' if timestamp not exists
 Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
+
+// Preview question form
 Route::get('q/{key}/{timestamp?}', 'ApiV2\FormQuestionController@showQuestionForm');
+
+// Download question form configs
+Route::get('d/{key}/{timestamp?}', 'ApiV2\FormQuestionController@downloadFormConfigs');
 
 Route::get('create_roles', function() {
   $roles = [
@@ -154,5 +159,7 @@ Route::get('assign_roles', function() {
 
 // Testing purpose
 //
-// Route::get('vouchers', 'ApiV2\VoucherController@index');
+//Route::get('vouchers', 'ApiV2\VoucherController@index');
+//Route::get('vouchers/{id}', 'ApiV2\VoucherController@show');
+
 

@@ -235,8 +235,6 @@ class BaseModuleController extends BaseController
       $row = $this->getRow($id);
       $row = $this->onShowDataReady($request, $row);
       $record = $row->toArray();
-
-
     }
 
     return response()->json([
@@ -267,7 +265,7 @@ class BaseModuleController extends BaseController
     $row->update($input);
     $this->onUpdateComplete($request, $row);
 
-    $row = $this->model->find($id);
+    $row = $this->getRow($id); //$this->model->find($id);
     return response()->json([
       'status' => true,
       'result' => $row
