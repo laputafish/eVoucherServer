@@ -63,7 +63,13 @@ class QuestionnaireHelper
 		//
 		unset($formConfigs['pageConfig']);
 //		print_r($formConfigs);
-		return json_encode($formConfigs);
+
+    array_walk_recursive($formConfigs,function(&$formConfigs){$formConfigs=strval($formConfigs);});
+//    echo 'QuestionnaireHelper :: parseConfigs: '.PHP_EOL;
+//    print_r($formConfigs);
+    $jsonFormConfigs = json_encode($formConfigs);
+//    print_r($jsonFormConfigs);
+		return $jsonFormConfigs;
 	}
 	
 	private static function combineAllPageStyles($pageConfig)

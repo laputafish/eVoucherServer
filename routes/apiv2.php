@@ -110,6 +110,35 @@ Route::namespace('ApiV2')->group(function() {
 });
 
 Route::get('/info', function() {
+
+  $DB_HOST = '192.168.1.240';
+  $DB_PORT = 3307;
+  $DB_DATABASE = 'coupon_yoov_com';
+  $DB_USERNAME = 'coupon_yoov_com';
+  $DB_PASSWORD = 'yoovYoov';
+
+  $DB_HOST = env('DB_HOST'); // '192.168.1.240';
+  $DB_PORT = env('DB_PORT'); // 3307;
+  $DB_DATABASE = env('DB_DATABASE'); //'coupon_yoov_com';
+  $DB_USERNAME = env('DB_USERNAME'); // 'coupon_yoov_com';
+  $DB_PASSWORD = env('DB_PASSWORD'); //'yoovYoov';
+
+  echo 'HOST: '.$DB_HOST.'<br/>';
+  echo 'PORT: '.$DB_PORT.'<br/>';
+  echo 'DATABASE: '.$DB_DATABASE.'<br/>';
+  echo 'USERNAME: '.$DB_USERNAME.'<br/>';
+  echo 'PASSWORD: '.$DB_PASSWORD.'<br/>';
+return 'ok';
+
+  $conn = new mysqli($DB_HOST.':'.$DB_PORT, $DB_USERNAME, $DB_PASSWORD);
+
+  // Check connection
+  if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+  }
+  echo "Connected successfully".PHP_EOL;
+  return 'ok';
+
   $result = 'API Version 2.0<br/>';
   if (!empty(\Input::all())) {
     foreach(\Input::all() as $key => $value) {

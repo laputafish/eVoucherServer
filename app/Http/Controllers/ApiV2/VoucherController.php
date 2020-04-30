@@ -506,9 +506,18 @@ class VoucherController extends BaseModuleController
 		if (empty($row->custom_link_key)) {
 			$row->custom_link_key = newKey();
 		}
-		
+
 		// Update form configs
-		$row->questionnaire_configs = QuestionnaireHelper::getFormConfigsFromInput($input['form_configs']);
+//    echo 'onVoucherUpdated: '.PHP_EOL;
+//    print_r($input['form_configs']);
+//
+//    echo PHP_EOL.PHP_EOL.PHP_EOL;
+
+    $questionnaireConfigs = QuestionnaireHelper::getFormConfigsFromInput($input['form_configs']);
+//		echo 'onVoucherUpdated: '.PHP_EOL;
+//		print_r($questionnaireConfigs);
+
+		$row->questionnaire_configs = $questionnaireConfigs;
 		
 		$row->save();
 	}
@@ -526,7 +535,14 @@ class VoucherController extends BaseModuleController
 	
 	protected function onUpdateComplete($request, $row)
 	{
-		$this->onVoucherUpdated($request, $row);
+//	  echo 'onUpdateComplete: '.PHP_EOL;
+//    print_r($request->get('form_configs'));
+//    return 'ok';
+//
+//
+//
+
+    $this->onVoucherUpdated($request, $row);
 		
 		// Voucher codes is saved independently
 //    $input = $request->all();
@@ -600,6 +616,7 @@ class VoucherController extends BaseModuleController
 //        $input['code_infos'] :
 //        []
 //    );
+
 		$this->onStoreComplete($request, $newRow);
 		$this->saveEmails($id,
 			array_key_exists('emails', $input) ?
