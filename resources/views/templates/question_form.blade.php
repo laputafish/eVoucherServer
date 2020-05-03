@@ -1,12 +1,15 @@
 <?php
-$KEY_TO_STYLE_NAMES = [
-  'bgColor' => 'background-color',
-  'color' => 'color',
-  'fontSize' => 'font-size',
-  'maxWidth' => 'max-width',
-  'paddingTop' => 'padding-top',
-];
+//$KEY_TO_STYLE_NAMES = [
+//  'bgColor' => 'background-color',
+//  'color' => 'color',
+//  'fontSize' => 'font-size',
+//  'maxWidth' => 'max-width',
+//  'paddingTop' => 'padding-top',
+//];
 
+//************
+// Routines
+//************
 function getInputOptions($inputOptions) {
   $options = ['', ''];
   foreach($inputOptions as $i => $option) {
@@ -28,23 +31,11 @@ function style_merge($defaultStr, $userStyleStr) {
 
   $updatedKeyValues = array_merge($defaultKeyValues, $userKeyValues);
   return keyValuesToStr($updatedKeyValues);
-//  $defaultKeyValue2 = strToKeyValues($defaultOption2);
-//
-//  $inputOptions = ['', ''];
-//  foreach($inputObj['options'] as $i=>$option) {
-//    $inputOptions[$i] = $option;
-//  }
-//  $inputKeyValues = [
-//    strToKeyValues($inputOptions[0]),
-//    strToKeyValues($inputOptions[1])
-//  ];
-//  $arButtonStyle = array_merge($defaultKeyValue1, $inputKeyValues[0]);
-//  $arContainerStyle = array_merge($defaultKeyValue1, $inputKeyValues[1]);
 }
 
-function get($var, $keyName, $default = null)
+function get($keyValues, $keyName, $default = null)
 {
-  return array_key_exists($keyName, $var) ? $var[$keyName] : $default;
+  return array_key_exists($keyName, $keyValues) ? $keyValues[$keyName] : $default;
 }
 function getOptions($options, $default)
 {
@@ -79,34 +70,75 @@ function strToKeyValues($str, $separator = ';')
   return $result;
 }
 
+function getPageStyleStr($formConfigs) {
+  $result = '';
+  if (isset($formConfigs) && isset($formConfigs['inputObjs'])) {
+    $inputObjs = $formConfigs['inputObjs'];
+    $index = array_search('system-page', array_column($inputObjs, 'inputType'));
+
+    if ($index !== false) {
+      $pageInputObj = $inputObjs[$index];
+      $result = $pageInputObj['options'][0];
+    }
+  }
+  return $result;
+}
+// *** end of routines
+
 $pageTitle = 'YOOV';
 $selectedChoiceColor = 'blue';
 $selectedChoiceTextColor = 'white';
 
-$inputObjs = [];
-
 $maxWidth = '640px';
-$bodyStylesByKey = [
-  'paddingTop' => 0,
-  'bgColor' => 'white',
+$bodyStyleKeyValues = [
+  'padding-top' => 0,
+  'background-color' => 'white',
   'color' => 'white',
-  'fontSize' => '14px'
+  'font-size' => '14px'
 ];
-if (isset($formConfigs)) {
-  if (isset($formConfigs['pageConfig'])) {
-    $pageConfig = $formConfigs['pageConfig'];
 
-    foreach ($bodyStylesByKey as $key => $default) {
-      $bodyStylesByKey[$key] = get($pageConfig, $key, $bodyStylesByKey[$key]);
-    }
-    $maxWidth = get($pageConfig, 'maxWidth', $maxWidth);
+$inputObjs = [];
+$pageStyleStr = '';
+if (isset($formConfigs) && isset($formConfigs['inputObjs'])) {
+  $inputObjs = $formConfigs['inputObjs'];
+  $index = array_search('system-page', array_column($inputObjs, 'inputType'));
+  if ($index !== false) {
+    $pageInputObj = $inputObjs[$index];
+    $pageStyleStr = $pageInputObj['options'][0];
+    $inputObjs = array_filter($inputObjs, function($inputObj) {
+      return $inputObj['inputType'] != 'system-page';
+    });
   }
-  $inputObjs = get($formConfigs, 'inputObjs', $inputObjs);
+
 }
-$bodyStyleStr = '';
-foreach ($bodyStylesByKey as $key => $default) {
-  $bodyStyleStr .= $KEY_TO_STYLE_NAMES[$key] . ':' . $default . ';';
+getPageStyleStr($formConfigs);
+$pageKeyValues = strToKeyValues($pageStyleStr);
+
+foreach ($bodyStyleKeyValues as $key => $default) {
+  if (array_key_exists($key, $pageKeyValues)) {
+    $bodyStyleKeyValues[$key] = $pageKeyValues[$key];
+  }
 }
+$maxWidth = get($pageKeyValues, 'max-width', $maxWidth);
+$selectedChoiceColor = get($pageKeyValues, 'selected-choice-color', $selectedChoiceColor);
+$selectedChoiceTextColor = get($pageKeyValues, 'selected-choice-text-color', $selectedChoiceTextColor);
+
+$bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
+//if (isset($formConfigs)) {
+//  if (isset($formConfigs['pageConfig'])) {
+//    $pageConfig = $formConfigs['pageConfig'];
+//
+//    foreach ($bodyStylesByKey as $key => $default) {
+//      $bodyStylesByKey[$key] = get($pageConfig, $key, $bodyStylesByKey[$key]);
+//    }
+//    $maxWidth = get($pageConfig, 'maxWidth', $maxWidth);
+//  }
+//  $inputObjs = get($formConfigs, 'inputObjs', $inputObjs);
+//}
+//$bodyStyleStr = '';
+//foreach ($bodyStylesByKey as $key => $default) {
+//  $bodyStyleStr .= $KEY_TO_STYLE_NAMES[$key] . ':' . $default . ';';
+//}
 
 ?><!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}"

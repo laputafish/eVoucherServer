@@ -58,3 +58,4 @@ function cascadePurgeFolders($dir, $baseDir)
 		cascadePurgeFolders($folder, $baseDir);
 	}
 }
+

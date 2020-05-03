@@ -66,12 +66,17 @@ class VoucherController extends BaseModuleController
 		'questionnaire' => 'nullable|string',
 		'questionnaire_fields' => 'nullable|string',
 		// 'questionnaire_configs' => [],
+    // 'thankyou_configs' => [],
+    // 'sorry_configs' => [],
 		
 		'goal_type' => 'in:fixed,codes,none',
 		'goal_count' => 'integer',
-		
-		'action_type_after_goal' => 'in:form,custom,none',
-		'action_page_after_goal' => 'nullable|string',
+
+    'action_type_before_goal' => 'in:form_voucher,form_custom,custom',
+    'custom_form_key_before_goal' => 'nullable|string',
+
+		'action_type_after_goal' => 'in:form_custom,custom,none',
+		'custom_form_key_after_goal' => 'nullable|string',
 		
 		'code_fields' => 'nullable|string',
 		'code_count' => 'integer',
@@ -82,7 +87,11 @@ class VoucherController extends BaseModuleController
 		'sharing_title' => 'nullable|string',
 		'sharing_description' => 'nullable|string',
 		'sharing_image_id' => 'integer',
-		
+
+		'form_sharing_title' => 'nullable|string',
+		'form_sharing_description' => 'nullable|string',
+		'form_sharing_image_id' => 'integer',
+
 		'status' => 'in:preparing,pending,ready_to_send,completed'
 	];
 	
@@ -108,7 +117,9 @@ class VoucherController extends BaseModuleController
 		'questionnaire' => 'nullable|string',
 		'questionnaire_fields' => 'nullable|string',
 		// 'questionnaire_configs' => [],
-		
+    // 'thankyou_configs' => [],
+    // 'sorry_configs' => [],
+
 		'goal_type' => 'in:fixed,codes,none',
 		'goal_count' => 'integer',
 		
@@ -124,7 +135,11 @@ class VoucherController extends BaseModuleController
 		'sharing_title' => 'nullable|string',
 		'sharing_description' => 'nullable|string',
 		'sharing_image_id' => 'integer',
-		
+
+    'form_sharing_title' => 'nullable|string',
+    'form_sharing_description' => 'nullable|string',
+    'form_sharing_image_id' => 'integer',
+
 		'status' => 'in:preparing,pending,ready_to_send,completed'
 	];
 
@@ -219,45 +234,32 @@ class VoucherController extends BaseModuleController
 //      ]
 //    ]);
 //  }
-	
+
+  protected function beforeShowData($id) {
+	  $row = parent::getRow($id);
+    if ($row->codeInfos()->count() === 0) {
+      if (!empty($row->code_fields)) {
+        $row->code_fields = '';
+        $row->save();
+      }
+    }
+  }
+
 	protected function onShowDataReady($request, $row)
 	{
-		if ($row->codeInfos()->count() === 0) {
-			if (!empty($row->code_fields)) {
-				$row->code_fields = '';
-				$row->save();
-			}
-		}
-		return $row;
-	}
-	
-	protected function getRow($id)
-	{
-		$row = parent::getRow($id);
-		
-		// get custom templates
-		$row->customTemplates;
+    // get custom templates
+    $row->customForms;
 
-		// get form configs
-//	  echo 'questionnaire_configs ' .$row->questionnaire_configs.PHP_EOL;
-		$row->form_configs = json_decode($row->questionnaire_configs, true);
-//	  echo 'getRow: ';
-//	  var_dump($row->form_configs);
-		// print_r($row->form_configs);
-		
-		if (is_null($row->form_configs)) {
-			$row->form_configs = QuestionnaireHelper::getBlankFormConfigs();
-		} else {
-			$formConfigs = $row->form_configs;
+    // get form configs
+    $row->form_configs = json_decode($row->questionnaire_configs, true);
+//    $row->thankyou_configs = json_decode($row->thankyou_configs, true);
+//    $row->sorry_configs = json_decode($row->sorry_configs, true);
 
-			QuestionnaireHelper::getUserPageConfigFromInputObj($formConfigs);
-			$row->form_configs = $formConfigs;
-		}
-		
-		unset($row->questionnaire_configs);
-		return $row;
+    unset($row->questionnaire_configs);
+
+    return $row;
 	}
-	
+
 	protected function onShowDataReady2($request, $row)
 	{
 		// include code configs
@@ -482,7 +484,7 @@ class VoucherController extends BaseModuleController
 			],
 			
 			// voucher_templates
-			'templates' => []
+			'customForms' => []
 		];
 	}
 	
@@ -507,85 +509,59 @@ class VoucherController extends BaseModuleController
 			$row->custom_link_key = newKey();
 		}
 
-		// Update form configs
-//    echo 'onVoucherUpdated: '.PHP_EOL;
-//    print_r($input['form_configs']);
+		// Form Configs
+    $formConfigs = $input['form_configs'];
+    array_walk_recursive($formConfigs,function(&$formConfigs) {
+      $formConfigs=strval($formConfigs);
+    });
+    $row->questionnaire_configs = json_encode($formConfigs);
+
+    $this->updateCustomForms($row, $input['custom_forms']);
+    // Thankyou Configs
+//    $thankyouConfigs = $input['thankyou_configs'];
+//    array_walk_recursive($thankyouConfigs,function(&$thankyouConfigs) {
+//      $thankyouConfigs = strval($thankyouConfigs);
+//    });
+//    $row->thankyou_configs = json_encode($thankyouConfigs);
 //
-//    echo PHP_EOL.PHP_EOL.PHP_EOL;
-
-    $questionnaireConfigs = QuestionnaireHelper::getFormConfigsFromInput($input['form_configs']);
-//		echo 'onVoucherUpdated: '.PHP_EOL;
-//		print_r($questionnaireConfigs);
-
-		$row->questionnaire_configs = $questionnaireConfigs;
-		
+//    // Sorry Configs
+//    $sorryConfigs = $input['sorry_configs'];
+//    array_walk_recursive($sorryConfigs,function(&$sorryConfigs) {
+//      $sorryConfigs = strval($sorryConfigs);
+//    });
+//    $row->sorry_configs = json_encode($sorryConfigs);
+    
 		$row->save();
 	}
-	
+
+	private function updateCustomForms($row, $customForms) {
+	  $inputFormKeys = array_map(function($customForm) {
+	    return $customForm['form_key'];
+    }, $customForms);
+
+	  $existingFormKeys = $row->customForms()->pluck('form_key')->toArray();
+
+	  $newFormKeys = array_filter($inputFormKeys, function($formKey) use($existingFormKeys) {
+	    return !in_array($formKey, $existingFormKeys);
+    });
+
+	  $obsolateFormKeys = array_filter($existingFormKeys, function($formKey) use($inputFormKeys) {
+      return !in_array($formKey, $inputFormKeys);
+    });
+
+
+  }
 	
 	protected function onStoreComplete($request, $row)
 	{
 		$this->onVoucherUpdated($request, $row);
-		
-		// Voucher codes is saved independently
-//    $input = $request->all();
-//    $this->saveCodeConfigs($row->id, $input['code_configs']);
-//    $this->saveEmails($row->id, array_key_exists('emails', $input) ? $input['emails'] : []);
 	}
 	
 	protected function onUpdateComplete($request, $row)
 	{
-//	  echo 'onUpdateComplete: '.PHP_EOL;
-//    print_r($request->get('form_configs'));
-//    return 'ok';
-//
-//
-//
-
     $this->onVoucherUpdated($request, $row);
-		
-		// Voucher codes is saved independently
-//    $input = $request->all();
-//    if (array_key_exists('code_configs', $input)) {
-//      $this->saveCodeConfigs($row->id, $input['code_configs']);
-//    }
-//
-//    if (array_key_exists('emails', $input)) {
-//      $this->saveEmails($row->id, $input['emails']);
-//    }
-//
-//    $codeCount = $row->codeInfos()->count();
-//    $row->code_count = $codeCount;
-//
-//    if (empty($row->custom_link_key)) {
-//      $row->custom_link_key = newKey();
-//    }
-//    $row->save();
 	}
 
-//  public function update($id) {
-//    $input = $this->getInput($this->updateRules);
-//    $row = $this->model->find($id);
-//    $row->update([
-//      'description' => $input['description'],
-//      'agent_id' => $input['agent_id'],
-//      'activation_date' => $input['activation_date'],
-//      'expiry_date' => $input['expiry_date'],
-//      'template' => $input['template'],
-//      'qr_code_composition' => $input['qr_code_composition'],
-//      'code_fields' => $input['code_fields'],
-//      'status' => $input['status'],
-//    ]);
-//    $this->saveVoucherCodes($id, $input['code_infos']);
-//    $this->saveEmails($id, $input['emails']);
-//
-//    $row = $this->model->find($id);
-//    return response()->json([
-//      'status' => true,
-//      'result' => $row
-//    ]);
-//  }
-	
 	public function store(Request $request)
 	{
 		$input = $request->validate($this->storeRules);
@@ -596,27 +572,7 @@ class VoucherController extends BaseModuleController
 		$input['notes'] = nullOrBlank($input['notes']);
 		
 		$newRow = $this->model->create($input);
-//    [
-//      'description' => is_null($input['description']) ? '' : $input['description'],
-//      'notes' => is_null($input['notes']) ? '' : $input['notes'],
-//      'agent_id' => $input['agent_id'],
-//      'activation_date' => $input['activation_date'],
-//      'expiry_date' => $input['expiry_date'],
-//      'template' => $input['template'],
-//      'code_fields' => $input['code_fields'],
-//      'status' => $input['status'],
-//      'has_questionnaire' => $input['has_questionnaire'],
-//      'questionnaire' => $input['questionnaire'],
-//      'questionnaire_key' => newKey(),
-//    ]);
 		$id = $newRow->id;
-
-//    $this->saveVoucherCodes($id,
-//      array_key_exists('code_infos', $input) ?
-//        $input['code_infos'] :
-//        []
-//    );
-
 		$this->onStoreComplete($request, $newRow);
 		$this->saveEmails($id,
 			array_key_exists('emails', $input) ?

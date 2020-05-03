@@ -232,6 +232,7 @@ class BaseModuleController extends BaseController
     if ($id == 0) {
       $record = $this->getBlankRecord();
     } else {
+      $this->beforeShowData($id);
       $row = $this->getRow($id);
       $row = $this->onShowDataReady($request, $row);
       $record = $row->toArray();
@@ -249,7 +250,7 @@ class BaseModuleController extends BaseController
     return $query;
   }
 
-  protected function onShowDataReady($request, $row) {
+  protected function beforeShowDataReady($request, $row) {
     return $row;
   }
 

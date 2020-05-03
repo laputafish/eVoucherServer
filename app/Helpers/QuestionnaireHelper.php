@@ -5,36 +5,38 @@ use App\Models\Voucher;
 
 class QuestionnaireHelper
 {
+  public static $BLANK_INPUT_OBJ = [
+    'name' => '',
+    'inputType' => '',
+    'question' => '',
+    'required' => true,
+    'options' => [],
+    'note1' => '',
+    'note2' => ''
+  ];
+
+  public static $DEFAULT_PAGE_CONFIG =
+    'background-color:white;'.
+    'color:black;'.
+    'font-size:14px;'.
+    'max-width:640px;'.
+    'padding-top:60px;';
 	
-	public static $DEFAULT_PAGE_CONFIG = [
-		'bgColor' => '',
-		'color' => '',
-		'fontSize' => '',
-		'maxWidth' => '',
-		'paddingTop' => '',
-		'style' => ''
-	];
-	
-	public static $BLANK_INPUT_OBJ = [
-		'name' => '',
-		'inputType' => '',
-		'question' => '',
-		'required' => true,
-		'options' => [],
-		'notes' => '',
-	];
-	
+
 	public static function getBlankFormConfigs()
 	{
 		return [
-			'pageConfig' => [
-				'bgColor' => 'white',
-				'color' => 'black',
-				'fontSize' => '14px',
-				'maxWidth' => '640px',
-				'paddingTop' => '60px'
-			],
-			'inputObjs' => []
+			'inputObjs' => [
+			  'name' => '',
+        'inputType' => 'system-page',
+        'question' => '',
+        'required' => true,
+        'options' => [
+          static::$DEFAULT_PAGE_CONFIG
+        ],
+        'note1' => '',
+        'note2' => ''
+      ]
 		];
 	}
 	
@@ -44,31 +46,32 @@ class QuestionnaireHelper
 	}
 	
 	private static function parseConfigs(&$formConfigs)
-	{
-		$pageConfig = $formConfigs['pageConfig'];
-		$styleArray = self::combineAllPageStyles($pageConfig); //parseStyles($styleStr);
-		$pageStyleOptions = keyValueArrayToStr($styleArray);
-		
-		self::setPageStyleInputObjOptions($formConfigs, $pageStyleOptions);
+  {
+    $pageConfig = $formConfigs['pageConfig'];
+    $styleArray = self::combineAllPageStyles($pageConfig); //parseStyles($styleStr);
+    $pageStyleOptions = keyValueArrayToStr($styleArray);
+
+    self::setPageStyleInputObjOptions($formConfigs, $pageStyleOptions);
 //		return json_encode($formConfigs['inputObjs']);
 //		echo 'parseConfigs: ';
 //		print_r($formConfigs);
-		
-		// finally, page config will be placed in inputObjs with tyep='page'
-		//
-		// formConfigs = [
-		//    'inputObjs' => [
-		//    ]
-		// ]
-		//
-		unset($formConfigs['pageConfig']);
+
+    // finally, page config will be placed in inputObjs with tyep='page'
+    //
+    // formConfigs = [
+    //    'inputObjs' => [
+    //    ]
+    // ]
+    //
+    unset($formConfigs['pageConfig']);
 //		print_r($formConfigs);
 
+    return self::preprocessFormConfigs($formConfigs);
+  }
+
+  public static function preprocessFormConfigs($formConfigs) {
     array_walk_recursive($formConfigs,function(&$formConfigs){$formConfigs=strval($formConfigs);});
-//    echo 'QuestionnaireHelper :: parseConfigs: '.PHP_EOL;
-//    print_r($formConfigs);
     $jsonFormConfigs = json_encode($formConfigs);
-//    print_r($jsonFormConfigs);
 		return $jsonFormConfigs;
 	}
 	
@@ -109,7 +112,7 @@ class QuestionnaireHelper
 		$inputObjs = $formConfigs['inputObjs'];
 		
 		$result = self::$BLANK_INPUT_OBJ;
-		$result['inputType'] = 'page';
+		$result['inputType'] = 'system-page';
 		
 		// Assing id:
 		$inputObjCount = count($inputObjs);
@@ -120,7 +123,7 @@ class QuestionnaireHelper
 		// Find 'page' input obj
 		$objIndex = -1;
 		foreach ($inputObjs as $i => $inputObj) {
-			if ($inputObj['inputType'] == 'page') {
+			if ($inputObj['inputType'] == 'system-page') {
 				$objIndex = $i;
 				break;
 			}
@@ -131,7 +134,7 @@ class QuestionnaireHelper
 //			echo 'no page style input obj found. '.PHP_EOL;
 			$pageStyleInputObj = self::$BLANK_INPUT_OBJ;
 			$pageStyleInputObj['id'] = $inputObjCount + 1;
-			$pageStyleInputObj['inputType'] = 'page';
+			$pageStyleInputObj['inputType'] = 'system-page';
 			$pageStyleInputObj['options'] = [$options];
 			$formConfigs['inputObjs'][] = $pageStyleInputObj;
 		} else {
@@ -166,7 +169,7 @@ class QuestionnaireHelper
 			
 			$pageStyleOptions = [];
 			foreach ($inputObjs as $objIndex => $inputObj) {
-				if ($inputObj['inputType'] == 'page') {
+				if ($inputObj['inputType'] == 'system-page') {
 					$pageStyleOptions = $inputObj['options'];
 					array_splice($inputObjs, $objIndex, 1);
 					$formConfigs['inputObjs'] = $inputObjs;

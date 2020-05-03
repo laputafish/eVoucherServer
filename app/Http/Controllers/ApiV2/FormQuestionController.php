@@ -1,5 +1,7 @@
 <?php namespace App\Http\Controllers\ApiV2;
 
+use App\Exports\FormConfigsExport;
+
 use App\Models\Menu;
 use App\Models\Media;
 use App\Models\Voucher;
@@ -14,16 +16,17 @@ use Illuminate\Http\Request;
 
 class FormQuestionController extends BaseController
 {
-	private $INPUT_OBJ_TYPES = [
-		'simple-text',
-		'number',
-		'name',
-		'email',
-		'phone',
-		'text',
-		'single-choice',
-		'multiple-choice'
-	];
+//	private $INPUT_OBJ_TYPES = [
+//	  'page',
+//		'simple-text',
+//		'number',
+//		'name',
+//		'email',
+//		'phone',
+//		'text',
+//		'single-choice',
+//		'multiple-choice'
+//	];
 	
 	public function upload(Request $request)
 	{
@@ -65,7 +68,6 @@ class FormQuestionController extends BaseController
 								// check first cell if empty
 								if (!empty($sheet0[$rowNo][0])) {
 									$objType = strtolower($sheet0[$rowNo][0]);
-									$objTypeConfig =
 									$newInputObj = [
 										'id' => $rowNo,
 										'name' => '',
@@ -74,10 +76,19 @@ class FormQuestionController extends BaseController
 										'question' => '',
 										'required' => true,
 										'options' => [],
-										'notes' => ''
+										'note1' => '',
+                    'note2' => ''
 									];
-									$values = ['', '', '', '', '', ''];
-									for ($j = 1; $j < 6; $j++) {
+									$values = ['', '', '', '', '', '', '', ''];
+									// values
+                  // [1]: description => name
+                  // [2]: required
+                  // [3]: question/remark/image link
+                  // [4]: note1
+                  // [5]: note2
+                  // [6]: options[0]
+                  // [7]: options[1]
+									for ($j = 1; $j < 7; $j++) {
 										if (!is_null($sheet0[$rowNo][$j])) {
 											$values[$j] = $sheet0[$rowNo][$j];
 										}
@@ -98,11 +109,12 @@ class FormQuestionController extends BaseController
 												$newInputObj['required'] = true;
 											}
 											$newInputObj['question'] = $values[3];
-											$newInputObj['notes'] = $values[4];
-											$newInputObj['options'][] = $values[5];
-											
+											$newInputObj['note1'] = $values[4];
+											$newInputObj['note2'] = $values[5];
+
+											$newInputObj['options'][] = $values[6];
 											if ($objType == 'single-choice' || $objType == 'multiple-choice') {
-												for ($k = 6; $k < count($sheet0[$rowNo]); $k++) {
+												for ($k = 7; $k < count($sheet0[$rowNo]); $k++) {
 													if (!is_null($sheet0[$rowNo][$k]) && !empty($sheet0[$rowNo][$k])) {
 														$newInputObj['options'][] = $sheet0[$rowNo][$k];
 													} else {
@@ -111,39 +123,27 @@ class FormQuestionController extends BaseController
 												}
 											}
 											break;
-										case 'remark':
-										case 'images':
-											$newInputObj['question'] = $values[3];
-											break;
-										case 'submit':
-											break;
+										case 'output-remark':
+                      $newInputObj['question'] = str_replace(chr(10), '|', $values[3]);
+
+//                      for ($i = 0; $i < strlen($values[3]); $i++) {
+//                        echo $values[3][$i].' ('.ord($values[3][$i]).') '.PHP_EOL;
+//                      }
+                      $newInputObj['options'][] = $values[6];
+                      $newInputObj['options'][] = $values[7];
+                      break;
+                    case 'output-submit':
+                    case 'output-image':
+                      $newInputObj['question'] = $values[3];
+                    case 'system-page':
+                      $newInputObj['options'][] = $values[6];
+                      $newInputObj['options'][] = $values[7];
+  										break;
 									}
 									$inputObjs[] = $newInputObj;
 								} else { // first cell is empty, exit
 									break;
 								}
-//									$cells = [];
-//									for ($cellNo = 0; $cellNo < count($fields); $cellNo++) {
-//										if ($cellNo < count($sheet0[$rowNo])) {
-//											$value = $sheet0[$rowNo][$cellNo];
-//											$type = getType($value);
-//											if (empty($value) || $type == 'null') {
-//												break;
-//											}
-//											if (($type == 'integer' || $type == 'double') && $value >= 36526 && $value <= 55153) {
-//												$type = 'date';
-//												$value = $this->excel2Date($value);
-//											}
-//											$fields[$cellNo]['type'] = $type;
-//											$cells[] = $value;
-//										} else {
-//											$cells[] = '';
-//										}
-//									}
-//									$data[] = $cells;
-//								} else {
-//									break;
-//								}
 							}
 							$result = $inputObjs;
 						} else {
@@ -181,7 +181,8 @@ class FormQuestionController extends BaseController
 			'description',
 			'required',
 			'question/remark/image link',
-			'notes',
+			'note1',
+      'note2',
 			'options'
 		];
 		$result = true;
@@ -213,10 +214,12 @@ class FormQuestionController extends BaseController
 	{
 		$this->user->questionForms()->delete();
 		$key = newKey();
-		$formConfigs = QuestionnaireHelper::getFormConfigsFromInput($request->get('formConfigs'));
+
+		$formConfigs = $request->get('formConfigs');
 		$temp = new TempQuestionForm([
 			'form_key' => $key,
-			'form_configs' => $formConfigs
+			'description' => $request->get('description'),
+			'form_configs' => QuestionnaireHelper::preprocessFormConfigs($formConfigs)
 		]);
 		$this->user->questionForms()->save($temp);
 	 	return response()->json([
@@ -230,9 +233,9 @@ class FormQuestionController extends BaseController
 	private function getTempFormConfigs($key) {
 		$row = TempQuestionForm::where('form_key', $key)->first();
 		$formConfigs = isset($row) ? json_decode($row->form_configs, true) : null;
-		if (!is_null($formConfigs)) {
-			QuestionnaireHelper::getUserPageConfigFromInputObj($formConfigs);
-		}
+//		if (!is_null($formConfigs)) {
+//			QuestionnaireHelper::getUserPageConfigFromInputObj($formConfigs);
+//		}
 		return $formConfigs;
 	}
 	
@@ -262,11 +265,19 @@ class FormQuestionController extends BaseController
 		}
 		
 		if ($isTemp) {
-			$formConfigs = TempQuestionForm::where('app_key', $key)->value('form_configs');
+			$questionForm = TempQuestionForm::where('form_key', $key)->first();
+      $formConfigs = $questionForm->form_configs;
+      $description = empty($questionForm->description) ?
+        'no_description' :
+        $questionForm->description;
 		}
-		
+
 		if (isset($formConfigs)) {
-			print_r($formConfigs);
-		}
+      $formConfigs = json_decode($formConfigs, true);
+      $filename = str_replace(' ', '_', $description).'.xlsx';
+		  return \Excel::download(new FormConfigsExport($formConfigs), $filename);
+		} else {
+		  return response('Cannot get form configs!', 401);
+    }
 	}
 }

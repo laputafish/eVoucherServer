@@ -27,12 +27,18 @@ class Voucher extends Model
 	  
     'questionnaire',
     'questionnaire_fields',
+    'questionnaire_configs',
+    'thankyou_configs',
+    'sorry_configs',
 	  
 	  'goal_type', // fixed, codes, none
 	  'goal_count',
-	  
-	  'action_type_after_goal', // form, custom, none
-	  'action_page_after_goal', // custom_12, custom_34, custom_44, ...
+
+    'action_type_before_goal', // form_voucher, form_custom, custom
+    'custom_form_key_before_goal',
+
+	  'action_type_after_goal', // form_custom, custom, none
+	  'custom_form_key_after_goal',
 	  
     'code_fields',
     'code_count',
@@ -43,7 +49,11 @@ class Voucher extends Model
 	  'sharing_title',
 	  'sharing_description',
 	  'sharing_image_id',
-	
+
+    'form_sharing_title',
+    'form_sharing_description',
+    'form_sharing_image_id',
+
     'status'
   ];
 
@@ -77,7 +87,7 @@ class Voucher extends Model
   	return $this->belongsTo(Media::class, 'sharing_image_id');
   }
   
-  public function customTemplates() {
-  	return $this->hasMany(VoucherTemplate::class);
+  public function customForms() {
+  	return $this->hasMany(VoucherCustomForm::class);
   }
 }
