@@ -5,6 +5,7 @@ use App\Models\Voucher;
 use App\Models\Agent;
 use App\Models\VoucherCode;
 use App\Models\VoucherCodeConfig;
+use App\Models\VoucherCustomForm;
 
 use App\Helpers\AccessKeyHelper;
 use App\Helpers\MediaHelper;
@@ -245,7 +246,26 @@ class VoucherController extends BaseModuleController
     }
   }
 
-	protected function onShowDataReady($request, $row)
+	protected function getRow($id)
+	{
+		$row = parent::getRow($id);
+		
+    // get custom templates
+		$customForms = [];
+    foreach($row->customForms as $i=>$customForm) {
+    	$customForm->form_configs = json_decode($customForm->form_configs, true);
+    	$customForms[] = $customForm;
+    }
+    $row->custom_forms = $customForms;
+
+    // get form configs
+    $row->form_configs = json_decode($row->questionnaire_configs, true);
+    unset($row->questionnaire_configs);
+
+    return $row;
+	}
+	
+	protected function onShowDataReady3($request, $row)
 	{
     // get custom templates
     $row->customForms;
@@ -287,7 +307,7 @@ class VoucherController extends BaseModuleController
 //
 //  }
 //
-	protected function onIndexFilter($request, $query)
+	protected function onIndexFilter($request, $query, $filterFields=[])
 	{
 		$query = parent::onIndexFilter($request, $query);
 		if ($request->has('agentId')) {
@@ -484,7 +504,7 @@ class VoucherController extends BaseModuleController
 			],
 			
 			// voucher_templates
-			'customForms' => []
+//			'custom_forms' => []
 		];
 	}
 	
@@ -510,10 +530,14 @@ class VoucherController extends BaseModuleController
 		}
 
 		// Form Configs
-    $formConfigs = $input['form_configs'];
-    $row->questionnaire_configs = formConfigsToData($formConfigs);
+		if (array_key_exists('form_configs', $input)) {
+	    $formConfigs = $input['form_configs'];
+      $row->questionnaire_configs = formConfigsToData($formConfigs);
+		}
 
-    $this->updateCustomForms($row, $input['custom_forms']);
+    if (array_key_exists('custom_forms', $input)) {
+	    $this->updateCustomForms($row, $input['custom_forms']);
+    }
     // Thankyou Configs
 //    $thankyouConfigs = $input['thankyou_configs'];
 //    array_walk_recursive($thankyouConfigs,function(&$thankyouConfigs) {
@@ -554,9 +578,10 @@ class VoucherController extends BaseModuleController
 			$formKey = $customForm['form_key'];
 			if (in_array($formKey, $newFormKeys)) {
 				// Add
-				$newForm = new CustomForm($customForm);
+				$newForm = new VoucherCustomForm($customForm);
 				$row->customForms()->save($newForm);
 			} else {
+				unset($customForm['id']);
 				$row->customForms()->where('form_key', $formKey)->update($customForm);
 				// Update
 			}
@@ -650,12 +675,12 @@ class VoucherController extends BaseModuleController
 		
 		// Ensure barcode and qrcode exists
 		if ($voucher->codeConfigs()->whereCodeGroup('qrcode')->count() == 0) {
-			$qrcodeConfig = new CodeConfig($this->defaultQrcode);
+			$qrcodeConfig = new VoucherCodeConfig($this->defaultQrcode);
 			$voucher->codeConfigs()->save($qrcodeConfig);
 		}
 		
 		if ($voucher->codeConfigs()->whereCodeGroup('barcode')->count() == 0) {
-			$barcodeConfig = new CodeConfig($this->defaultBarcode);
+			$barcodeConfig = new VoucherCodeConfig($this->defaultBarcode);
 			$voucher->codeConfigs()->save($barcodeConfig);
 		}
 	}
@@ -825,6 +850,8 @@ class VoucherController extends BaseModuleController
 				$page = $request->get('page', 1);
 				$limit = $request->get('limit', 20);
 				$query = $voucher->codeInfos();
+				$query = parent::onIndexFilter($request, $query, ['code', 'extra_fields', 'key']);
+				
 				$totalCount = $query->count();
 				$lastPage = ceil($totalCount / $limit);
 				if ($page > $lastPage) {

@@ -84,44 +84,48 @@ class BaseModuleController extends BaseController
     return $query;
   }
 
-  protected function onIndexFilter($request, $query)
+  protected function onIndexFilter($request, $query, $filterFields=[])
   {
     $filter = $request->get('filter', '');
     if (!empty($filter)) {
       $filterItems = explode('|', $filter);
       foreach ($filterItems as $filterItem) {
         $keyValue = explode(':', $filterItem);
-        $query = $this->onIndexFilterField($query, $keyValue[0], $keyValue[1]);
+        $query = $this->onIndexFilterField($query, $keyValue[0], $keyValue[1], $filterFields);
       }
     }
     return $query;
   }
 
-  protected function onIndexFilterField($query, $fieldName, $fieldValue)
+  protected function onIndexFilterField($query, $fieldName, $fieldValue, $filterFields=[])
   {
     if ($fieldName == '*') {
-      $query = $this->onIndexFilterWildcard($query, $fieldValue);
+      $query = $this->onIndexFilterWildcard($query, $fieldValue, $filterFields);
     } else {
       $query = $query->where($fieldName, 'like', '%' . $fieldValue . '%');
     }
     return $query;
   }
 
-  protected function onIndexFilterWildcard($query, $fieldValue)
+  protected function onIndexFilterWildcard($query, $fieldValue, $filterFields=[])
   {
-    $query = $query->where(function ($q) use ($fieldValue) {
-      foreach ($this->filterFields as $i => $fieldName) {
-//        echo 'i='.$i.'  fieldName='.$fieldName.PHP_EOL;
+  	if (empty($filterFields)) {
+  		$filterFields = $this->filterFields;
+	  }
+	  
+//	  foreach ($this->filterFields as $i => $fieldName) {
+//	    echo 'fieldName #'.$i.': '.$fieldName.PHP_EOL;
+//	  }
+//	  return 'ok';
+	  
+    $query = $query->where(function ($q) use ($fieldValue, $filterFields) {
+    	
+      foreach ($filterFields as $i => $fieldName) {
         if ($i == 0) {
           if (strpos($fieldName, '.') === false) {
             $q = $q->where($fieldName, 'like', '%' . $fieldValue . '%');
           } else {
-//            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%']);
             $relationAndField = explode(',', $fieldName);
-//            $q->whereRaw($fieldName . ' like ?', ['%' . $fieldValue . '%'], 'or');
-//            echo 'relationAndField: '.PHP_EOL;
-//            echo '0: '.$relationAndField[0].PHP_EOL;
-//            echo '1: '.$relationAndField[1].PHP_EOL;
 
             $q = $q->whereHas($relationAndField[0], function($q) use ($relationAndField, $fieldValue) {
               $q = $q->where($relationAndField[1], 'like', '%'.$fieldValue.'%');
@@ -246,6 +250,10 @@ class BaseModuleController extends BaseController
     ]);
   }
 
+  protected function onShowDataReady($request, $row) {
+  	return $row;
+  }
+  
   protected function onShowWith($query) {
     return $query;
   }

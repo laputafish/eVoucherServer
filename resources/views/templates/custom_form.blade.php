@@ -10,12 +10,40 @@
 //************
 // Routines
 //************
+function fillArray($ar, $count, $default) {
+  $result = [];
+  for($i = 0; $i < $count; $i++) {
+  	$result[] = $default;
+  }
+  for($i = 0;  $i < count($ar); $i++) {
+  	$result[$i] = $ar[$i];
+  }
+  return $result;
+}
+
 function getInputOptions($inputOptions) {
   $options = ['', ''];
   foreach($inputOptions as $i => $option) {
     $options[$i] = $option;
   }
   return $options;
+}
+
+function strToKeyValues($str, $separator = ';')
+{
+  $result = [];
+  if(isset($str)) {
+		$segs = explode($separator, $str);
+	  foreach ($segs as $seg) {
+      if (!empty($seg)) {
+        $keyPair = explode(':', $seg);
+        if (count($keyPair) > 1) {
+          $result[$keyPair[0]] = $keyPair[1];
+        }
+      }
+    }
+	}
+	return $result;
 }
 
 function keyValuesToStr($keyValues) {
@@ -54,20 +82,6 @@ function getKeyPairs($objOptions)
     $options = strToKeyValues($objOptions[0]);
   }
   return $options;
-}
-function strToKeyValues($str, $separator = ';')
-{
-  $segs = explode($separator, $str);
-  $result = [];
-  foreach ($segs as $seg) {
-    if (!empty($seg)) {
-        $keyPair = explode(':', $seg);
-        if (count($keyPair) > 1) {
-            $result[$keyPair[0]] = $keyPair[1];
-        }
-    }
-  }
-  return $result;
 }
 
 function getPageStyleStr($formConfigs) {
@@ -351,17 +365,25 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                     <img src="{{$inputObj['question']}}"/>
                 @elseif($inputObj['inputType']=='output-remark')
                 <?php
-                $options = getKeyPairs($inputObj['options'], []);
-                $paddingTop = get($options, 'paddingTop', '10px');
-                $paddingBottom = get($options, 'paddingBottom', '10px');
-                $fontSize = get($options, 'fontSize', '18px');
+                  $default = 'padding-top:10px;padding-bottom:10px;font-size:18px;';
+                  $keyValuesDefault = strToKeyValues($default);
+
+                  $options = fillArray($inputObj['options'], 2, '');
+                  $keyValuesElement = strToKeyValues($options[0]);
+                  $keyValuesContainer = strToKeyValues($options[1]);
+
+                  $styleElement = keyValuesToStr($keyValuesElement);
+                  $styleContainer = keyValuesToStr($keyValuesContainer);
+
+//                  $paddingTop = get($options, 'paddingTop', '10px');
+//                  $paddingBottom = get($options, 'paddingBottom', '10px');
+//                  $fontSize = get($options, 'fontSize', '18px');
                 ?>
-                    <div class="col-sm-12">
-                        <div style="padding-top:{{ $paddingTop }};padding-bottom:{{ $paddingBottom }};font-size:{{ $fontSize }}"
-                             ;
-                        ">
-                        {{ $inputObj['question'] }}
+                <div class="col-sm-12" style="{{$styleContainer}}">
+                    <div style="{{$styleElement}}">
+                      {{ $inputObj['question'] }}
                     </div>
+                </div>
             </div>
             @elseif($inputObj['inputType']=='output-submit')
           <?php

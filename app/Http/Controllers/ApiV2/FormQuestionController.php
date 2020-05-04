@@ -246,7 +246,10 @@ class FormQuestionController extends BaseController
 			$key = substr($key, 1);
 			$formConfigs = $this->getTempFormConfigs($key);
 		}
-		return view('templates.question_form')->with([
+//		echo 'istemp: '.($isTemp ? 'yes' : 'no').PHP_EOL;
+//		print_r($formConfigs);
+//		return 'ok';
+		return view('templates.custom_form')->with([
 			'key' => $key,
 			'formConfigs' => $formConfigs
 		]);
