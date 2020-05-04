@@ -59,3 +59,9 @@ function cascadePurgeFolders($dir, $baseDir)
 	}
 }
 
+function formConfigsToData($formConfigs) {
+	array_walk_recursive($formConfigs,function(&$formConfigs) {
+		$formConfigs=strval($formConfigs);
+	});
+	return json_encode($formConfigs);
+}

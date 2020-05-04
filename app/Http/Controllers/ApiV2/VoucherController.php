@@ -511,10 +511,7 @@ class VoucherController extends BaseModuleController
 
 		// Form Configs
     $formConfigs = $input['form_configs'];
-    array_walk_recursive($formConfigs,function(&$formConfigs) {
-      $formConfigs=strval($formConfigs);
-    });
-    $row->questionnaire_configs = json_encode($formConfigs);
+    $row->questionnaire_configs = formConfigsToData($formConfigs);
 
     $this->updateCustomForms($row, $input['custom_forms']);
     // Thankyou Configs
@@ -548,6 +545,22 @@ class VoucherController extends BaseModuleController
 	  $obsolateFormKeys = array_filter($existingFormKeys, function($formKey) use($inputFormKeys) {
       return !in_array($formKey, $inputFormKeys);
     });
+	  
+	  // delete obsolate forms
+		$row->customForms()->whereIn('form_key', $obsolateFormKeys)->delete();
+		
+		foreach($customForms as $customForm) {
+			$customForm['form_configs'] = formConfigsToData($customForm['form_configs']);
+			$formKey = $customForm['form_key'];
+			if (in_array($formKey, $newFormKeys)) {
+				// Add
+				$newForm = new CustomForm($customForm);
+				$row->customForms()->save($newForm);
+			} else {
+				$row->customForms()->where('form_key', $formKey)->update($customForm);
+				// Update
+			}
+		}
 
 
   }
