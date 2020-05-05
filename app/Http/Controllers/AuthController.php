@@ -95,15 +95,16 @@ class AuthController extends Controller
   public function logout()
   {
     // can get bearer token only from header
-    $bearToken = request()->bearerToken();
-    echo 'bearToken = '.$bearToken;
+//    $bearToken = request()->bearerToken();
+//    echo 'bearToken = '.$bearToken;
 
     // server error with below
 //    $jwtToken = JWTAuth::getToken();
 
-    auth('api')->logout();
-//    $token = request()->get('token');
-    JWTAuth::invalidate(JWTAuth::getToken());
+//    auth('api')->logout();
+    
+    // blacklist must be enabled to have invalidation function
+//    JWTAuth::invalidate(JWTAuth::getToken());
 
     return response()->json(['message' => 'Successfully logged out']);
   }
