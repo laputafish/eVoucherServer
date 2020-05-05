@@ -81,6 +81,7 @@ class VoucherController extends BaseModuleController
 		
 		'code_fields' => 'nullable|string',
 		'code_count' => 'integer',
+		'participant_count' => 'integer',
 		
 		'qr_code_size' => 'nullable|integer',
 		'qr_code_composition' => 'nullable|string',
@@ -129,6 +130,8 @@ class VoucherController extends BaseModuleController
 		
 		'code_fields' => 'nullable|string',
 		'code_count' => 'integer',
+		
+		'participant_count' => 'integer',
 		
 		'qr_code_size' => 'nullable|integer',
 		'qr_code_composition' => 'nullable|string',
@@ -351,7 +354,7 @@ class VoucherController extends BaseModuleController
 	protected function onIndexSelect($request, $query)
 	{
 		if ($request->get('type', '') == 'selection') {
-			$query = $query->select('id', 'description', 'notes', 'created_at', 'code_count');
+			$query = $query->select('id', 'description', 'notes', 'created_at', 'code_count', 'participant_count');
 		} else {
 			if ($request->has('select')) {
 				$fields = explode(',', $request->get('select'));
@@ -524,6 +527,10 @@ class VoucherController extends BaseModuleController
 		$codeCount = $row->codeInfos()->count();
 		$row->code_count = $codeCount;
 		
+		// Update participant count
+		$participantCount = $row->participants()->count();
+		$row->participant_count = $participantCount;
+		
 		// Update custom link key
 		if (empty($row->custom_link_key)) {
 			$row->custom_link_key = newKey();
@@ -538,19 +545,6 @@ class VoucherController extends BaseModuleController
     if (array_key_exists('custom_forms', $input)) {
 	    $this->updateCustomForms($row, $input['custom_forms']);
     }
-    // Thankyou Configs
-//    $thankyouConfigs = $input['thankyou_configs'];
-//    array_walk_recursive($thankyouConfigs,function(&$thankyouConfigs) {
-//      $thankyouConfigs = strval($thankyouConfigs);
-//    });
-//    $row->thankyou_configs = json_encode($thankyouConfigs);
-//
-//    // Sorry Configs
-//    $sorryConfigs = $input['sorry_configs'];
-//    array_walk_recursive($sorryConfigs,function(&$sorryConfigs) {
-//      $sorryConfigs = strval($sorryConfigs);
-//    });
-//    $row->sorry_configs = json_encode($sorryConfigs);
     
 		$row->save();
 	}
@@ -842,6 +836,72 @@ class VoucherController extends BaseModuleController
 		]);
 	}
 	
+	public function getParticipants(Request $request, $id) {
+		$voucher = $this->model->find($id);
+		$inputObjFields = $this->getInputObjFields($voucher);
+		if (isset($voucher)) {
+			if ($request->has('page')) {
+				$page = $request->get('page', 1);
+				$limit = $request->get('limit', 20);
+				$query = $voucher->participants();
+				$query = parent::onIndexFilter($request, $query, ['form_content', 'remark']);
+				
+				$totalCount = $query->count();
+				$lastPage = ceil($totalCount / $limit);
+				if ($page > $lastPage) {
+					$page = $lastPage;
+				}
+				// $data = $query->get();
+				$offset = ($page - 1) * $limit;
+				$data = $query->skip($offset)->take($limit)->get();
+				$pagedData = new \Illuminate\Pagination\LengthAwarePaginator($data, $totalCount, $limit, $page);
+				$result = $pagedData;
+				
+				$arResult = $result->toArray();
+				$arResult['data'] = $this->parseParticipantData($arResult['data'], $inputObjFields);
+				echo 'arResult[data]: '.PHP_EOL.PHP_EOL;
+				print_r($arResult['data']);
+				return 'ok';
+				return response()->json([
+					'status' => true,
+					'result' => $result
+				]);
+			}
+		}
+		return response()->json([
+			'status' => true,
+			'result' => []
+		]);
+	}
+	
+	private function getInputObjFields($voucher) {
+		$result = [];
+		$formConfigs = json_decode($voucher->questionnaiare_configs, true);
+		if (isset($formConfigs)) {
+			if (isset($formConfigs['inputObjs'])) {
+				$inputObjs = $formConfigs['inputObjs'];
+				foreach($inputObjs as $i=>$inputObj) {
+					$fieldName = 'field'.$i;
+					switch ($inputObjs['inputType']) {
+						case 'simple-text':
+						case 'number':
+						case 'email':
+						case 'text':
+						case 'single-choice':
+						case 'multiple-choice':
+							$result[] = $fieldName;
+							break;
+						case 'name':
+						case 'phone':
+							$result[] = $fieldName.'_0';
+							$result[] = $fieldName.'_1';
+							break;
+					}
+				}
+			}
+		}
+		return $result;
+	}
 	public function getCodes(Request $request, $id)
 	{
 		$voucher = $this->model->find($id);

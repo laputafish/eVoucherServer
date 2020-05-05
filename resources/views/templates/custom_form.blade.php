@@ -364,52 +364,51 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                 @elseif($inputObj['inputType']=='output-image')
                     <img src="{{$inputObj['question']}}"/>
                 @elseif($inputObj['inputType']=='output-remark')
-                <?php
-                  $default = 'padding-top:10px;padding-bottom:10px;font-size:18px;';
-                  $keyValuesDefault = strToKeyValues($default);
+                  <?php
+                    $default = 'padding-top:10px;padding-bottom:10px;font-size:18px;';
+                    $keyValuesDefault = strToKeyValues($default);
 
-                  $options = fillArray($inputObj['options'], 2, '');
-                  $keyValuesElement = strToKeyValues($options[0]);
-                  $keyValuesContainer = strToKeyValues($options[1]);
+                    $options = fillArray($inputObj['options'], 2, '');
+                    $keyValuesElement = strToKeyValues($options[0]);
+                    $keyValuesContainer = strToKeyValues($options[1]);
 
-                  $styleElement = keyValuesToStr($keyValuesElement);
-                  $styleContainer = keyValuesToStr($keyValuesContainer);
+                    $styleElement = keyValuesToStr($keyValuesElement);
+                    $styleContainer = keyValuesToStr($keyValuesContainer);
 
-//                  $paddingTop = get($options, 'paddingTop', '10px');
-//                  $paddingBottom = get($options, 'paddingBottom', '10px');
-//                  $fontSize = get($options, 'fontSize', '18px');
-                ?>
-                <div class="col-sm-12" style="{{$styleContainer}}">
-                    <div style="{{$styleElement}}">
-                      {{ $inputObj['question'] }}
-                    </div>
-                </div>
+  //                  $paddingTop = get($options, 'paddingTop', '10px');
+  //                  $paddingBottom = get($options, 'paddingBottom', '10px');
+  //                  $fontSize = get($options, 'fontSize', '18px');
+                  ?>
+                  <div class="col-sm-12" style="{{$styleContainer}}">
+                      <div style="{{$styleElement}}">
+                        {{ $inputObj['question'] }}
+                      </div>
+                  </div>
+                @elseif($inputObj['inputType']=='output-submit')
+                  <?php
+                    $defaultOption1 = 'background-color:orange;color:white;width:200px;font-size:18px;';
+                    $defaultOption2 = 'padding-top:10px;padding-bottom:10px;';
+                    $inputOptions = getInputOptions($inputObj['options']);
+
+                    $buttonStyleStr = style_merge($defaultOption1, $inputOptions[0]);
+                    $containerStyleStr = style_merge($defaultOption2, $inputOptions[1]);
+                    $question = empty($inputObj['question']) ? 'Submit' : $inputObj['question'];
+                  ?>
+                {{--<h4>options[0]: {{ $inputObj['options'][0] }}</h4>--}}
+                {{--<h4>options[1]: {{ $inputObj['options'][1] }}</h4>--}}
+
+                  <div class="col-sm-12 text-center">
+                      <div style="{{ $containerStyleStr }}">
+                          <button type="button"
+                                  class="btn"
+                                  style="{{ $buttonStyleStr }}">
+                              {{ $question }}
+                          </button>
+                      </div>
+                  </div>
+                @endif
             </div>
-            @elseif($inputObj['inputType']=='output-submit')
-          <?php
-          $defaultOption1 = 'background-color:orange;color:white;width:200px;font-size:18px;';
-          $defaultOption2 = 'padding-top:10px;padding-bottom:10px;';
-          $inputOptions = getInputOptions($inputObj['options']);
-
-          $buttonStyleStr = style_merge($defaultOption1, $inputOptions[0]);
-          $containerStyleStr = style_merge($defaultOption2, $inputOptions[1]);
-          $question = empty($inputObj['question']) ? 'Submit' : $inputObj['question'];
-          ?>
-              {{--<h4>options[0]: {{ $inputObj['options'][0] }}</h4>--}}
-              {{--<h4>options[1]: {{ $inputObj['options'][1] }}</h4>--}}
-
-              <div class="col-sm-12 text-center">
-                    <div style="{{ $containerStyleStr }}">
-                        <button type="button"
-                                class="btn"
-                                style="{{ $buttonStyleStr }}">
-                            {{ $question }}
-                        </button>
-                    </div>
-                </div>
-            @endif
-    </div>
-    @endforeach
+        @endforeach
     </div>
 </form>
 <script>

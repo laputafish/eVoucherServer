@@ -4,6 +4,10 @@ use App\Models\VoucherCode;
 use App\Models\Voucher;
 
 class VoucherHelper {
+	public static function addNewParticipant($voucher, $participant) {
+		return 'not implemented yet!';
+	}
+	
   public static function addNewCodes($voucher, $codeArray) {
     ini_set('max_execution_time', 300 );
 
@@ -75,13 +79,14 @@ class VoucherHelper {
     foreach( $chunks as $chunk) {
       \DB::table('voucher_codes')->insert($chunk->toArray());
     }
+    
+    // update code count
     $codeCount = VoucherCode::whereVoucherId($voucher->id)->count();
     Voucher::whereId($voucher->id)->update(['code_count'=>$codeCount]);
-//    VoucherCode::insert($batchData);
-
-
+    
     return [
       'codeCount' => $codeCount,
+	    
       'new' => count($codeInfosToAdd),
       'existing' => count($codeInfosToUpdate)
     ];

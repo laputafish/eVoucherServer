@@ -43,6 +43,8 @@ class Voucher extends Model
 		'code_fields',
 		'code_count',
 		
+		'participant_count',
+		
 		'qr_code_composition',
 		'qr_code_size',
 		
@@ -99,6 +101,6 @@ class Voucher extends Model
 	}
 	
 	public function participants() {
-		return $this->hasMany(VouhcherPartipcnt::class);
+		return $this->hasMany(VoucherParticipant::class);
 	}
 }

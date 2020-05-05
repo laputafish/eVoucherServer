@@ -93,6 +93,7 @@ class FormQuestionController extends BaseController
 											$values[$j] = $sheet0[$rowNo][$j];
 										}
 									}
+									$valid = true;
 									switch ($objType) {
 										case 'simple-text':
 										case 'number':
@@ -139,8 +140,12 @@ class FormQuestionController extends BaseController
                       $newInputObj['options'][] = $values[6];
                       $newInputObj['options'][] = $values[7];
   										break;
+										default:
+											$valid = false;
 									}
-									$inputObjs[] = $newInputObj;
+									if ($valid) {
+										$inputObjs[] = $newInputObj;
+									}
 								} else { // first cell is empty, exit
 									break;
 								}

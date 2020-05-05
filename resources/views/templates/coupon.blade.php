@@ -46,5 +46,10 @@
     @else
         {!! $template !!}
     @endif
+    <div class="text-center">
+        <div style="width:90%;max-width:640px;margin:0 auto;">
+            <script>(function(t,e,s,n){var o,a,c;t.SMCX=t.SMCX||[],e.getElementById(n)||(o=e.getElementsByTagName(s),a=o[o.length-1],c=e.createElement(s),c.type="text/javascript",c.async=!0,c.id=n,c.src=["https:"===location.protocol?"https://":"http://","widget.surveymonkey.com/collect/website/js/tRaiETqnLgj758hTBazgd_2BE466S0KQp0ZmamlSu3N0w_2B9o1pArcvC_2Bu80qOg7ihA.js"].join(""),a.parentNode.insertBefore(c,a))})(window,document,"script","smcx-sdk");</script><a style="font: 12px Helvetica, sans-serif; color: #999; text-decoration: none;" href=https://www.surveymonkey.com> Create your own user feedback survey</a>
+        </div>
+    </div>
 </body>
 </html>
