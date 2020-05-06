@@ -65,3 +65,13 @@ function formConfigsToData($formConfigs) {
 	});
 	return json_encode($formConfigs);
 }
+
+function explodeByCount($separator, $target, $count, $default) {
+	$result = array_fill(0, $count, $default);
+	$segs = explode($separator, $target);
+	$end = min($count, count($segs));
+	for($i = 0; $i < $end; $i++) {
+		$result[$i] = $segs[$i];
+	}
+	return $result;
+}

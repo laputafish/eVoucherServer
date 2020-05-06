@@ -51,6 +51,7 @@ Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
 
 // Preview question form
 Route::get('q/{key}/{timestamp?}', 'ApiV2\FormQuestionController@showQuestionForm');
+Route::post('q', 'ApiV2\FormQuestionController@postQuestionForm');
 
 // Download question form configs
 Route::get('d/{key}/{timestamp?}', 'ApiV2\FormQuestionController@downloadFormConfigs');

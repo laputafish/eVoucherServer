@@ -854,7 +854,8 @@ class VoucherController extends BaseModuleController
 	public function getParticipants(Request $request, $id) {
 		$voucher = $this->model->find($id);
 //		$inputObjFields = $this->getInputObjFields($voucher);
-		$inputObjFields = $voucher->input_obj_fields;
+		
+		$inputObjs = $voucher->input_objs;
 		if (isset($voucher)) {
 			if ($request->has('page')) {
 				$page = $request->get('page', 1);
@@ -874,7 +875,7 @@ class VoucherController extends BaseModuleController
 				$result = $pagedData;
 				
 				$arResult = $result->toArray();
-				$arResult['data'] = $this->parseParticipantData($arResult['data'], $inputObjFields);
+				$arResult['data'] = $this->parseParticipantData($arResult['data'], $inputObjs);
 				return response()->json([
 					'status' => true,
 					'result' => $arResult
@@ -887,13 +888,30 @@ class VoucherController extends BaseModuleController
 		]);
 	}
 	
-	private function parseParticipantData($data, $fieldNames) {
+	private function parseParticipantData($data, $inputObjs) {
 		$result = [];
 		foreach($data as $record) {
 			$formContent = $record['form_content'];
 			$fieldValues = explode('||', $formContent);
-			foreach($fieldValues as $i=>$fieldValue) {
-				$record[$fieldNames[$i]] = $fieldValue;
+			foreach($inputObjs as $i=>$inputObj) {
+				$fieldValue = $fieldValues[$i];
+				$fieldName = 'field'.$i;
+				switch ($inputObj['inputType']) {
+					case 'simple-text':
+					case 'number':
+					case 'email':
+					case 'text':
+					case 'single-choice':
+					case 'multiple-choice':
+						$record[$fieldName] = $fieldValue;
+						break;
+					case 'name':
+					case 'phone':
+						$fieldValueSegs = explodeByCount('|', $fieldValue, 2, ' ');
+						$record[$fieldName.'_0'] = $fieldValueSegs[0];
+						$record[$fieldName.'_1'] = $fieldValueSegs[1];
+						break;
+				}
 			}
 			unset($record['form_content']);
 			$result[] = $record;

@@ -6,13 +6,16 @@ use App\Models\Menu;
 use App\Models\Media;
 use App\Models\Voucher;
 use App\Models\TempQuestionForm;
+use App\Models\VoucherCustomForm;
 
 use App\Helpers\UploadFileHelper;
 use App\Helpers\VoucherHelper;
 use App\Helpers\QuestionnaireHelper;
+use App\Helpers\InputObjHelper;
 
 use App\Imports\AgentCodeImport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class FormQuestionController extends BaseController
 {
@@ -235,31 +238,44 @@ class FormQuestionController extends BaseController
 	  ]);
 	}
 	
-	private function getTempFormConfigs($key) {
-		$row = TempQuestionForm::where('form_key', $key)->first();
-		$formConfigs = isset($row) ? json_decode($row->form_configs, true) : null;
-//		if (!is_null($formConfigs)) {
-//			QuestionnaireHelper::getUserPageConfigFromInputObj($formConfigs);
-//		}
-		return $formConfigs;
-	}
-	
 	public function showQuestionForm($key) {
 		$isTemp = substr($key, 0, 1)=='_';
 		$formConfigs = [];
 		if ($isTemp) {
 			$key = substr($key, 1);
 			$formConfigs = $this->getTempFormConfigs($key);
+		} else {
+			$formConfigs = $this->getFormConfigs($key);
 		}
-//		echo 'istemp: '.($isTemp ? 'yes' : 'no').PHP_EOL;
-//		print_r($formConfigs);
-//		return 'ok';
+		if (is_null($formConfigs)) {
+			return view('errors.404');
+		}
 		return view('templates.custom_form')->with([
-			'key' => $key,
+			'formKey' => $key,
 			'formConfigs' => $formConfigs
 		]);
 	}
 
+	public function getFormConfigs($key) {
+		$result = null;
+		$configs = Voucher::where('custom_link_key', $key)->value('questionnaire_configs');
+		if (isset($configs)) {
+			$result = json_decode($configs, true);
+		}
+		return $result;
+	}
+	
+	private function getTempFormConfigs($key) {
+		$result = null;
+		$configs = TempQuestionForm::where('form_key', $key)->value('form_configs');
+		if (isset($configs)) {
+			$result = json_decode($configs, true);
+		}
+		return $result;
+//		$formConfigs = isset($row) ? json_decode($row->form_configs, true) : null;
+//		return $formConfigs;
+	}
+	
 	public function downloadFormConfigs($key)
 	{
 		return $this->processFormConfigs($key);
@@ -287,5 +303,81 @@ class FormQuestionController extends BaseController
 		} else {
 		  return response('Cannot get form configs!', 401);
     }
+	}
+
+	public function postQuestionForm(Request $request) {
+		$formKey = $request->get('formKey', '');
+		$voucher = Voucher::where('custom_link_key', $formKey)->first();
+		
+		// Check form and return with fresh
+		$participant = [];
+		$inputObjs = $voucher->input_objs;
+		$res = InputObjHelper::getInputObjRuleAndMessages($inputObjs);
+		
+		$validator = Validator::make($request->all(), $res['rules'], $res['messages']);
+		if ($validator->fails()) {
+			return redirect('q/'.$formKey)->withInput()->withErrors($validator);
+		}
+		
+		$participantCount = $voucher->participant_count;
+		$targetCount = -1;
+		switch ($voucher->goal_type) {
+			case 'fixed':
+				$targetCount = $voucher->goal_count;
+				break;
+			case 'codes':
+				$targetCount = $voucher->code_count;
+				break;
+		}
+		
+		// Before goal
+		if ($targetCount == -1 || $participantCount < TargetCount) {
+			$participantRow = $this->saveFormParticipant($voucher, $participant);
+			
+			// assign key
+			if ($voucher->goal_type == 'fixed' || $voucher->goal_type == 'none') {
+				$participantKey = newKey();
+				$participantRow->update(['participant_key' => $participantKey]);
+			} else {
+				$voucherCode = VoucherCode::where('voucher_id', $voucher->id)
+					->where('participant_id', 0)->first();
+				
+				$voucherCode->update(['participant_id' => $participantRow->id]);
+				$participantKey = $voucherCode->key;
+			}
+			
+			
+			switch ($voucher->action_type_before_goal) {
+				case 'form_voucher':
+					return response()->redirect('coupons/' . $participantKey);
+				case 'form_custom':
+					return $this->showCustomForm( $voucher->custom_form_key_before_goal);
+				case 'custom':
+					// this is not reachable as it will open custom page already.
+					break;
+			}
+		} else {
+		// After goal
+			$participantRow = $this->saveFormParticipant($voucher, $participant);
+			$participantKey = newKey();
+			$participantRow->update(['participant_key' => $participantKey]);
+			return $this->showCustomForm( $voucher->custom_form_key_after_goal);
+		}
+	}
+	
+	private function saveFormParticipant($customForm, $participant) {
+	
+	}
+	
+	private function showCustomForm($formKey) {
+		$customForm = VoucherCustomForm::where('form_key', $formKey)->first();
+		if (isset($customForm)) {
+			return view('templaes.custom_form')->with([
+				'formKey' => $formKey,
+				'formConfigs' => json_decode($customForm->form_configs, true)
+			]);
+		} else {
+			return view('errors.404');
+		}
 	}
 }

@@ -14,6 +14,7 @@ class VoucherCode extends Model
     'key',
     'sent_on',
     'status',
+	  'participant_id',
     'remark'
   ];
 
