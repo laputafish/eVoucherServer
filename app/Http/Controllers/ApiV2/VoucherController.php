@@ -334,12 +334,27 @@ class VoucherController extends BaseModuleController
 //    $query = $query->with('agent');
 //    return $query;
 //  }
+
+	public function exportParticipants($id) {
+		$accessKey = AccessKeyHelper::create(
+			$this->user,
+			'voucher_participants',
+			'export',
+			serialize(['id'=>$id])
+		);
+		return response()->json([
+			'status' => true,
+			'result' => [
+				'key' => $accessKey
+			]
+		]);
+	}
 	
-	public function export($id)
+	public function exportCodes($id)
 	{
 		$accessKey = AccessKeyHelper::create(
 			$this->user,
-			'voucher',
+			'voucher_codes',
 			'export',
 			serialize(['id' => $id])
 		);
@@ -838,7 +853,8 @@ class VoucherController extends BaseModuleController
 	
 	public function getParticipants(Request $request, $id) {
 		$voucher = $this->model->find($id);
-		$inputObjFields = $this->getInputObjFields($voucher);
+//		$inputObjFields = $this->getInputObjFields($voucher);
+		$inputObjFields = $voucher->input_obj_fields;
 		if (isset($voucher)) {
 			if ($request->has('page')) {
 				$page = $request->get('page', 1);
@@ -859,12 +875,9 @@ class VoucherController extends BaseModuleController
 				
 				$arResult = $result->toArray();
 				$arResult['data'] = $this->parseParticipantData($arResult['data'], $inputObjFields);
-				echo 'arResult[data]: '.PHP_EOL.PHP_EOL;
-				print_r($arResult['data']);
-				return 'ok';
 				return response()->json([
 					'status' => true,
-					'result' => $result
+					'result' => $arResult
 				]);
 			}
 		}
@@ -874,34 +887,48 @@ class VoucherController extends BaseModuleController
 		]);
 	}
 	
-	private function getInputObjFields($voucher) {
+	private function parseParticipantData($data, $fieldNames) {
 		$result = [];
-		$formConfigs = json_decode($voucher->questionnaiare_configs, true);
-		if (isset($formConfigs)) {
-			if (isset($formConfigs['inputObjs'])) {
-				$inputObjs = $formConfigs['inputObjs'];
-				foreach($inputObjs as $i=>$inputObj) {
-					$fieldName = 'field'.$i;
-					switch ($inputObjs['inputType']) {
-						case 'simple-text':
-						case 'number':
-						case 'email':
-						case 'text':
-						case 'single-choice':
-						case 'multiple-choice':
-							$result[] = $fieldName;
-							break;
-						case 'name':
-						case 'phone':
-							$result[] = $fieldName.'_0';
-							$result[] = $fieldName.'_1';
-							break;
-					}
-				}
+		foreach($data as $record) {
+			$formContent = $record['form_content'];
+			$fieldValues = explode('||', $formContent);
+			foreach($fieldValues as $i=>$fieldValue) {
+				$record[$fieldNames[$i]] = $fieldValue;
 			}
+			unset($record['form_content']);
+			$result[] = $record;
 		}
 		return $result;
 	}
+	
+//	private function getInputObjFields($voucher) {
+//		$result = [];
+//		$formConfigs = json_decode($voucher->questionnaire_configs, true);
+//		if (isset($formConfigs)) {
+//			if (isset($formConfigs['inputObjs'])) {
+//				$inputObjs = $formConfigs['inputObjs'];
+//				foreach($inputObjs as $i=>$inputObj) {
+//					$fieldName = 'field'.$i;
+//					switch ($inputObj['inputType']) {
+//						case 'simple-text':
+//						case 'number':
+//						case 'email':
+//						case 'text':
+//						case 'single-choice':
+//						case 'multiple-choice':
+//							$result[] = $fieldName;
+//							break;
+//						case 'name':
+//						case 'phone':
+//							$result[] = $fieldName.'_0';
+//							$result[] = $fieldName.'_1';
+//							break;
+//					}
+//				}
+//			}
+//		}
+//		return $result;
+//	}
 	public function getCodes(Request $request, $id)
 	{
 		$voucher = $this->model->find($id);

@@ -103,4 +103,96 @@ class Voucher extends Model
 	public function participants() {
 		return $this->hasMany(VoucherParticipant::class);
 	}
+	
+	public function getColumnHeadersAttribute() {
+		$result = [];
+		if (!empty($this->questionnaire_configs)) {
+			$formConfigs = json_decode($this->questionnaire_configs, true);
+			if (array_key_exists('inputObjs', $formConfigs)) {
+				$inputObjs = $formConfigs['inputObjs'];
+				foreach($inputObjs as $i=>$inputObj) {
+					$fieldName = 'field'.$i;
+					$columnName = $inputObj['name'];
+					
+					switch ($inputObj['inputType']) {
+						case 'simple-text':
+						case 'number':
+						case 'email':
+						case 'text':
+						case 'single-choice':
+							$result[] = $columnName;
+							break;
+							
+						case 'multiple-choice':
+							$options = $inputObj['options'];
+							foreach($options as $option) {
+								$result[] = $columnName.'|'.$option;
+							}
+							break;
+							
+						case 'name':
+						case 'phone':
+							$result[] = empty($inputObj['note1']) ? $inputObj['name'].' (cell #1)' : $inputObj['note1'];
+							$result[] = empty($inputObj['note2']) ? $inputObj['name'].' (cell #2)' : $inputObj['note2'];
+							break;
+					}
+				}
+			}
+		}
+		return $result;
+	}
+	
+	public function getInputObjsAttribute() {
+		$result = [];
+		if (!empty($this->questionnaire_configs)) {
+			$formConfigs = json_decode($this->questionnaire_configs, true);
+			if (array_key_exists('inputObjs', $formConfigs)) {
+				$inputObjs = $formConfigs['inputObjs'];
+				foreach($inputObjs as $i=>$inputObj) {
+					switch ($inputObj['inputType']) {
+						case 'simple-text':
+						case 'number':
+						case 'email':
+						case 'text':
+						case 'single-choice':
+						case 'multiple-choice':
+						case 'name':
+						case 'phone':
+							$result[] = $inputObj;
+							break;
+					}
+				}
+			}
+		}
+		return $result;
+	}
+	
+	public function getInputObjFieldsAttribute() {
+		$result = [];
+		if (!empty($this->questionnaire_configs)) {
+			$formConfigs = json_decode($this->questionnaire_configs, true);
+			if (array_key_exists('inputObjs', $formConfigs)) {
+				$inputObjs = $formConfigs['inputObjs'];
+				foreach($inputObjs as $i=>$inputObj) {
+					$fieldName = 'field'.$i;
+					switch ($inputObj['inputType']) {
+						case 'simple-text':
+						case 'number':
+						case 'email':
+						case 'text':
+						case 'single-choice':
+						case 'multiple-choice':
+							$result[] = $fieldName;
+							break;
+						case 'name':
+						case 'phone':
+							$result[] = $fieldName.'_0';
+							$result[] = $fieldName.'_1';
+							break;
+					}
+				}
+			}
+		}
+		return $result;
+	}
 }

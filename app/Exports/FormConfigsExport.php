@@ -51,14 +51,18 @@ class FormConfigsExport implements FromCollection, ShouldAutoSize, WithHeadings,
 //      print_r($inputObj);
 //      echo PHP_EOL.PHP_EOL;
 //      continue;
+	    
       // input type
       $excelCells = [$inputObj['inputType']];
+      
       // description (name)
       $excelCells[] = $inputObj['name'];
+      
       // required
       $excelCells[] = $inputObj['required'];
+      
       // question/remark/image link'
-      $excelCells[] = $inputObj['question'];
+      $excelCells[] = str_replace('|',   ' '.chr(10), $inputObj['question']);
 
       if (array_key_exists('notes', $inputObj)) {
         $excelCells[] = $inputObj['notes'];

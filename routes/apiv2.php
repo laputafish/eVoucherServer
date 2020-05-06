@@ -66,11 +66,15 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::get('make_menu_table', 'MenuController@makeMenu');
 
   // Vouchers
-  Route::post('vouchers/{id}/export', 'VoucherController@export');
+  Route::post('vouchers/{id}/codes/export', 'VoucherController@export');
   Route::resource('vouchers', 'VoucherController');
-  Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
+
   Route::get('vouchers/{id}/participants', 'VoucherController@getParticipants');
+  Route::post('vouchers/{id}/participants/export', 'VoucherController@exportParticipants');
+	
+	Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
   Route::put('vouchers/{voucherId}/codes/{id}', 'VoucherController@updateCode');
+	Route::post('vouchers/{id}/codes/export', 'VoucherController@exportCodes');
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 
   // Agents

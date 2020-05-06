@@ -17,7 +17,7 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
   {
     $this->voucherId = $voucherId;
   }
-
+  
   public function headings(): array
   {
     $voucher = Voucher::find($this->voucherId);
