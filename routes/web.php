@@ -46,8 +46,10 @@ Route::get('/get_data', function() {
   return 'ok';
 });
 
+// sharing link testing
 // $id is 'key' if timestamp not exists
 Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
+Route::get('forms/{id}/{timestamp?}', 'ApiV2\CouponController@showForm');
 
 // Preview question form
 Route::get('q/{key}/{timestamp?}', 'ApiV2\FormQuestionController@showQuestionForm');

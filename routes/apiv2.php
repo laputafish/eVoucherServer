@@ -70,7 +70,9 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::resource('vouchers', 'VoucherController');
 
   Route::get('vouchers/{id}/participants', 'VoucherController@getParticipants');
+  Route::delete('vouchers/{id}/participants/{participantIs}', 'VoucherController@deleteParticipant');
   Route::post('vouchers/{id}/participants/export', 'VoucherController@exportParticipants');
+	Route::delete('vouchers/{id}/participants', 'VoucherController@clearParticipants');
 	
 	Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
   Route::put('vouchers/{voucherId}/codes/{id}', 'VoucherController@updateCode');

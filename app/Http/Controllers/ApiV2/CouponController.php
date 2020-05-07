@@ -8,6 +8,35 @@ use App\Helpers\TemplateHelper;
 use Illuminate\Http\Request;
 
 class CouponController extends BaseController {
+	public function showForm($id, $timestamp=null) {
+		if (is_null($timestamp)) {
+			$key = $id;
+			$voucherCode = VoucherCode::where('key', $key)->first();
+			$voucher = $voucherCode->voucher;
+			$processedTemplate = '';
+		} else {
+			$voucher = Voucher::find($id);
+			$processedTemplate = '';
+		}
+		if (isset($voucher)) {
+			$ogTitle = $voucher->form_sharing_title;
+			$ogDescription = $voucher->form_sharing_description;
+			$ogMediaId = $voucher->form_sharing_image_id;
+		} else {
+			$ogTitle = 'Sample: Title';
+			$ogDescription = 'Sample: Description';
+			$ogMediaId = 0;
+		}
+		$ogUrl = request()->fullUrl();
+		return view('templates.coupon', [
+			'ogTitle' => $ogTitle,
+			'ogDescription' => $ogDescription,
+			'ogImageSrc' => url('media/image/' .$ogMediaId),
+			'ogUrl' => $ogUrl,
+			'template' => $processedTemplate
+		]);
+	}
+	
 	public function showCoupon($id, $timestamp=null) {
 		if (is_null($timestamp)) {
 			$key = $id;

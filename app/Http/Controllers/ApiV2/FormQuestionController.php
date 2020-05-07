@@ -7,6 +7,7 @@ use App\Models\Media;
 use App\Models\Voucher;
 use App\Models\TempQuestionForm;
 use App\Models\VoucherCustomForm;
+use App\Models\VoucherParticipant;
 
 use App\Helpers\UploadFileHelper;
 use App\Helpers\VoucherHelper;
@@ -242,18 +243,45 @@ class FormQuestionController extends BaseController
 		$isTemp = substr($key, 0, 1)=='_';
 		$formConfigs = [];
 		if ($isTemp) {
+
 			$key = substr($key, 1);
 			$formConfigs = $this->getTempFormConfigs($key);
+			if (is_null($formConfigs)) return view('errors.404');
+			return view('templates.custom_form')->with([
+				'formKey' => $key,
+				'formConfigs' => $formConfigs
+			]);
+			
 		} else {
+			$voucher = Voucher::where('custom_link_key', $key)->first();
+			$participantCount = $voucher->participant_count;
+			$targetCount = -1;
+			$hasTarget = false;
+			switch ($voucher->goal_type) {
+				case 'fixed':
+					$targetCount = $voucher->goal_count;
+					$hasTarget = true;
+					break;
+				case 'codes':
+					$targetCount = $voucher->code_count;
+					$hasTarget = true;
+					break;
+			}
+			if ($hasTarget && $participantCount < $targetCount) {
+				switch ($voucher->action_type_before_goal) {
+					case 'form_voucher':
+					case 'form_custom':
+						return view('templates.custom_form')->with([
+							'formKey' => $key,
+							'formConfigs' => $formConfigs
+						]);
+						break;
+				}
+			}
+			
 			$formConfigs = $this->getFormConfigs($key);
+			
 		}
-		if (is_null($formConfigs)) {
-			return view('errors.404');
-		}
-		return view('templates.custom_form')->with([
-			'formKey' => $key,
-			'formConfigs' => $formConfigs
-		]);
 	}
 
 	public function getFormConfigs($key) {
@@ -318,7 +346,7 @@ class FormQuestionController extends BaseController
 		if ($validator->fails()) {
 			return redirect('q/'.$formKey)->withInput()->withErrors($validator);
 		}
-		
+//		return 'ok';
 		$participantCount = $voucher->participant_count;
 		$targetCount = -1;
 		switch ($voucher->goal_type) {
@@ -331,8 +359,10 @@ class FormQuestionController extends BaseController
 		}
 		
 		// Before goal
-		if ($targetCount == -1 || $participantCount < TargetCount) {
-			$participantRow = $this->saveFormParticipant($voucher, $participant);
+		if ($targetCount == -1 || $participantCount < $targetCount) {
+			$participantRow = $this->saveFormParticipant($voucher, $request->all());
+			return 'ok';
+			
 			
 			// assign key
 			if ($voucher->goal_type == 'fixed' || $voucher->goal_type == 'none') {
@@ -358,15 +388,44 @@ class FormQuestionController extends BaseController
 			}
 		} else {
 		// After goal
-			$participantRow = $this->saveFormParticipant($voucher, $participant);
+			$participantRow = $this->saveFormParticipant($voucher, $request->all());
+			return 'ok';
+			
+			
+			
 			$participantKey = newKey();
 			$participantRow->update(['participant_key' => $participantKey]);
 			return $this->showCustomForm( $voucher->custom_form_key_after_goal);
 		}
 	}
 	
-	private function saveFormParticipant($customForm, $participant) {
 	
+	private function saveFormParticipant($voucher, $inputs) {
+		$inputObjs = $voucher->input_objs;
+		$formContent = '';
+		$fields = [];
+		for ($i = 0; $i < count($inputObjs); $i++) {
+			$inputObj = $inputObjs[$i];
+			$inputType = $inputObj['inputType'];
+			$fieldName = 'field'.$i;
+			
+			switch ($inputType) {
+				case 'name':
+				case 'phone':
+					$fields[] = $inputs[$fieldName.'_0'].'|'.$inputs[$fieldName.'_1'];
+					break;
+				default:
+					$fields[] = $inputs[$fieldName];
+			}
+		}
+		$formContent = implode('||', $fields);
+		$new = new VoucherParticipant([
+			'form_content' => $formContent,
+			'remark' => ''
+		]);
+		$result = $voucher->participants()->save($new);
+		print_r($result);
+		return $result;
 	}
 	
 	private function showCustomForm($formKey) {

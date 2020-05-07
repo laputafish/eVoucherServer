@@ -246,13 +246,15 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 </head>
 <body class="h-100 d-flex flex-column align-items-center question-form"
       style="{{ $bodyStyleStr }}">
+{{ $errors }}
 {{--<body class="h-100 d-flex flex-column align-items-center question-form"--}}
 {{--style="background-color:{{ $formConfigs['pageConfig']['bgColor'] }};padding-top:{{ $paddingTop }};color:{{$color}};font-size:{{$fontSize}}">--}}
 <form id="questionForm" method="post" action="/q">
     {{ csrf_field()  }}
 	<input type="hidden" name="formKey" value="{{ $formKey }}"/>
     <div class="container" style="max-width:{{ $maxWidth }}">
-        @foreach($inputObjs as $i=>$inputObj)
+	      @php($i=0)
+        @foreach($inputObjs as $inputObj)
 		    <div class="row mt-4">
                 @if($inputObj['inputType']=='simple-text')
 				    <div class="col-sm-5 question-label">
@@ -262,10 +264,11 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                         <input type="text" {{$inputObj['required'] ? 'required' : ''}} class="form-control"
                                value="{{ old('field'.$i) }}"
                                name="field{{$i}}" id="field{{$i}}"/>
-					    @if(!empty($inputObj['notes']))
-						    <small>{{$inputObj['notes']}}</small>@endif
+					      @if(!empty($inputObj['notes']))
+						    <small>{{$inputObj['notes']}}</small>
+					      @endif
                     </div>
-
+							@php($i++)
 			    @elseif($inputObj['inputType']=='number')
 				    <div class="col-sm-5 question-label">
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
@@ -277,7 +280,7 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 					    @if(!empty($inputObj['notes']))
 						    <small>{{$inputObj['notes']}}</small>@endif
                     </div>
-
+				    @php($i++)
 			    @elseif($inputObj['inputType']=='email')
 				    <div class="col-sm-5 question-label">
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
@@ -289,7 +292,7 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 					    @if(!empty($inputObj['notes']))
 						    <small>{{$inputObj['notes']}}</small>@endif
                     </div>
-
+				    @php($i++)
 			    @elseif($inputObj['inputType']=='text')
 				    <div class="col-sm-5 question-label">
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
@@ -302,7 +305,7 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 					    @if(!empty($inputObj['notes']))
 						    <small>{{$inputObj['notes']}}</small>@endif
                     </div>
-
+				    @php($i++)
 			    @elseif($inputObj['inputType']=='name')
 				    <?php
 				    //						$arNotes = ['', ''];
@@ -320,16 +323,19 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                         <div class="row">
                             <div class="col-sm-6 pr-sm-1">
                                 <input {{$inputObj['required'] ? 'required' : ''}} type="text"
+                                       value="{{ old('field'.$i.'_0') }}"
                                        class="form-control" name="field{{$i}}_0" id="field{{$i}}_0"/>
                                 <small>First Name</small>
                             </div>
                             <div class="col-sm-6 pl-sm-0">
                                 <input {{$inputObj['required'] ? 'required' : ''}} type="text"
+                                       value="{{ old('field'.$i.'_1') }}"
                                        class="form-control" name="field{{$i}}_1" id="field{{$i}}_1"/>
                                 <small>Last Name</small>
                             </div>
                         </div>
                     </div>
+					    @php($i++)
 			    @elseif($inputObj['inputType']=='phone')
 				    <?php
 				    //					$arNotes = ['', ''];
@@ -347,39 +353,62 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                         <div class="row">
                             <div class="col-sm-6 pr-sm-1">
                                 <input {{$inputObj['required'] ? 'required' : ''}} type="text"
+                                       value="{{ old('field'.$i.'_0') }}"
                                        class="form-control" name="field{{$i}}_0" id="field{{$i}}_0"/>
                                 <small>Region Code</small>
                             </div>
                             <div class="col-sm-6 pl-sm-0">
                                 <input {{$inputObj['required'] ? 'required' : ''}} type="text"
+                                       value="{{ old('field'.$i.'_1') }}"
                                        class="form-control" name="field{{$i}}_1" id="field{{$i}}_1"/>
                                 <small>Phone No.</small>
                             </div>
                         </div>
                     </div>
-
+					    @php($i++)
+					<!-- SINGLE CHOICE -->
 			    @elseif($inputObj['inputType']=='single-choice')
+									<?php
+								    $choice = -1;
+								    $oldValue = old('field'.$i);
+								    if (isset($oldValue) && $oldValue!=='') {
+								      $choice = (int) $oldValue;
+								    }
+							    ?>
 				    <div class="col-sm-5 question-label">
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
                     </div>
 				    <div class="col-sm-7 user-answer radio-toggle btn-vgroup" {{$inputObj['required'] ? 'required' : ''}}>
+					    <input type="hidden" name="field{{$i}}" value="{{ $oldValue }}"/>
                       <div class="button-wrapper">
-                        @foreach($inputObj['options'] as $option)
-		                      <button type="button" class="d-block btn btn-light">{{ $option }}</button>
+                        @foreach($inputObj['options'] as $idx=>$option)
+		                      <button type="button" data-buttonidx="{{$idx}}" class="d-block btn btn-light {{ $choice==$idx ? 'selected' : '' }}">{{ $option }}</button>
 	                      @endforeach
                       </div>
                     </div>
+										@php($i++)
+					<!-- MULTIPLE CHOICE -->
 			    @elseif($inputObj['inputType']=='multiple-choice')
+									<?php
+										$choices = [];
+				            $oldValue = old('field'.$i);
+				            if (isset($oldValue) && !empty($oldValue)) {
+											$choices = explode(',', $oldValue);
+										}
+									?>
 				    <div class="col-sm-5 question-label">
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
                     </div>
 				    <div class="col-sm-7 user-answer checkbox-toggle btn-vgroup" {{$inputObj['required'] ? 'required' : ''}}>
+					    <input type="hidden" name="field{{$i}}" value="{{ $oldValue }}"/>
                       <div class="button-wrapper">
-                        @foreach($inputObj['options'] as $option)
-		                      <button type="button" class="btn btn-light">{{ $option }}</button>
+                        @foreach($inputObj['options'] as $idx=>$option)
+		                      <button type="button" data-buttonidx="{{$idx}}" class="btn btn-light {{ in_array((string)$idx, $choices) ? 'selected' : ''}}">{{ $option }}</button>
 	                      @endforeach
                       </div>
                     </div>
+										@php($i++)
+
 			    @elseif($inputObj['inputType']=='output-image')
 				    <img src="{{$inputObj['question']}}"/>
 			    @elseif($inputObj['inputType']=='output-remark')
@@ -431,13 +460,46 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
     </div>
 </form>
 <script>
+	// function getValues(final, obj) {
+	//   const index = $(obj).data('index');
+	//   if (final === '') {
+	//     return index
+	//   } else {
+	//     return final + ',' + index
+	//   }
+	// }
+
+	function updateValue(containerObj) {
+	  console.log('updateValue:')
+    const inputObj = $(containerObj).find('input[type=hidden]');
+	  var result = [];
+	  const selectedObjs = $(containerObj).find('.btn.selected');
+	  console.log('updateValue :: selectedObjs: ', selectedObjs);
+	  console.log('updateValue :: selectedObjs.length: ', selectedObjs.length);
+	  for (var i = 0; i < selectedObjs.length; i++) {
+	    result.push($(selectedObjs).eq(i).data('buttonidx'))
+       console.log('updatevalue :: result: ', result);
+	  }
+    // $(selectedObjs).each(item => {
+    //   result.push($(item).data('buttonidx'))
+		 //  console.log('updatevalue :: result: ', result);
+    // });
+    console.log('updatevalue :: final result: ', result);
+    const finalValue = result.join(',');
+    $(inputObj).val(finalValue);
+  }
+
   $(document).ready(function () {
     $('body').on('click', '.radio-toggle .btn', function () {
       $(this).toggleClass('selected', true);
       $(this).siblings().toggleClass('selected', false);
+      const parentObj = $(this).closest('.radio-toggle');
+      updateValue(parentObj);
     });
     $('body').on('click', '.checkbox-toggle .btn', function () {
       $(this).toggleClass('selected')
+	    const parentObj = $(this).closest('.checkbox-toggle');
+      updateValue(parentObj);
     });
     $(window).scrollTop(0);
     $(":input:not(:hidden)").each(function (i) {
@@ -468,21 +530,6 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
     if (result) {
       result = checkToggleSelected('.radio-toggle', result)
       result = checkToggleSelected('.checkbox-toggle', result)
-      //
-      // console.log('after check radio-toggle: result: ' + (result ? 'yes' : 'no'))
-      //
-      // $('.checkbox-toggle').each( (index, element) => {
-      //   var btns = $(element).find('.btn.selected');
-      //   var error = btns.length === 0
-		   //  console.log('$(this): ', $(element))
-		   //  console.log('error = ', error)
-		   //  console.log('$(this).attr(class) = ' + $(element).attr('class'))
-      //   $(element).toggleClass('error', error);
-      //   if (result && error) {
-      //     result = false
-      //   }
-      // })
-      // console.log('after check radio-toggle: result: ' + (result ? 'yes' : 'no'))
     }
     return result;
   })

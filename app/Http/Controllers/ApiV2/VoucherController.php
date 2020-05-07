@@ -441,6 +441,30 @@ class VoucherController extends BaseModuleController
 //    return $voucher->id;
 //  }
 	
+	public function clearParticipants(Request $request, $id) {
+		$voucher = $this->model->find($id);
+		if (isset($voucher)) {
+			$participantCount = $voucher->participants()->count();
+			$voucher->participants()->delete();
+			$voucher->participant_count = 0;
+			$voucher->code_fields = '';
+			$voucher->save();
+			
+			return response()->json([
+				'status' => true,
+				'result' => [
+					'deleted' => $participantCount
+				]
+			]);
+		}
+		return response()->json([
+			'status' => false,
+			'result' => [
+				'messageTag' => 'invalid_voucher_id',
+				'message' => 'Invalid Voucher ID!'
+			]
+		]);
+	}
 	
 	public function clearCodes(Request $request, $id)
 	{
@@ -848,6 +872,22 @@ class VoucherController extends BaseModuleController
 		return response()->json([
 			'status' => $status,
 			'result' => $result
+		]);
+	}
+	
+	public function deleteParticipant(Request $request, $id, $participantId) {
+		$voucher = Voucher::find($id);
+		
+		if (isset($voucher)) {
+			// Remove entry in code infos
+			$voucher->codeInfos()->whereParticipantId($participantId)->update(['participant_id'=>0]);
+			
+			// Remove participant
+			$voucher->participants()->where('id', $participantId)->delete();
+		}
+		
+		return 	response()->json([
+			'status' => true
 		]);
 	}
 	
