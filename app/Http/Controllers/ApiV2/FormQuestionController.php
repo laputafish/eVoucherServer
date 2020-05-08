@@ -254,33 +254,63 @@ class FormQuestionController extends BaseController
 			
 		} else {
 			$voucher = Voucher::where('custom_link_key', $key)->first();
-			$participantCount = $voucher->participant_count;
-			$targetCount = -1;
-			$hasTarget = false;
-			switch ($voucher->goal_type) {
-				case 'fixed':
-					$targetCount = $voucher->goal_count;
-					$hasTarget = true;
-					break;
-				case 'codes':
-					$targetCount = $voucher->code_count;
-					$hasTarget = true;
-					break;
-			}
-			if ($hasTarget && $participantCount < $targetCount) {
-				switch ($voucher->action_type_before_goal) {
-					case 'form_voucher':
-					case 'form_custom':
-						return view('templates.custom_form')->with([
-							'formKey' => $key,
-							'formConfigs' => $formConfigs
-						]);
+			if (isset($voucher)) {
+				$participantCount = $voucher->participant_count;
+				$targetCount = -1;
+				$hasTarget = false;
+				switch ($voucher->goal_type) {
+					case 'fixed':
+						$targetCount = $voucher->goal_count;
+						$hasTarget = true;
+						break;
+					case 'codes':
+						$targetCount = $voucher->code_count;
+						$hasTarget = true;
 						break;
 				}
+//				echo 'hasTarget: '.($hasTarget ? 'yes' : 'no').PHP_EOL;
+//				echo 'participantCount = '.$participantCount.PHP_EOL;
+//				echo 'targetCount = '.$targetCount.PHP_EOL;
+//				return 'ok';
+				if ($hasTarget) {
+//					echo 'targetCount = '.$targetCount.PHP_EOL;
+//					echo 'participantCount = '.$participantCount.PHP_EOL;
+//					echo 'action type before goal = '.$voucher->action_type_before_goal.PHP_EOL;
+//					return 'ok';
+					
+					if ($participantCount < $targetCount) {
+						switch ($voucher->action_type_before_goal) {
+							case 'form_voucher':
+							case 'form_custom':
+								$formConfigs = $voucher->form_configs;
+								return view('templates.custom_form')->with([
+									'formKey' => $key,
+									'formConfigs' => $formConfigs
+								]);
+								break;
+						}
+					} else {
+						switch ($voucher->action_type_after_goal) {
+							case 'form_custom':
+								return view('templates.custom_form')->with([
+									'formKey' => $key,
+									'formConfigs' => $formConfigs
+								]);
+								break;
+							case 'custom':
+								$customFormKey = $voucher->custom_form_key_after_goal;
+								$customForm = $voucher->customForms()->where('form_key', $customFormKey)->first();
+								$formConfigs = isset($customForm) ? json_decode($customForm->form_configs, true) : [];
+								return view('templates.custom_form')->with([
+									'formKey' => $customFormKey,
+									'formConfigs' => $formConfigs
+								]);
+								break;
+						}
+					}
+				}
 			}
-			
-			$formConfigs = $this->getFormConfigs($key);
-			
+			return view('errors.404');
 		}
 	}
 
@@ -358,11 +388,9 @@ class FormQuestionController extends BaseController
 				break;
 		}
 		
-		// Before goal
+		// unlimited quota or goal not archived yet
 		if ($targetCount == -1 || $participantCount < $targetCount) {
 			$participantRow = $this->saveFormParticipant($voucher, $request->all());
-			return 'ok';
-			
 			
 			// assign key
 			if ($voucher->goal_type == 'fixed' || $voucher->goal_type == 'none') {
@@ -379,7 +407,7 @@ class FormQuestionController extends BaseController
 			
 			switch ($voucher->action_type_before_goal) {
 				case 'form_voucher':
-					return response()->redirect('coupons/' . $participantKey);
+					return redirect('coupons/' . $participantKey);
 				case 'form_custom':
 					return $this->showCustomForm( $voucher->custom_form_key_before_goal);
 				case 'custom':
@@ -389,9 +417,6 @@ class FormQuestionController extends BaseController
 		} else {
 		// After goal
 			$participantRow = $this->saveFormParticipant($voucher, $request->all());
-			return 'ok';
-			
-			
 			
 			$participantKey = newKey();
 			$participantRow->update(['participant_key' => $participantKey]);
@@ -424,7 +449,6 @@ class FormQuestionController extends BaseController
 			'remark' => ''
 		]);
 		$result = $voucher->participants()->save($new);
-		print_r($result);
 		return $result;
 	}
 	

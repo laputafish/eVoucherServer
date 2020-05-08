@@ -246,7 +246,6 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 </head>
 <body class="h-100 d-flex flex-column align-items-center question-form"
       style="{{ $bodyStyleStr }}">
-{{ $errors }}
 {{--<body class="h-100 d-flex flex-column align-items-center question-form"--}}
 {{--style="background-color:{{ $formConfigs['pageConfig']['bgColor'] }};padding-top:{{ $paddingTop }};color:{{$color}};font-size:{{$fontSize}}">--}}
 <form id="questionForm" method="post" action="/q">
@@ -410,7 +409,17 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 										@php($i++)
 
 			    @elseif($inputObj['inputType']=='output-image')
-				    <img src="{{$inputObj['question']}}"/>
+						<?php
+				    $options = fillArray($inputObj['options'], 2, '');
+				    $keyValuesElement = strToKeyValues($options[0]);
+				    $keyValuesContainer = strToKeyValues($options[1]);
+
+				    $styleElement = keyValuesToStr($keyValuesElement);
+				    $styleContainer = keyValuesToStr($keyValuesContainer);
+				    ?>
+						<div class="col-sm-12" style="{{$styleContainer}}">
+							<img src="{{$inputObj['question']}}" style="{{$styleElement}}"/>
+            </div>
 			    @elseif($inputObj['inputType']=='output-remark')
 				    <?php
 				    $default = 'padding-top:10px;padding-bottom:10px;font-size:18px;';

@@ -125,12 +125,14 @@ class VoucherController extends BaseModuleController
 		'goal_type' => 'in:fixed,codes,none',
 		'goal_count' => 'integer',
 		
-		'action_type_after_goal' => 'in:form,custom,none',
-		'action_page_after_goal' => 'nullable|string',
+		'action_type_before_goal' => 'in:form_voucher,form_custom,custom',
+		'custom_form_key_before_goal' => 'nullable|string',
+		
+		'action_type_after_goal' => 'in:form_custom,custom,none',
+		'custom_form_key_after_goal' => 'nullable|string',
 		
 		'code_fields' => 'nullable|string',
 		'code_count' => 'integer',
-		
 		'participant_count' => 'integer',
 		
 		'qr_code_size' => 'nullable|integer',
@@ -522,20 +524,30 @@ class VoucherController extends BaseModuleController
 			
 			'questionnaire' => '',
 			'questionnaire_fields' => '',
+			// 'questionnaire_configs' => '', // no need, it will be assigned from form_configs
 			
 			'goal_type' => 'fixed',
 			'goal_count' => 0,
 			
+			'action_type_before_goal' => 'form_voucher',
+			'custom_form_key_before_goal' => '',
+			
 			'action_type_after_goal' => 'none',
-			'action_page_after_goal' => '',
+			'custom_form_key_after_goal' => '',
 
 //      'qr_code_composition' => '',
 			'code_fields' => '',
 			'code_count' => 0,
+
+			'participant_count' => 0,
 			
 			'sharing_image_id' => 0,
 			'sharing_title' => '',
 			'sharing_description' => '',
+			
+			'form_sharing_image_id' => 0,
+			'form_sharing_title' => '',
+			'form_sharing_description' => '',
 			
 			'status' => 'pending',
 			

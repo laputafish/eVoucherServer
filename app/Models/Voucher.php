@@ -104,6 +104,14 @@ class Voucher extends Model
 		return $this->hasMany(VoucherParticipant::class);
 	}
 	
+	public function getFormConfigsAttribute() {
+		$result = [];
+		if (isset($this->questionnaire_configs) && !empty($this->questionnaire_configs)) {
+			$result = json_decode($this->questionnaire_configs, true);
+		}
+		return $result;
+	}
+	
 	public function getColumnHeadersAttribute() {
 		$result = [];
 		if (!empty($this->questionnaire_configs)) {
