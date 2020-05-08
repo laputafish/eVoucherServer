@@ -104,6 +104,7 @@ function getPageStyleStr($formConfigs)
 }
 // *** end of routines
 
+$isDemo = isset($isDemo) ? $isDemo : false;
 $pageTitle = 'YOOV';
 $selectedChoiceColor = 'blue';
 $selectedChoiceTextColor = 'white';
@@ -246,6 +247,14 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 </head>
 <body class="h-100 d-flex flex-column align-items-center question-form"
       style="{{ $bodyStyleStr }}">
+	@if($isDemo)
+		<button class="btn btn-primary" style="width:200px;position:fixed;right:10px;top:10px;" onclick="useDemoData()">
+			Demo Data
+		</button>
+	@endif
+	@if(!empty($errors) && $errors->count()>0)
+		{{ $errors }}
+	@endif
 {{--<body class="h-100 d-flex flex-column align-items-center question-form"--}}
 {{--style="background-color:{{ $formConfigs['pageConfig']['bgColor'] }};padding-top:{{ $paddingTop }};color:{{$color}};font-size:{{$fontSize}}">--}}
 <form id="questionForm" method="post" action="/q">
@@ -542,6 +551,25 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
     }
     return result;
   })
+
+	function useDemoData() {
+	  const inputObjs = $('input');
+	  $('input[name=field0_0]').val('John');
+    $('input[name=field0_1]').val('Chan');
+    $('input[name=field1]').val('johnchan@gmail.com');
+    $('input[name=field2_0]').val('852');
+    $('input[name=field2_1]').val('98765432');
+    $('input[name=field3]').val('Room 1, 1/F., First Bldg');
+    $('input[name=field4]').val('First Street, Kwun Tong.');
+    $('input[name=field5]').val('0');
+    $('input[name=field6]').val('1');
+    $('input[name=field7]').val('1,3,5');
+	  $('.radio-toggle').eq(0).find('button').eq(0).addClass('selected');
+	  $('.radio-toggle').eq(1).find('button').eq(1).addClass('selected');
+	  $('.checkbox-toggle').find('button').eq(1).addClass('selected');
+	  $('.checkbox-toggle').find('button').eq(3).addClass('selected');
+	  $('.checkbox-toggle').find('button').eq(5).addClass('selected');
+	}
 </script>
 </body>
 </html>

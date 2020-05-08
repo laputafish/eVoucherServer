@@ -91,14 +91,13 @@ class TemplateHelper {
     return $valueStr;
   }
 
-  public static function createParams($arRecord, $codeInfo) {
+  public static function createParams($arRecord, $codeInfo=null) {
     $templateKeys = TemplateKey::all();
     $voucherParams = static::createVoucherParams($arRecord, $templateKeys);
     $codeParams = static::createCodeParams($codeInfo, $arRecord['code_fields'], $templateKeys);
     $basicParams = array_merge($voucherParams, $codeParams);
 
     $imageCodeParams = static::createImageCodeParams($basicParams, $arRecord['code_configs']);
-//    $qrCodeParams = static::createQrCodeParams($basicParams, $record['qr_code_composition']);
     return array_merge($imageCodeParams, $basicParams);
   }
 
@@ -122,24 +121,28 @@ class TemplateHelper {
     return $result;
   }
 
-  public static function createCodeParams($row, $codeFieldInfos, $templateKeys) {
+  public static function createCodeParams($voucherCode, $codeFieldInfos, $templateKeys) {
     $codeParams = [];
 
     $codeFields = static::getCodeFields($codeFieldInfos);
     // pcc, serial_no, ...
 
-    $codeValues = explode('|', $row['extra_fields']);
-    array_unshift($codeValues, $row['code']);
-
+	  $codeValues = [];
+	  if (!is_null($voucherCode)) {
+		  $codeValues = explode('|', $voucherCode['extra_fields']);
+		  array_unshift($codeValues, $voucherCode['code']);
+	  }
+    
     foreach($codeFields as $i=>$field) {
-      $codeParams['code_'.$field] = $codeValues[$i];
+		  $codeParams['code_' . $field] = empty($codeValues) ? '' : $codeValues[$i];
     }
+    
     return $codeParams;
   }
 
   public static function getCodeFields($codeFieldInfos) {
     // codeFieldInfos:
-    //    PCC:string|Serial No.:string|Start Date:date|Expiry Date:date
+    //   PCC:string|Serial No.:string|Start Date:date|Expiry Date:date
     //
     $fields = [];
     $fieldGroups = explode('|', $codeFieldInfos);

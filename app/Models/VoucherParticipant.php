@@ -9,6 +9,7 @@ class VoucherParticipant extends Model
 	protected $fillable = [
 		'voucher_id',
 		'form_content',
+		'participant_key',
 		'remark'
 	];
 	

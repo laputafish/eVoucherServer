@@ -104,13 +104,13 @@ class Voucher extends Model
 		return $this->hasMany(VoucherParticipant::class);
 	}
 	
-	public function getFormConfigsAttribute() {
-		$result = [];
-		if (isset($this->questionnaire_configs) && !empty($this->questionnaire_configs)) {
-			$result = json_decode($this->questionnaire_configs, true);
-		}
-		return $result;
-	}
+//	public function getFormConfigsAttribute() {
+//		$result = [];
+//		if (isset($this->questionnaire_configs) && !empty($this->questionnaire_configs)) {
+//			$result = json_decode($this->questionnaire_configs, true);
+//		}
+//		return $result;
+//	}
 	
 	public function getColumnHeadersAttribute() {
 		$result = [];
@@ -140,8 +140,16 @@ class Voucher extends Model
 							
 						case 'name':
 						case 'phone':
-							$result[] = empty($inputObj['note1']) ? $inputObj['name'].' (cell #1)' : $inputObj['note1'];
-							$result[] = empty($inputObj['note2']) ? $inputObj['name'].' (cell #2)' : $inputObj['note2'];
+							$name = $inputObj['name'];
+							$segs = explode(',', $name);
+							$hasTwoParts = count($segs)>1;
+							if ($hasTwoParts) {
+								$result[] = trim($segs[0]); //empty($ inputObj['note1']) ? $inputObj['name'].' (cell #1)' : $inputObj['note1'];
+								$result[] = trim($segs[1]); // empty($inputObj['note2']) ? $inputObj['name'].' (cell #2)' : $inputObj['note2'];
+							} else {
+								$result[] = $name.'[0]';
+								$result[] = $name.'[1]';
+							}
 							break;
 					}
 				}

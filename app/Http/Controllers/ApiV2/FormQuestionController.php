@@ -94,13 +94,13 @@ class FormQuestionController extends BaseController
                   // [7]: options[1]
 									for ($j = 1; $j < 7; $j++) {
 										if (!is_null($sheet0[$rowNo][$j])) {
-											$values[$j] = $sheet0[$rowNo][$j];
+											$values[$j] = (string) $sheet0[$rowNo][$j];
 										}
 									}
 									$valid = true;
 									switch ($objType) {
-										case 'simple-text':
 										case 'number':
+										case 'simple-text':
 										case 'name':
 										case 'email':
 										case 'phone':
@@ -121,7 +121,7 @@ class FormQuestionController extends BaseController
 											if ($objType == 'single-choice' || $objType == 'multiple-choice') {
 												for ($k = 7; $k < count($sheet0[$rowNo]); $k++) {
 													if (!is_null($sheet0[$rowNo][$k]) && !empty($sheet0[$rowNo][$k])) {
-														$newInputObj['options'][] = $sheet0[$rowNo][$k];
+														$newInputObj['options'][] = (string) $sheet0[$rowNo][$k];
 													} else {
 														break;
 													}
@@ -255,6 +255,7 @@ class FormQuestionController extends BaseController
 		} else {
 			$voucher = Voucher::where('custom_link_key', $key)->first();
 			if (isset($voucher)) {
+				$isDemo = strpos(strtolower($voucher->description), 'demo')!==false;
 				$participantCount = $voucher->participant_count;
 				$targetCount = -1;
 				$hasTarget = false;
@@ -268,22 +269,15 @@ class FormQuestionController extends BaseController
 						$hasTarget = true;
 						break;
 				}
-//				echo 'hasTarget: '.($hasTarget ? 'yes' : 'no').PHP_EOL;
-//				echo 'participantCount = '.$participantCount.PHP_EOL;
-//				echo 'targetCount = '.$targetCount.PHP_EOL;
-//				return 'ok';
 				if ($hasTarget) {
-//					echo 'targetCount = '.$targetCount.PHP_EOL;
-//					echo 'participantCount = '.$participantCount.PHP_EOL;
-//					echo 'action type before goal = '.$voucher->action_type_before_goal.PHP_EOL;
-//					return 'ok';
 					
 					if ($participantCount < $targetCount) {
 						switch ($voucher->action_type_before_goal) {
 							case 'form_voucher':
 							case 'form_custom':
-								$formConfigs = $voucher->form_configs;
+								$formConfigs = json_decode($voucher->questionnaire_configs, true);
 								return view('templates.custom_form')->with([
+									'isDemo' => $isDemo,
 									'formKey' => $key,
 									'formConfigs' => $formConfigs
 								]);
@@ -292,7 +286,9 @@ class FormQuestionController extends BaseController
 					} else {
 						switch ($voucher->action_type_after_goal) {
 							case 'form_custom':
+//								echo 'action_type_after_goal > form_custom'.PHP_EOL;
 								return view('templates.custom_form')->with([
+									'isDemo' => $isDemo,
 									'formKey' => $key,
 									'formConfigs' => $formConfigs
 								]);
@@ -301,7 +297,14 @@ class FormQuestionController extends BaseController
 								$customFormKey = $voucher->custom_form_key_after_goal;
 								$customForm = $voucher->customForms()->where('form_key', $customFormKey)->first();
 								$formConfigs = isset($customForm) ? json_decode($customForm->form_configs, true) : [];
+
+//								echo 'customFormKey = '.$customFormKey.PHP_EOL;
+//								echo 'formConfigs: ';
+//								print_r($formConfigs);
+//								return 'ok';
+
 								return view('templates.custom_form')->with([
+									'isDemo' => $isDemo,
 									'formKey' => $customFormKey,
 									'formConfigs' => $formConfigs
 								]);
@@ -414,14 +417,12 @@ class FormQuestionController extends BaseController
 					// this is not reachable as it will open custom page already.
 					break;
 			}
-		} else {
-		// After goal
-			$participantRow = $this->saveFormParticipant($voucher, $request->all());
-			
-			$participantKey = newKey();
-			$participantRow->update(['participant_key' => $participantKey]);
-			return $this->showCustomForm( $voucher->custom_form_key_after_goal);
 		}
+
+		$participantRow = $this->saveFormParticipant($voucher, $request->all());
+		$participantKey = newKey();
+		$participantRow->update(['participant_key' => $participantKey]);
+		return $this->showCustomForm( $voucher->custom_form_key_after_goal);
 	}
 	
 	
@@ -449,6 +450,7 @@ class FormQuestionController extends BaseController
 			'remark' => ''
 		]);
 		$result = $voucher->participants()->save($new);
+		$voucher->update(['participant_count'=>$voucher->participants()->count()]);
 		return $result;
 	}
 	

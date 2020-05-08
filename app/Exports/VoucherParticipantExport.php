@@ -17,7 +17,7 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 	public function __construct(int $voucherId)
 	{
 		$this->voucherId = $voucherId;
-		Font::setAutoSizeMethod(Font::AUTOSIZE_METHOD_EXACT);
+//		Font::setAutoSizeMethod(Font::AUTOSIZE_METHOD_EXACT);
 	}
 	
 	public function headings(): array
@@ -27,7 +27,7 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 		
 		$headingLabels = ['#'];
 		foreach($columnHeaders as $columnHeader) {
-			$headingLabels[] = str_replace('|', ' '.chr(10), $columnHeader);
+			$headingLabels[] = str_replace('|', ' '.chr(13), $columnHeader);
 		}
 		return $headingLabels;
 	}
@@ -114,7 +114,7 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 		
 		return new Collection($excelRows);
 	}
-	
+
 	public function columnFormats(): array
 	{
 		$result = [];

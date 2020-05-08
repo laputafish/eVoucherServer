@@ -265,48 +265,50 @@ class VoucherController extends BaseModuleController
 
     // get form configs
     $row->form_configs = json_decode($row->questionnaire_configs, true);
-    unset($row->questionnaire_configs);
-
-    return $row;
-	}
-	
-	protected function onShowDataReady3($request, $row)
-	{
-    // get custom templates
-    $row->customForms;
-
-    // get form configs
-    $row->form_configs = json_decode($row->questionnaire_configs, true);
-//    $row->thankyou_configs = json_decode($row->thankyou_configs, true);
-//    $row->sorry_configs = json_decode($row->sorry_configs, true);
-
-    unset($row->questionnaire_configs);
-
-    return $row;
-	}
-
-	protected function onShowDataReady2($request, $row)
-	{
-		// include code configs
-		$row->codeConfigs;
-
-//    $this->checkOrInit($row->codeConfigs);
 		
-		// remove qr_code_composition
-		// this field is obsolate
-		if (!empty(trim($row->qr_code_composition))) {
-			$codeConfig = $row->codeConfigs->filter(function ($config) {
-				return $config->code_group === 'qrcode';
-			});
-			if ($codeConfig->count == 0) {
-			
-			}
-			$row->qr_code_composition = '';
-			$row->save();
-		}
-		unset($row->codeInfos);
+		unset($row->questionnaire_configs);
+//		return $row->form_configs;
+		
 		return $row;
 	}
+	
+//	protected function onShowDataReady3($request, $row)
+//	{
+//    // get custom templates
+//    $row->customForms;
+//
+//    // get form configs
+//    $row->form_configs = json_decode($row->questionnaire_configs, true);
+////    $row->thankyou_configs = json_decode($row->thankyou_configs, true);
+////    $row->sorry_configs = json_decode($row->sorry_configs, true);
+//
+//    unset($row->questionnaire_configs);
+//
+//    return $row;
+//	}
+//
+//	protected function onShowDataReady2($request, $row)
+//	{
+//		// include code configs
+//		$row->codeConfigs;
+//
+////    $this->checkOrInit($row->codeConfigs);
+//
+//		// remove qr_code_composition
+//		// this field is obsolate
+//		if (!empty(trim($row->qr_code_composition))) {
+//			$codeConfig = $row->codeConfigs->filter(function ($config) {
+//				return $config->code_group === 'qrcode';
+//			});
+//			if ($codeConfig->count == 0) {
+//
+//			}
+//			$row->qr_code_composition = '';
+//			$row->save();
+//		}
+//		unset($row->codeInfos);
+//		return $row;
+//	}
 
 //  private function checkOrInit($codeConfigs) {
 //
@@ -590,7 +592,12 @@ class VoucherController extends BaseModuleController
 		// Form Configs
 		if (array_key_exists('form_configs', $input)) {
 	    $formConfigs = $input['form_configs'];
+//	    print_r($formConfigs);
+//	    echo PHP_EOL.PHP_EOL.PHP_EOL;
       $row->questionnaire_configs = formConfigsToData($formConfigs);
+//      echo 'questionnaire_configs = '.$row->questionnaire_configs;
+//			echo PHP_EOL.PHP_EOL.PHP_EOL;
+  
 		}
 
     if (array_key_exists('custom_forms', $input)) {
@@ -600,6 +607,11 @@ class VoucherController extends BaseModuleController
 		$row->save();
 	}
 
+	public function update(Request $request, $id) {
+		$result = parent::update($request, $id);
+//		return 'ok';
+		return $result;
+	}
 	private function updateCustomForms($row, $customForms) {
 	  $inputFormKeys = array_map(function($customForm) {
 	    return $customForm['form_key'];
@@ -927,7 +939,25 @@ class VoucherController extends BaseModuleController
 				$result = $pagedData;
 				
 				$arResult = $result->toArray();
+//
+//				print_r($arResult['data']);
+//				echo PHP_EOL.PHP_EOL.PHP_EOL;
+//				echo '**************************'.PHP_EOL;
+//				echo 'inputObjs: '.PHP_EOL;
+//				print_r($inputObjs);
+//				echo PHP_EOL.PHP_EOL.PHP_EOL;
+				
+
 				$arResult['data'] = $this->parseParticipantData($arResult['data'], $inputObjs);
+
+
+//				echo PHP_EOL.PHP_EOL.PHP_EOL;
+//				echo '**************************'.PHP_EOL;
+//				print_r($arResult['data']);
+//				echo PHP_EOL.PHP_EOL.PHP_EOL;
+//
+//return 'ok';
+				
 				return response()->json([
 					'status' => true,
 					'result' => $arResult

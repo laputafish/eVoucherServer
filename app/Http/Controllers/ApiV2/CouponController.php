@@ -2,6 +2,7 @@
 
 use App\Models\Voucher;
 use App\Models\VoucherCode;
+use App\Models\VoucherParticipant;
 
 use App\Helpers\TemplateHelper;
 
@@ -38,11 +39,20 @@ class CouponController extends BaseController {
 	}
 	
 	public function showCoupon($id, $timestamp=null) {
+		$voucher = null;
 		if (is_null($timestamp)) {
 			$key = $id;
 			$voucherCode = VoucherCode::where('key', $key)->first();
-			$voucher = $voucherCode->voucher;
-			$processedTemplate = $this->processLeaflet($key);
+			if (isset($voucherCode)) {
+				$voucher = $voucherCode->voucher;
+				$processedTemplate = $this->processLeafletWithCode($voucherCode);
+			} else {
+				$participant = VoucherParticipant::where('participant_key', $key)->first();
+				if (isset($participant)) {
+					$voucher = $participant->voucher;
+					$processedTemplate = $this->processLeafletNoCode($voucher);
+				}
+			}
 		} else {
 			$voucher = Voucher::find($id);
 			$processedTemplate = '';
@@ -51,10 +61,12 @@ class CouponController extends BaseController {
 			$ogTitle = $voucher->sharing_title;
 			$ogDescription = $voucher->sharing_description;
 			$ogMediaId = $voucher->sharing_image_id;
+			$script = $voucher->script;
 		} else {
 			$ogTitle = 'Sample: Title';
 			$ogDescription = 'Sample: Description';
 			$ogMediaId = 0;
+			$script = '';
 		}
 		$ogUrl = request()->fullUrl();
 		return view('templates.coupon', [
@@ -62,14 +74,16 @@ class CouponController extends BaseController {
 			'ogDescription' => $ogDescription,
 			'ogImageSrc' => url('media/image/' .$ogMediaId),
 			'ogUrl' => $ogUrl,
-			'template' => $processedTemplate
+			'template' => $processedTemplate,
+			'script' => $script
 		]);
 	}
 	
 	public function getTemplateHtml(Request $request)
 	{
 		$key = $request->get('key');
-		$processedTemplate = $this->processLeaflet($key);
+		$voucherCode = VoucherCode::where('key', $key)->first();
+		$processedTemplate = $this->processLeafletWithCode($voucherCode);
 		return $processedTemplate;
 	}
 	
@@ -99,8 +113,22 @@ class CouponController extends BaseController {
 		$voucher = Voucher::find($id);
 		
 	}
-	private function processLeaflet($key) {
-		$voucherCode = VoucherCode::where('key', $key)->first();
+	
+	private function processLeafletNoCode($voucher) {
+		$voucher->codeConfigs;
+		
+		$params = TemplateHelper::createParams(
+			$voucher->toArray()
+		);
+		
+		return TemplateHelper::processTemplate(
+			$voucher->template,
+			$voucher->codeConfigs,
+			$params
+		);
+	}
+	
+	private function processLeafletWithCode($voucherCode) {
 		$voucher = $voucherCode->voucher;
 		$voucher->codeConfigs;
 		

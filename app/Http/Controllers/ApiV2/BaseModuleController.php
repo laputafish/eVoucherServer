@@ -236,7 +236,7 @@ class BaseModuleController extends BaseController
     if ($id == 0) {
       $record = $this->getBlankRecord();
     } else {
-      $this->beforeShowData($id);
+      $this->beforeShowData($id); // empty code fields if code count is 0
       $row = $this->getRow($id);
       $row = $this->onShowDataReady($request, $row);
       $record = $row->toArray();
@@ -275,6 +275,7 @@ class BaseModuleController extends BaseController
     $this->onUpdateComplete($request, $row);
 
     $row = $this->getRow($id); //$this->model->find($id);
+
     return response()->json([
       'status' => true,
       'result' => $row
