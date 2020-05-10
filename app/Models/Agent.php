@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Agent extends Model
 {
   protected $fillable = [
+    'user_id',
     'name',
     'alias',
     'contact',
@@ -19,6 +20,19 @@ class Agent extends Model
 
   public function vouchers() {
     return $this->hasMany('App\Models\Voucher');
+  }
+
+  public function getImagesAttribute() {
+    $vouchers = $this->vouchers;
+    $result = [];
+    if (isset($vouchers)) {
+      foreach($vouchers as $voucher) {
+        $result = array_merge($result,
+          $voucher->medias()->pluck('id')->toArray()
+        );
+      }
+    }
+    return $result;
   }
     //
 }

@@ -2,6 +2,8 @@
 
 use App\Models\Menu;
 use App\Models\Media;
+use App\Models\Voucher;
+use App\Models\Agent;
 
 use App\Helpers\MediaHelper;
 
@@ -18,12 +20,46 @@ class MediaController extends BaseController
   public function index() {
     $query = $this->user->medias();
     if (\Input::has('scope')) {
-      $query = $query->where('scope', \Input::get('scope'));
+      $scope = \Input::get('scope');
+      switch($scope) {
+        case 'local':
+          $voucherId = \Input::get('voucherId');
+          $voucher = Voucher::find($voucherId);
+          $result = $voucher->medias;
+          break;
+        case 'voucher':
+          $result = Voucher::select('id', 'description')->whereUserId($this->user->id)->with('medias')->get();
+          $result = $result->map(function ($row) {
+            $row->images = $row->medias;
+            unset($row->medias);
+            return $row;
+          });
+          break;
+        case 'agent':
+          $rows = Agent::whereUserId($this->user->id)
+            ->select('id', 'name')->get();
+          $result = [];
+          foreach($rows as $row) {
+            $result[] = [
+              'id' => $row->id,
+              'description' => $row->name,
+              'images' => $row->images
+            ];
+          }
+//          $result = $rows->toArray();
+//          foreach($result as $record) {
+//            unset($record['vouchers']);
+//          }
+          break;
+        case 'all':
+          $result = Media::whereUserId($this->user->id)->select('id')->get();
+      }
+    } else {
+      $result = $query->get();
     }
-    $images =  $query->get();
     return response()->json([
       'status' => true,
-      'result' => $images
+      'result' => $result
     ]);
   }
 
@@ -39,7 +75,20 @@ class MediaController extends BaseController
 			  move_uploaded_file($_FILES["file"]["tmp_name"], $outputPath);
 			
 			  $scope = \Input::get('scope', 'general');
-			  $media = $this->addMedia($filename, $partialPath, 'image', $scope);
+			  switch ($scope) {
+          case 'general':
+          case 'tinymce':
+            $media = $this->addMedia($filename, $partialPath, 'image', $scope);
+            break;
+          case 'all':
+          case 'voucher':
+          case 'agent':
+          default:
+            $voucherId = \Input::get('voucherId');
+            $media = $this->addMedia($filename, $partialPath, 'image', 'general');
+            $voucher = Voucher::find($voucherId);
+            $voucher->medias()->save($media);
+        }
 			  $fileType = pathinfo($originalName, PATHINFO_EXTENSION);
 			
 			  return response()->json([

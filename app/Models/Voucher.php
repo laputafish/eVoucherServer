@@ -9,6 +9,7 @@ class Voucher extends Model
 	protected $fillable = [
 		'description',
 		'notes',
+    'user_id',
 		'agent_id',
 		'activation_date',
 		'expiry_date',
@@ -103,6 +104,10 @@ class Voucher extends Model
 	public function participants() {
 		return $this->hasMany(VoucherParticipant::class);
 	}
+
+	public function medias() {
+	  return $this->belongsToMany(Media::class, 'voucher_medias', 'voucher_id', 'media_id');
+  }
 	
 //	public function getFormConfigsAttribute() {
 //		$result = [];

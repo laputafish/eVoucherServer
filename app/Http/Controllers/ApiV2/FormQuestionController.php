@@ -277,6 +277,7 @@ class FormQuestionController extends BaseController
 							case 'form_custom':
 								$formConfigs = json_decode($voucher->questionnaire_configs, true);
 								return view('templates.custom_form')->with([
+								  'formType' => 'question',
 									'isDemo' => $isDemo,
 									'formKey' => $key,
 									'formConfigs' => $formConfigs
@@ -287,7 +288,9 @@ class FormQuestionController extends BaseController
 						switch ($voucher->action_type_after_goal) {
 							case 'form_custom':
 //								echo 'action_type_after_goal > form_custom'.PHP_EOL;
+                $formConfigs = json_decode($voucher->questionnaire_configs, true);
 								return view('templates.custom_form')->with([
+								  'formType' => 'question',
 									'isDemo' => $isDemo,
 									'formKey' => $key,
 									'formConfigs' => $formConfigs
@@ -297,13 +300,8 @@ class FormQuestionController extends BaseController
 								$customFormKey = $voucher->custom_form_key_after_goal;
 								$customForm = $voucher->customForms()->where('form_key', $customFormKey)->first();
 								$formConfigs = isset($customForm) ? json_decode($customForm->form_configs, true) : [];
-
-//								echo 'customFormKey = '.$customFormKey.PHP_EOL;
-//								echo 'formConfigs: ';
-//								print_r($formConfigs);
-//								return 'ok';
-
 								return view('templates.custom_form')->with([
+								  'formType' => 'custom',
 									'isDemo' => $isDemo,
 									'formKey' => $customFormKey,
 									'formConfigs' => $formConfigs
@@ -458,6 +456,7 @@ class FormQuestionController extends BaseController
 		$customForm = VoucherCustomForm::where('form_key', $formKey)->first();
 		if (isset($customForm)) {
 			return view('templaes.custom_form')->with([
+			  'formType' => 'custom',
 				'formKey' => $formKey,
 				'formConfigs' => json_decode($customForm->form_configs, true)
 			]);

@@ -27,4 +27,9 @@ class Media extends Model
   	$partialPath = ($isTemp ? 'temp/' : 'images/').$this->path.'/';
   	return storage_path('app/'.$partialPath.$this->filename);
   }
+
+  public function vouchers() {
+    return $this->belongsToMany(Media::class, 'voucher_medias', 'media_id', 'voucher_id');
+  }
+
 }
