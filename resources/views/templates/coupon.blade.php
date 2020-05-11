@@ -5,24 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    @if(!empty($ogDescription))
-    <meta name="description" content="{{$ogDescription}}">
-    <meta name="og:description" content="{{$ogDescription}}">
-    @endif
-
-    @if(!empty($ogUrl))
-    <meta name="og:url" content="{{$ogUrl}}">
-    @endif
-
-    @if(!empty($ogImageSrc))
-    <meta name="og:image" content="{{$ogImageSrc}}">
-    @endif
-
-    @if(!empty($ogTitle))
-    <meta name="og:title" content="{{$ogTitle}}">
-    <title>{{ $ogTitle }}</title>
+    @if(isset($og))
+@include('templates.og', ['og'=>$og])
     @else
-    <title>Yoov Ticket</title>
+        <title>Yoov Ticket</title>
     @endif
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

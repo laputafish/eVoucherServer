@@ -19,6 +19,9 @@ class BaseModuleController extends BaseController
   public function index(Request $request)
   {
     $query = $this->model;
+    if ($this->user->isNotA('supervisor')) {
+    	$query = $query->whereUserId($this->user->id);
+    }
     $query = $this->prepareIndexQuery($request, $query);
     $query = $this->onIndexOrderBy($query);
     $query = $this->onIndexWith($query);

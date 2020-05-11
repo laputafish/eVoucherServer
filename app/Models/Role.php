@@ -2,15 +2,9 @@
 
 namespace App\Models;
 
-class Role extends BaseModal
-{
-  protected $fillable = [
-    'name',
-    'description',
-  ];
+use Zizaco\Entrust\EntrustRole;
 
-  public function users()
-  {
-    return $this->belongsToMany('App\User');
-  }
+class Role extends EntrustRole
+{
+
 }

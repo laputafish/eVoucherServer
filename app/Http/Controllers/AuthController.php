@@ -25,13 +25,39 @@ class AuthController extends Controller
         'login',
         'register',
         'verify',
-        'resetPassword'
+        'resetPassword',
+	      'changePassword'
       ]
     ]);
     // It is recommended to use "jwt.auth", instead of "auth:api".
     // Functioning the same.
   }
 
+  public function changePassword() {
+    $userId = request('userId');
+    $password = request('password');
+    $user = User::find($userId);
+    if (isset($user)) {
+    	$user->update([
+    		'password' => bcrypt($password)
+	    ]);
+    	$result = [
+    		'status' => true,
+		    'result' => [
+		      'message' => 'Password updated!'
+		    ]
+	    ];
+    } else {
+    	$result = [
+    		'status' => false,
+		    'result' => [
+		      'message' => 'Invalid Operation!'
+		    ]
+	    ];
+    }
+    return response()->json($result);
+  }
+  
   /**
    * Get a JWT via given credentials.
    *
@@ -205,7 +231,8 @@ class AuthController extends Controller
         'status' => true,
         'result' => [
           'message' => 'Verification Successful!',
-          'messageTag' => 'verification_successful'
+          'messageTag' => 'verification_successful',
+	        'userId'=>$user->id
         ]
       ]);
     } else {
@@ -287,13 +314,28 @@ class AuthController extends Controller
           ]
         ]);
       } else {
-        $this->sendAuthEmail($user, $url, $view);
+        $res = $this->sendAuthEmail($user, $url, $view);
+        
+        if (!$res['status']) {
+        	$message = 'Error during sending email!';
+        	
+        	if (array_key_exists('result', $res)) {
+        		if (array_key_exists('message', $res['result'])) {
+			        if (strpos($res['result']['message'], 'Failed to authenticate') !== false) {
+				        $message = 'Error during sending email!';
+			        } else {
+			        	$message = $res['result']['message'];
+			        }
+		        }
+	        }
+        } else {
+        	$message = $res['result']['message'];
+        }
         return response()->json([
-          'status' => true,
-          'result' => [
-            'message' => 'Password reset email sent successfully.',
-            'messageTag' => 'please_check_email_to_reset_password'
-          ]
+        	'status' => $res['status'],
+	        'result' => [
+	        	'message' => $message
+	        ]
         ]);
       }
     }
@@ -307,13 +349,37 @@ class AuthController extends Controller
     $user->save();
 
     $emailSubject = $view == 'email.reset' ? 'Reset Password' : 'Verify your Email';
-    Mail::send($view, [
-      'link' => $url . '/' . $confirmationCode,
-      'name' => $user->name
-    ], function ($message) use ($user, $emailSubject) {
-      $message
-        ->to($user->email, $user->name)
-        ->subject($emailSubject);
-    });
+    
+    try {
+	    Mail::send($view, [
+		    'link' => $url . '/' . $confirmationCode,
+		    'name' => $user->name
+	    ], function ($message) use ($user, $emailSubject) {
+		    $message
+			    ->to($user->email, $user->name)
+			    ->subject($emailSubject);
+	    });
+    } catch (\Swift_TransportException $e) {
+    	  return [
+    	  	'status' => false,
+		      'result' => [
+		        'message' => $e->getMessage()
+		      ]
+	      ];
+		} catch (\Exception $e) {
+    	  return [
+    	  	'status' => false,
+		      'result' => [
+		        'message' => $e->getMessage()
+		      ]
+	      ];
+    }
+    return [
+	    'status' => true,
+	    'result' => [
+		    'message' => 'Password reset email sent successfully.',
+		    'messageTag' => 'please_check_email_to_reset_password'
+	    ]
+    ];
   }
 }

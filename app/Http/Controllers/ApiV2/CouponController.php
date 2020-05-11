@@ -58,22 +58,29 @@ class CouponController extends BaseController {
 			$processedTemplate = '';
 		}
 		if (isset($voucher)) {
-			$ogTitle = $voucher->sharing_title;
-			$ogDescription = $voucher->sharing_description;
-			$ogMediaId = $voucher->sharing_image_id;
+			$og = [
+				'title' => $voucher->sharing_title,
+				'description' => $voucher->sharing_description,
+				'imageSrc' => url('media/image/' .$voucher->sharing_image_id),
+				'url' => request()->fullUrl()
+			];
 			$script = $voucher->script;
 		} else {
-			$ogTitle = 'Sample: Title';
-			$ogDescription = 'Sample: Description';
-			$ogMediaId = 0;
+			$og = [
+				'title' => 'Sample: Title',
+				'description' => 'Sample: Description',
+				'imageSrc' => url('media/image/0'),
+				'url' => request()->fullUrl()
+			];
 			$script = '';
 		}
-		$ogUrl = request()->fullUrl();
+//		$ogUrl = request()->fullUrl();
 		return view('templates.coupon', [
-			'ogTitle' => $ogTitle,
-			'ogDescription' => $ogDescription,
-			'ogImageSrc' => url('media/image/' .$ogMediaId),
-			'ogUrl' => $ogUrl,
+			'og' => $og,
+//			'ogTitle' => $ogTitle,
+//			'ogDescription' => $ogDescription,
+//			'ogImageSrc' => url('media/image/' .$ogMediaId),
+//			'ogUrl' => $ogUrl,
 			'template' => $processedTemplate,
 			'script' => $script
 		]);

@@ -5,4 +5,4 @@
 <meta property="og:url" content="{{$og['url']}}" />
 <meta property="og:image" content="{{$og['imageSrc']}}" />
 <meta property="og:description" content="{{$og['description']}}" />
-
+<meta property="og:site_name" content="YOOV" />

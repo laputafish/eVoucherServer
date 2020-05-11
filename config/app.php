@@ -170,7 +170,6 @@ return [
     Maatwebsite\Excel\ExcelServiceProvider::class,
     Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
     Milon\Barcode\BarcodeServiceProvider::class,
-
     /*
      * Application Service Providers...
      */
@@ -235,6 +234,7 @@ return [
 
     'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
     'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactgory::class,
+	  
   ],
 
 ];
