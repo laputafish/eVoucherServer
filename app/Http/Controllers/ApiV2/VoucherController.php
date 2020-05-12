@@ -224,9 +224,10 @@ class VoucherController extends BaseModuleController
     $row->custom_forms = $customForms;
 
     // get form configs
-    $row->form_configs = json_decode($row->questionnaire_configs, true);
+    $row->form_configs = VoucherTemplateHelper::readVoucherTemplate($row);
+    //json_decode($row->questionnaire_configs, true);
 		
-		unset($row->questionnaire_configs);
+		// unset($row->questionnaire_configs);
 		return $row;
 	}
 	
@@ -455,8 +456,12 @@ class VoucherController extends BaseModuleController
 
 		// Form Configs
 		if (array_key_exists('form_configs', $input)) {
-	    $formConfigs = $input['form_configs'];
-      $row->questionnaire_configs = formConfigsToData($formConfigs);
+//	    $formConfigs = $input['form_configs'];
+//      $row->questionnaire_configs = formConfigsToData($formConfigs);
+
+      $formConfigs = $input['form_configs'];
+      $template = formConfigsToData($formConfigs);
+      VoucherTemplateHelper::writeVoucherTemplate($row, $template);
 		}
 
     if (array_key_exists('custom_forms', $input)) {

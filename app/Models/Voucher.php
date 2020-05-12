@@ -16,6 +16,7 @@ class Voucher extends Model
 		'voucher_type',
 		
 		'template',
+    'template_path',
 		'has_template',
 		
 		'has_custom_link',
@@ -216,4 +217,18 @@ class Voucher extends Model
 		}
 		return $result;
 	}
+
+	public function getTemplateFileAttribute() {
+	  return 'v'.$this->id.'.tpl';
+  }
+
+  public function getTemplateFullPathAttribute() {
+	  $result = null;
+	  if (!is_null($this->template_path) && !empty($this->template_path)) {
+	    $result = storage_path('app/vouchers/'.
+        $this->template_path.'/'.
+        'v'.$this->id.'.tpl';
+    }
+	  return $result;
+  }
 }

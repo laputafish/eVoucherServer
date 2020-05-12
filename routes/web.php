@@ -14,6 +14,8 @@ use App\User;
 //  Route::get('coupons/{key}', 'TemplateController@view');
 //});
 
+Route::get('/migrate_templates', 'ApiV2\VoucherTemplateController@migrateTemplates');
+Route::get('/get_template_path', 'ApiV2\TestController@getTemplatePath');
 Route::get('/media/image/{id}/{size?}', 'ApiV2\MediaController@showImage');
 
 Route::get('/get_data', function() {
