@@ -18,11 +18,16 @@ class TemplateHelper {
   private static function getCodeImage($codeConfigs, $params, $codeGroup) {
     $result = '';
     $codeConfig = static::findCodeConfig($codeConfigs, $codeGroup);
+    $codeColor = '0,0,0';
+//    if (!empty(trim($codeConfig['code_color']))) {
+//    	$codeColor = trim($codeConfig['code_color']);
+//    }
+    $arColors = explode(',', $codeColor);
     if (isset($codeConfig) && !empty($params[$codeGroup])) {
       if ($codeGroup === 'qrcode') {
-        $imgBase64 = \DNS2D::getBarcodePNG($params[$codeGroup], $codeConfig['code_type'], $codeConfig['width'], $codeConfig['width']);
+        $imgBase64 = \DNS2D::getBarcodePNG($params[$codeGroup], $codeConfig['code_type'], $codeConfig['width'], $codeConfig['width'], $arColors);
       } else {
-        $imgBase64 = \DNS1D::getBarcodePNG($params[$codeGroup], $codeConfig['code_type'], $codeConfig['width'], $codeConfig['height']);
+        $imgBase64 = \DNS1D::getBarcodePNG($params[$codeGroup], $codeConfig['code_type'], $codeConfig['width'], $codeConfig['height'], $arColors);
       }
       $result = '<img src="data:image/png;base64,' . $imgBase64 . '" alt="'.$codeGroup.'" />';
     }

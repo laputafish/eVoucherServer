@@ -74,13 +74,9 @@ class CouponController extends BaseController {
 			];
 			$script = '';
 		}
-//		$ogUrl = request()->fullUrl();
+		
 		return view('templates.coupon', [
 			'og' => $og,
-//			'ogTitle' => $ogTitle,
-//			'ogDescription' => $ogDescription,
-//			'ogImageSrc' => url('media/image/' .$ogMediaId),
-//			'ogUrl' => $ogUrl,
 			'template' => $processedTemplate,
 			'script' => $script
 		]);

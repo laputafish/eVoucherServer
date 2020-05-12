@@ -5,6 +5,7 @@ use App\Exports\FormConfigsExport;
 use App\Models\Menu;
 use App\Models\Media;
 use App\Models\Voucher;
+use App\Models\VoucherCode;
 use App\Models\TempQuestionForm;
 use App\Models\VoucherCustomForm;
 use App\Models\VoucherParticipant;
@@ -276,7 +277,9 @@ class FormQuestionController extends BaseController
 							case 'form_voucher':
 							case 'form_custom':
 								$formConfigs = json_decode($voucher->questionnaire_configs, true);
+								$og = $this->getFormOg($voucher);
 								return view('templates.custom_form')->with([
+									'og' => $og,
 								  'formType' => 'question',
 									'isDemo' => $isDemo,
 									'formKey' => $key,
@@ -289,7 +292,9 @@ class FormQuestionController extends BaseController
 							case 'form_custom':
 //								echo 'action_type_after_goal > form_custom'.PHP_EOL;
                 $formConfigs = json_decode($voucher->questionnaire_configs, true);
+                $og = $this->getFormOg($voucher);
 								return view('templates.custom_form')->with([
+									'og' => $og,
 								  'formType' => 'question',
 									'isDemo' => $isDemo,
 									'formKey' => $key,
@@ -314,7 +319,21 @@ class FormQuestionController extends BaseController
 			return view('errors.404');
 		}
 	}
-
+	
+	private function getFormOg($voucher) {
+		$result = null;
+		if (!empty($voucher->form_sharing_title) &&
+			!empty($voucher->form_sharing_description)) {
+			$result = [
+				'title' => $voucher->form_sharing_title,
+				'description' => $voucher->form_sharing_description,
+				'imageSrc' => url('media/image/' .$voucher->form_sharing_image_id),
+				'url' => request()->fullUrl()
+			];
+		}
+		return $result;
+	}
+	
 	public function getFormConfigs($key) {
 		$result = null;
 		$configs = Voucher::where('custom_link_key', $key)->value('questionnaire_configs');
@@ -368,6 +387,10 @@ class FormQuestionController extends BaseController
 		$formKey = $request->get('formKey', '');
 		$voucher = Voucher::where('custom_link_key', $formKey)->first();
 		
+		if (!isset($voucher)) {
+			abort(404);
+		}
+		
 		// Check form and return with fresh
 		$participant = [];
 		$inputObjs = $voucher->input_objs;
@@ -377,6 +400,18 @@ class FormQuestionController extends BaseController
 		if ($validator->fails()) {
 			return redirect('q/'.$formKey)->withInput()->withErrors($validator);
 		}
+		
+		// check duplication
+		$emailAndPhone = $this->getEmailAndPhone($voucher, $request->all());
+		$count = $voucher->participants()->where('email', '%'.$emailAndPhone['email'].'%')->count();
+		if ($count > 0) {
+			return redirect('q/'.$formKey)->withInput()->withErrors(['email'=>'The email has been used!']);
+		}
+		$count = $voucher->participants()->where('phone', 'like', '%'.$emailAndPhone['phone'].'%')->count();
+		if ($count > 0) {
+			return redirect('q/'.$formKey)->withInput()->withErrors(['phone'=>'The phone no. has been used!']);
+		}
+		
 //		return 'ok';
 		$participantCount = $voucher->participant_count;
 		$targetCount = -1;
@@ -423,11 +458,43 @@ class FormQuestionController extends BaseController
 		return $this->showCustomForm( $voucher->custom_form_key_after_goal);
 	}
 	
-	
+	private function getEmailAndPhone($voucher, $inputs)
+	{
+		$inputObjs = $voucher->input_objs;
+		$email = '';
+		$phone = '';
+		for ($i = 0; $i < count($inputObjs); $i++) {
+			$inputObj = $inputObjs[$i];
+			$inputType = $inputObj['inputType'];
+			$fieldName = 'field' . $i;
+			
+			switch ($inputType) {
+				case 'phone':
+					$fieldName0 = $fieldName . '_0';
+					$fieldName1 = $fieldName . '_1';
+					$fields[] = $inputs[$fieldName0] . '|' . $inputs[$fieldName1];
+					$phone = $inputs[$fieldName1];
+					break;
+				case 'email':
+					$fields[] = $inputs[$fieldName];
+					$email = trim($inputs[$fieldName]);
+					break;
+			}
+		}
+		return [
+			'email' => $email,
+			'phone' => $phone
+		];
+	}
 	private function saveFormParticipant($voucher, $inputs) {
 		$inputObjs = $voucher->input_objs;
 		$formContent = '';
 		$fields = [];
+		
+		$name = '';
+		$email = '';
+		$phone = '';
+		
 		for ($i = 0; $i < count($inputObjs); $i++) {
 			$inputObj = $inputObjs[$i];
 			$inputType = $inputObj['inputType'];
@@ -435,8 +502,23 @@ class FormQuestionController extends BaseController
 			
 			switch ($inputType) {
 				case 'name':
+					$fieldName0 = $fieldName.'_0';
+					$fieldName1 = $fieldName.'_1';
+					$nameSegs = [];
+					if (!empty($inputs[$fieldName0])) {$nameSegs[] = trim($inputs[$fieldName0]);}
+					if (!empty($inputs[$fieldName1])) {$nameSegs[] = trim($inputs[$fieldName1]);}
+					$fields[] = $inputs[$fieldName0].'|'.$inputs[$fieldName1];
+					$name = implode(', ', $nameSegs);
+					break;
 				case 'phone':
-					$fields[] = $inputs[$fieldName.'_0'].'|'.$inputs[$fieldName.'_1'];
+					$fieldName0 = $fieldName.'_0';
+					$fieldName1 = $fieldName.'_1';
+					$fields[] = $inputs[$fieldName0].'|'.$inputs[$fieldName1];
+					$phone = $inputs[$fieldName1];
+					break;
+				case 'email':
+					$fields[] = $inputs[$fieldName];
+					$email = trim($inputs[$fieldName]);
 					break;
 				default:
 					$fields[] = $inputs[$fieldName];
@@ -444,6 +526,9 @@ class FormQuestionController extends BaseController
 		}
 		$formContent = implode('||', $fields);
 		$new = new VoucherParticipant([
+			'name' => $name,
+			'phone' => $phone,
+			'email' => $email,
 			'form_content' => $formContent,
 			'remark' => ''
 		]);

@@ -32,6 +32,7 @@ class VoucherController extends BaseModuleController
 		'composition' => '',
 		'code_group' => 'qrcode',
 		'code_type' => 'QRCODE',
+		'code_color' => '0,0,0',
 		'width' => 7,
 		'height' => 7
 	];
@@ -41,6 +42,7 @@ class VoucherController extends BaseModuleController
 		'composition' => '',
 		'code_group' => 'barcode',
 		'code_type' => 'C128',
+		'code_color' => '0,0,0',
 		'width' => 3,
 		'height' => 67
 	];
@@ -169,24 +171,36 @@ class VoucherController extends BaseModuleController
 		}
 		
 		if (!empty($row->sharing_image_id)) {
-			
-			$newSharingMediaId = array_key_exists('sharing_image_id', $input) ?
-				$input['sharing_image_id'] :
-				0;
-			
-			if ($row->sharing_image_id !== $newSharingMediaId) {
-				MediaHelper::deleteMedia($row->sharing_image_id);
-				
-				// Change to image from temporary
-				if (!empty($newSharingMediaId)) {
-					MediaHelper::changeMediaType($newSharingMediaId, 'image');
-					MediaHelper::changeImageResolution($newSharingMediaId, 256);
-				}
-			}
+			$newSharingImageId = array_key_exists('sharing_image_id', $input) ?
+				$input['sharing_image_id'] : 0;
+			$this->updateSharingImage($row->sharing_image_id, $newSharingImageId);
 		}
+		
+		if (!empty($row->form_sharing_image_id)) {
+			$newSharingImageId = array_key_exists('form_sharing_image_id', $input) ?
+				$input['form_sharing_image_id'] : 0;
+			$this->updateSharingImage($row->form_sharing_image_id, $newSharingImageId);
+		}
+		
+		if ($this->user->isNotA('supervisor')) {
+			$input['user_id'] = $this->user->id;
+		}
+		
 		return $input;
 	}
-
+	
+	protected function updateSharingImage($oldSharingImageId, $newSharingImageId) {
+		if ($oldSharingImageId !== $newSharingImageId) {
+			MediaHelper::deleteMedia($oldSharingImageId);
+			
+			// Change to image from temporary
+			if (!empty($newSharingImageId)) {
+				MediaHelper::changeMediaType($newSharingImageId, 'image');
+				MediaHelper::changeImageResolution($newSharingImageId, 256);
+			}
+		}
+	}
+	
   protected function beforeShowData($id) {
 	  $row = parent::getRow($id);
     if ($row->codeInfos()->count() === 0) {
@@ -487,10 +501,18 @@ class VoucherController extends BaseModuleController
 				// Update
 			}
 		}
-
-
-  }
+	}
 	
+  protected function onStoring($input) {
+		$result = parent::onString($input);
+		if (empty($result['custom_link_key'])) {
+			$result['custom_link_key'] = newKey();
+		}
+		$input['description'] = nullOrBlank($result['description']);
+		$input['notes'] = nullOrBlank($result['notes']);
+		return $result;
+  }
+  
 	protected function onStoreComplete($request, $row)
 	{
 		$this->onVoucherUpdated($request, $row);
@@ -504,11 +526,7 @@ class VoucherController extends BaseModuleController
 	public function store(Request $request)
 	{
 		$input = $request->validate($this->storeRules);
-		if (empty($input['custom_link_key'])) {
-			$input['custom_link_key'] = newKey();
-		}
-		$input['description'] = nullOrBlank($input['description']);
-		$input['notes'] = nullOrBlank($input['notes']);
+		$input = $this->onStoring($input);
 		
 		$newRow = $this->model->create($input);
 		$id = $newRow->id;
@@ -556,6 +574,7 @@ class VoucherController extends BaseModuleController
 					'composition' => $walkingCodeConfig['composition'],
 					'code_group' => $walkingCodeConfig['code_group'],
 					'code_type' => $walkingCodeConfig['code_type'],
+					'code_color' => is_null($walkingCodeConfig['code_color']) ? '' : $walkingCodeConfig['code_color'],
 					'width' => $walkingCodeConfig['width'],
 					'height' => $walkingCodeConfig['height']
 				]);
@@ -567,6 +586,7 @@ class VoucherController extends BaseModuleController
 						'composition' => $walkingCodeConfig['composition'],
 						'code_group' => $walkingCodeConfig['code_group'],
 						'code_type' => $walkingCodeConfig['code_type'],
+						'code_color' => is_null($walkingCodeConfig['code_color']) ? '' : $walkingCodeConfig['code_color'],
 						'width' => $walkingCodeConfig['width'],
 						'height' => $walkingCodeConfig['height']
 					]);

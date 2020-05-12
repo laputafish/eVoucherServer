@@ -145,6 +145,54 @@ $selectedChoiceTextColor = get($pageKeyValues, 'selected-choice-text-color', $se
 
 $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 
+$rules = [];
+$messages = [];
+$i = 0;
+foreach($inputObjs as $inputObj) {
+	$inputType = $inputObj['inputType'];
+	if ($inputType=='output-remark' ||
+    $inputType=='output-image' ||
+    $inputType=='output-submit' ||
+    $inputType=='system-page') {
+		continue;
+  }
+    $fieldName = 'field'.$i;
+    $fieldName0 = 'field'.$i.'_0';
+    $fieldName1 = 'field'.$i.'_1';
+    $ruleTags = [];
+
+    switch($inputObj['inputType']) {
+	    case 'email':
+		    $ruleTags[] = 'email';
+      case 'simple-text':
+      case 'text':
+      case 'number':
+      case 'single-choice':
+      case 'multiple-choice':
+      	$ruleTags[] = 'required';
+      	$fieldRules = [];
+      	$fieldMessages = [];
+      	foreach($ruleTags as $ruleTag) {
+      		$fieldRules[$ruleTag] = true;
+      		$fieldMessages[$ruleTag] = '';
+        }
+        $rules[$fieldName] = $fieldRules;
+      	$messages[$fieldName] = $fieldMessages;
+      	break;
+	    case 'name':
+	    case 'phone':
+	    	if ($inputObj['required']) {
+	    		$rules[$fieldName0] = ['required' => true];
+	    		$rules[$fieldName1] = ['required' => true];
+
+	    		$messages[$fieldName0] = ['required' => ''];
+	    		$messages[$fieldName1] = ['required' => ''];
+        }
+	    break;
+    }
+    $i++;
+}
+
 ?><!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}"
       class="h-100">
@@ -153,7 +201,7 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    @if(isset($og)) {
+    @if(isset($og))
     @include('templates.og', ['og'=>$og])
     @else
         <title>{{ $pageTitle }}</title>
@@ -162,12 +210,19 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
             integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
             crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+
+{{--    <script src="{{ asset('assets/js/jquery.simplemodal.js') }}"></script>--}}
+    <script src="{{ asset('assets/js/popbox.js') }}"></script>
+    {{--<script src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>--}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
             integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="{{ asset('assets/css/popbox.css') }}">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
             integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
             crossorigin="anonymous"></script>
@@ -199,6 +254,16 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
             margin-bottom: 5px;
         }
 
+        .question-form .input-obj-hidden {
+            width: 1px;
+            left: 50%;
+            position: absolute;
+            height: 1px;
+            z-index: -100;
+            color: transparent;
+            border-color: transparent;
+            background-color: transparent;
+        }
         .question-form .btn-vgroup.radio-toggle .btn:first-child {
             border-top-left-radius: 0.5rem;
             border-top-right-radius: 0.5rem;
@@ -224,12 +289,18 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
             color: {{$selectedChoiceTextColor}};
         }
 
+        .question-form input:not([type=hidden]) {
+            border-width: 2px;
+        }
+        .question-form input:not([type=hidden]).has-error {
+            border-color: red;
+        }
         .question-form .radio-toggle .button-wrapper {
             border: 2px solid transparent;
             border-radius: 0.7rem;
         }
 
-        .question-form .radio-toggle.error .button-wrapper {
+        .question-form .radio-toggle.has-error .button-wrapper {
             border-color: red;
         }
 
@@ -238,9 +309,18 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
             border-radius: 0rem;
         }
 
-        .question-form .checkbox-toggle.error .button-wrapper {
+        .question-form .checkbox-toggle.has-error .button-wrapper {
             border-color: red;
         }
+
+        /*.error-message {*/
+            /*width: 99%;*/
+            /*max-width: 640px;*/
+            /*background-color: white;*/
+            /*border: 5px solid black;*/
+            /*font-size: 24px;*/
+        /*}*/
+
 
     </style>
     <!-- Styles -->
@@ -248,22 +328,22 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 <body class="h-100 d-flex flex-column align-items-center question-form"
       style="{{ $bodyStyleStr }}">
 @if($isDemo)
-    <button class="btn btn-primary" style="width:200px;position:fixed;right:10px;top:10px;" onclick="useDemoData()">
+    <button class="btn btn-primary" style="z-index:9999;width:200px;position:fixed;right:10px;top:10px;" onclick="useDemoData()">
         Demo Data
     </button>
 @endif
-@if(!empty($errors) && $errors->count()>0)
-    {{ $errors }}
-@endif
 {{--<body class="h-100 d-flex flex-column align-items-center question-form"--}}
 {{--style="background-color:{{ $formConfigs['pageConfig']['bgColor'] }};padding-top:{{ $paddingTop }};color:{{$color}};font-size:{{$fontSize}}">--}}
-<form id="questionForm" method="post" action="/q">
+<form novalidate id="questionForm" method="post" action="/q">
     {{ csrf_field()  }}
     <input type="hidden" name="formKey" value="{{ $formKey }}"/>
     <div class="container" style="max-width:{{ $maxWidth }}">
         @php($i=0)
         @foreach($inputObjs as $inputObj)
-            <div class="row mt-4">
+            <div class="row {{ $inputObj['question']=='' ? 'mt-0' : 'mt-4' }}">
+                <!-- *********** -->
+                <!-- simple-text -->
+                <!-- *********** -->
                 @if($inputObj['inputType']=='simple-text')
                     <div class="col-sm-5 question-label">
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
@@ -277,7 +357,11 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                         @endif
                     </div>
                     @php($i++)
+                <!-- *********** -->
+                <!-- number -->
+                <!-- *********** -->
                 @elseif($inputObj['inputType']=='number')
+
                     <div class="col-sm-5 question-label">
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
                     </div>
@@ -362,12 +446,14 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                             <div class="col-sm-6 pr-sm-1">
                                 <input {{$inputObj['required'] ? 'required' : ''}} type="text"
                                        value="{{ old('field'.$i.'_0') }}"
+                                       data-obj-type="phone"
                                        class="form-control" name="field{{$i}}_0" id="field{{$i}}_0"/>
                                 <small>{{ $inputObj['note1'] }}</small>
                             </div>
                             <div class="col-sm-6 pl-sm-0">
                                 <input {{$inputObj['required'] ? 'required' : ''}} type="text"
                                        value="{{ old('field'.$i.'_1') }}"
+                                       data-obj-type="phone"
                                        class="form-control" name="field{{$i}}_1" id="field{{$i}}_1"/>
                                 <small>{{ $inputObj['note2'] }}</small>
                             </div>
@@ -387,7 +473,11 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
                     </div>
                     <div class="col-sm-7 user-answer radio-toggle btn-vgroup" {{$inputObj['required'] ? 'required' : ''}}>
-                        <input type="hidden" name="field{{$i}}" value="{{ $oldValue }}"/>
+                        <input type="text"
+                               name="field{{$i}}"
+                               class="input-obj-hidden"
+                               value="{{ $oldValue }}"
+                               data-obj-type="single-choice"/>
                         <div class="button-wrapper">
                             @foreach($inputObj['options'] as $idx=>$option)
                                 <button type="button" data-buttonidx="{{$idx}}"
@@ -409,7 +499,11 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                         @include('templates.question', ['question'=>$inputObj['question'],'required'=>$inputObj['required']])
                     </div>
                     <div class="col-sm-7 user-answer checkbox-toggle btn-vgroup" {{$inputObj['required'] ? 'required' : ''}}>
-                        <input type="hidden" name="field{{$i}}" value="{{ $oldValue }}"/>
+                        <input type="text"
+                               name="field{{$i}}"
+                               class="input-obj-hidden"
+                               value="{{ $oldValue }}"
+                               data-obj-type="multiple-choice"/>
                         <div class="button-wrapper">
                             @foreach($inputObj['options'] as $idx=>$option)
                                 <button type="button" data-buttonidx="{{$idx}}"
@@ -443,13 +537,14 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
                 $styleElement = keyValuesToStr($keyValuesElement);
                 $styleContainer = keyValuesToStr($keyValuesContainer);
 
+                $outputRemark = str_replace('|', '<br/>', $inputObj['question']);
                 //                  $paddingTop = get($options, 'paddingTop', '10px');
                 //                  $paddingBottom = get($options, 'paddingBottom', '10px');
                 //                  $fontSize = get($options, 'fontSize', '18px');
                 ?>
                     <div class="col-sm-12" style="{{$styleContainer}}">
                         <div style="{{$styleElement}}">
-                            {{ $inputObj['question'] }}
+                            {!! $outputRemark !!}
                         </div>
                     </div>
                 @elseif($inputObj['inputType']=='output-submit')
@@ -490,21 +585,12 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
   // }
 
   function updateValue (containerObj) {
-    console.log('updateValue:')
-    const inputObj = $(containerObj).find('input[type=hidden]');
+    const inputObj = $(containerObj).find('input');
     var result = [];
     const selectedObjs = $(containerObj).find('.btn.selected');
-    console.log('updateValue :: selectedObjs: ', selectedObjs);
-    console.log('updateValue :: selectedObjs.length: ', selectedObjs.length);
     for (var i = 0; i < selectedObjs.length; i++) {
       result.push($(selectedObjs).eq(i).data('buttonidx'))
-      console.log('updatevalue :: result: ', result);
     }
-    // $(selectedObjs).each(item => {
-    //   result.push($(item).data('buttonidx'))
-    //  console.log('updatevalue :: result: ', result);
-    // });
-    console.log('updatevalue :: final result: ', result);
     const finalValue = result.join(',');
     $(inputObj).val(finalValue);
   }
@@ -515,17 +601,51 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
       $(this).siblings().toggleClass('selected', false);
       const parentObj = $(this).closest('.radio-toggle');
       updateValue(parentObj);
+
+      var hasSubmitButton = $('button[type=submit]').length > 0
+      checkToggleSelected('.radio-toggle', hasSubmitButton)
     });
+
     $('body').on('click', '.checkbox-toggle .btn', function () {
       $(this).toggleClass('selected')
       const parentObj = $(this).closest('.checkbox-toggle');
       updateValue(parentObj);
+
+      var hasSubmitButton = $('button[type=submit]').length > 0
+      checkToggleSelected('.checkbox-toggle', hasSubmitButton)
     });
+
     $(window).scrollTop(0);
     $(":input:not(:hidden)").each(function (i) {
       $(this).attr('tabindex', i + 1);
     });
     $('input').not(':hidden').eq(0).focus();
+
+    var errors = {!! $errors !!};
+
+    // console.log('errors: ', errors);
+    // if (errors['token']) {
+    //   alert(errors['token']);
+    // }
+    // $('#errorDialog').dialog({
+    //   autoOpen: false,
+    //   modal: true,
+    //   show: 'blind',
+    //   hide: 'blind'
+    // });
+    if (Object.keys(errors).length > 0) {
+      var errorMsg = errors[Object.keys(errors)[0]]
+      // $.modal('<div class="error-message">' + errorMsg + '</div>');
+      // $('#errorMessage').text(errorMsg);
+
+      var popbox = new Popbox({
+        blur: true,
+        overlay: true
+      });
+      $('#errorMessage').text(errorMsg)
+      popbox.open('errorDialog');
+      // $('#errorMessage').modal();
+    }
   })
 
   function checkToggleSelected (classType, result) {
@@ -536,7 +656,7 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
         console.log('$(this): ', $(element))
         console.log('error = ', error)
         console.log('$(this).attr(class) = ' + $(element).attr('class'))
-        $(element).toggleClass('error', error);
+        $(element).toggleClass('has-error', error);
         if (result && error) {
           result = false
         }
@@ -572,6 +692,28 @@ $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
     $('.checkbox-toggle').find('button').eq(3).addClass('selected');
     $('.checkbox-toggle').find('button').eq(5).addClass('selected');
   }
+
+  // Define custom rules
+
+  var rules = {!! json_encode($rules) !!};
+  var messages = {!! json_encode($messages) !!};
+  console.log('rules: ', rules)
+  $('#questionForm').validate({
+    errorPlacement: function( error, element) {
+      error.remove();
+    },
+    errorClass: 'has-error',
+    rules: rules,
+    messages: messages
+  });
+
+  console.log('messages: ', messages)
 </script>
+ <div data-popbox-id="errorDialog" class="popbox">
+   <div class="popbox_container">
+    <div id="errorMessage"></div>
+    <button class="close-button" data-popbox-close="errorDialog">Close</button>
+   </div>
+ </div>
 </body>
 </html>

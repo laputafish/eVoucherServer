@@ -3,6 +3,7 @@
 use App\Models\Menu;
 
 use Illuminate\Http\Request;
+use Bouncer;
 
 class BaseModuleController extends BaseController
 {
@@ -18,6 +19,11 @@ class BaseModuleController extends BaseController
   //****************
   public function index(Request $request)
   {
+  	Bouncer::refreshFor($this->user);
+  	
+//  	echo 'user name = '.$this->user->name.PHP_EOL;
+//  	echo 'supervisor = '.($this->user->isNotA('supervisor') ? 'yes' : 'no').PHP_EOL;
+//  	return 'ok';
     $query = $this->model;
     if ($this->user->isNotA('supervisor')) {
     	$query = $query->whereUserId($this->user->id);
@@ -26,16 +32,7 @@ class BaseModuleController extends BaseController
     $query = $this->onIndexOrderBy($query);
     $query = $this->onIndexWith($query);
     $query = $this->onIndexJoin($query);
-//    $query = $this->onIndexSelect($request, $query);
-//
     $query = $this->onIndexFilter($request, $query);
-
-//    print_r($rows->toArray());
-//    echo PHP_EOL.PHP_EOL;
-//    echo 'sql='.$query->toSql().PHP_EOL.PHP_EOL;
-
-//    $rows = $query->get();
-//    return response()->json($rows);
 
     if ($request->has('page')) {
       $page = $request->get('page', 1);
@@ -284,7 +281,28 @@ class BaseModuleController extends BaseController
       'result' => $row
     ]);
   }
-
+	
+	public function store(Request $request) {
+		$input = $this->getInput($this->storeRules);
+		$validator = \Validator::make($input, $this->storeRules);
+		if ($validator->fails()) {
+			$errors = $validator->messages();
+			return response()->json([
+				'status' => false,
+				'result' => $errors
+			]);
+		} else {
+			$input = $this->onStoring($input);
+			$newRow = $this->model->create($input);
+			$id = $newRow->id;
+			$this->onStoreComplete($request, $newRow);
+		}
+		$responseRow = $this->getRow($id);
+		return response()->json([
+			'status' => true,
+			'result' => $responseRow
+		]);
+	}
   protected function onUpdating($input, $row=null) {
     return $input;
   }
@@ -297,4 +315,6 @@ class BaseModuleController extends BaseController
     $input = \Input::only(array_keys($rules));
     return $input;
   }
+  
+	
 }

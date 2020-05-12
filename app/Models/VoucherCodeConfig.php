@@ -9,6 +9,7 @@ class VoucherCodeConfig extends Model {
     'composition',
     'code_group',
     'code_type',
+	  'code_color',
     'width',
     'height'
   ];

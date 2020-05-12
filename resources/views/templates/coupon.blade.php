@@ -29,6 +29,7 @@
 <body class="{{ empty($template) ? 'h-100 d-flex flex-column justify-content-center align-items-center' : '' }}">
     @if(empty($template))
         <img class="yoov-logo" src="{!! URL::asset('/images/yoov_ticket_logo.png') !!}"/>
+        <h3>Voucher leaflet not defined!</h3>
     @else
         {!! $template !!}
     @endif
