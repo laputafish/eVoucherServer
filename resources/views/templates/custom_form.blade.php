@@ -131,18 +131,23 @@ if (isset($formConfigs) && isset($formConfigs['inputObjs'])) {
   }
 
 }
-getPageStyleStr($formConfigs);
+$pageStyleStr = getPageStyleStr($formConfigs);
 $pageKeyValues = strToKeyValues($pageStyleStr);
 
 foreach ($bodyStyleKeyValues as $styleKey => $default) {
   if (array_key_exists($styleKey, $pageKeyValues)) {
     $bodyStyleKeyValues[$styleKey] = $pageKeyValues[$styleKey];
+    unset($pageKeyValues[$styleKey]);
   }
 }
 $maxWidth = get($pageKeyValues, 'max-width', $maxWidth);
+unset($pageKeyValues['max-width']);
 $selectedChoiceColor = get($pageKeyValues, 'selected-choice-color', $selectedChoiceColor);
+unset($pageKeyValues['selected-choice-color']);
 $selectedChoiceTextColor = get($pageKeyValues, 'selected-choice-text-color', $selectedChoiceTextColor);
+unset($pageKeyValues['selected-choice-text-color']);
 
+$bodyStyleKeyValues = array_merge($bodyStyleKeyValues, $pageKeyValues);
 $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
 
 $rules = [];
@@ -334,7 +339,7 @@ foreach($inputObjs as $inputObj) {
 <form novalidate id="questionForm" method="post" action="{{ url('/questions/submit') }}">
     {{ csrf_field()  }}
     <input type="hidden" name="formKey" value="{{ $formKey }}"/>
-    <div class="container" style="max-width:{{ $maxWidth }}">
+    <div class="container-fluid" style="max-width:{{ $maxWidth }}">
         @php($i=0)
         @foreach($inputObjs as $inputObj)
             <div class="row {{ $inputObj['question']=='' ? 'mt-0' : 'mt-4' }}">

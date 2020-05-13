@@ -21,6 +21,12 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
   public function headings(): array
   {
     $voucher = Voucher::find($this->voucherId);
+    
+	  // key exists for form => voucher
+	  $isFormType = $voucher->voucher_type === 'form';
+	  $haveKey = $voucher->action_type_before_goal === 'form_voucher';
+	  $keyFromCode = $voucher->goal_type === 'codes';
+	  
     $this->codeFields = $this->getCodeFields($voucher->code_fields);
     $headingLabels = [];
     foreach($this->codeFields as $codeField) {
@@ -31,7 +37,11 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
     $headingLabels[] = 'Link';
     $headingLabels[] = 'Status';
     $headingLabels[] = 'Remark';
-    $headinglabels[] = 'Sent On';
+    $headingLabels[] = 'Sent On';
+    
+    if ($isFormType && $haveKey && $keyFromCode) {
+    	$headingLabels[] = 'Participant';
+    }
     return $headingLabels;
   }
 
@@ -50,6 +60,13 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
   public function collection() {
     $rows = VoucherCode::where('voucher_id', $this->voucherId)->get();
     $excelRows = [];
+	
+	  $voucher = Voucher::find($this->voucherId);
+	  // key exists for form => voucher
+	  $isFormType = $voucher->voucher_type === 'form';
+	  $haveKey = $voucher->action_type_before_goal === 'form_voucher';
+	  $keyFromCode = $voucher->goal_type === 'codes';
+	  
     foreach($rows as $row) {
       $excelCells = [$row->code];
       if (!empty(trim($row->extra_fields))) {
@@ -73,6 +90,15 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
       $excelCells[] = $row->status;
       $excelCells[] = $row->remark;
       $excelCells[] = $row->sent_on;
+      
+      if ($haveKey && $keyFromCode) {
+      	if (isset($row->participant)) {
+		      $excelCells[] = $row->participant->name . ' (' . $row->participant->email . ')';
+	      } else {
+      		$excelCells[] = '';
+	      }
+      }
+      
       $excelRows[] = $excelCells;
     }
     return new Collection($excelRows);

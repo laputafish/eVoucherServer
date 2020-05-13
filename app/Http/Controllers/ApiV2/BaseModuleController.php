@@ -303,6 +303,13 @@ class BaseModuleController extends BaseController
 			'result' => $responseRow
 		]);
 	}
+	
+	protected function onStoring($input) {
+  	if ($this->user->isNotA('supervisor')) {
+  		$input['user_id'] = $this->user->id;
+	  }
+  	return $input;
+	}
   protected function onUpdating($input, $row=null) {
     return $input;
   }

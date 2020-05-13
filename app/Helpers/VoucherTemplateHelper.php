@@ -32,12 +32,15 @@ class VoucherTemplateHelper {
     $voucherId = $voucher->id;
     $result = '';
     $templateFullPath = $voucher->getTemplateFullPath('vouchers');
+
     if (!is_null($templateFullPath)) {
       if (file_exists($templateFullPath)) {
         $filesize = filesize($templateFullPath);
-        $fp = fopen($templateFullPath, 'rb');
-        $result = fread($fp, $filesize);
-        fclose($fp);
+        if ($filesize > 0) {
+	        $fp = fopen($templateFullPath, 'rb');
+	        $result = fread($fp, $filesize);
+	        fclose($fp);
+        }
       }
     }
     return $result;

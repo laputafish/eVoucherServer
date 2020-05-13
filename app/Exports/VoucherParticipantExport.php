@@ -23,32 +23,30 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 	public function headings(): array
 	{
 		$voucher = Voucher::find($this->voucherId);
+		
+		// key exists for form => voucher
+		$haveKey = $voucher->action_type_before_goal === 'form_voucher';
+		$keyFromCode = $voucher->goal_type === 'codes';
+		
 		$columnHeaders = $voucher->column_headers;
 		
 		$headingLabels = ['#'];
+		if ($haveKey) {
+			$headingLabels[] = 'Key';
+		}
 		foreach($columnHeaders as $columnHeader) {
 			$headingLabels[] = str_replace('|', ' '.chr(13), $columnHeader);
 		}
 		return $headingLabels;
 	}
 	
-//	private function getCodeFields($codeFieldsStr) {
-//		$fieldInfos = explode('|', $codeFieldsStr);
-//		$result = [];
-//		foreach($fieldInfos as $fieldInfo) {
-//			$keyValue = explode(':', $fieldInfo);
-//			$result[] = [
-//				'fieldName' => $keyValue[0],
-//				'fieldType' => $keyValue[1]
-//			];
-//		}
-//		return $result;
-//	}
-
-
 	public function collection() {
 		$excelRows = [];
 		$voucher = Voucher::find($this->voucherId);
+		
+		// key exists for form => voucher
+		$haveKey = $voucher->action_type_before_goal === 'form_voucher';
+		$keyFromCode = $voucher->goal_type === 'codes';
 
 		if (isset($voucher)) {
 			$inputObjs = $voucher->input_objs;
@@ -56,6 +54,13 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 //			echo 'count = '.$participants->count();
 			foreach($participants as $i=>$participant) {
 				$excelCells = [$i + 1];
+				if ($haveKey) {
+					if ($keyFromCode) {
+						$excelCells[] = $participant->code->key;
+					} else {
+						$excelCells[] = $participant->key;
+					}
+				}
 				$formContent = $participant->form_content;
 				
 				if (!empty($formContent)) {

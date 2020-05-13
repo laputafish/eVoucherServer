@@ -225,6 +225,7 @@ class VoucherController extends BaseModuleController
     $row->custom_forms = $customForms;
 
     // get form configs
+		
 		$row->template = VoucherTemplateHelper::readVoucherTemplate($row);
     $row->form_configs = json_decode($row->questionnaire_configs, true);
 		
@@ -510,12 +511,12 @@ class VoucherController extends BaseModuleController
 	}
 	
   protected function onStoring($input) {
-		$result = parent::onString($input);
+		$result = parent::onStoring($input);
 		if (empty($result['custom_link_key'])) {
 			$result['custom_link_key'] = newKey();
 		}
-		$input['description'] = nullOrBlank($result['description']);
-		$input['notes'] = nullOrBlank($result['notes']);
+		$input['description'] = is_null($result['description']) ? '' : $result['description'];
+		$input['notes'] = is_null($result['notes']) ? '' : $result['notes'];
 		return $result;
   }
   
@@ -533,7 +534,12 @@ class VoucherController extends BaseModuleController
 	{
 		$input = $request->validate($this->storeRules);
 		$input = $this->onStoring($input);
-		
+//		$input['description'] = '';
+//		$input['notes'] = '';
+//		echo 'description = blank: '.($input['description'] == '').PHP_EOL;
+//		echo 'description is null: '.is_null($input['description']).PHP_EOL;
+////		print_r($input);
+//		return 'ok';
 		$newRow = $this->model->create($input);
 		$id = $newRow->id;
 		$this->onStoreComplete($request, $newRow);
@@ -542,6 +548,10 @@ class VoucherController extends BaseModuleController
 				$input['emails'] :
 				[]
 		);
+		
+//		$voucher = $this->model->find($id);
+//		$t = $voucher->getTemplateFullPath('vouchers');
+//		return $t;
 		
 		$responseRow = $this->getRow($id);
 		return response()->json([
