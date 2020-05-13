@@ -232,7 +232,7 @@ foreach($inputObjs as $inputObj) {
         body {
             height: 100%;
         }
-        
+
         body img.yoov-logo {
             width: 480px;
             max-width: 90%;
