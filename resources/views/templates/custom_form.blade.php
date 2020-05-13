@@ -229,6 +229,10 @@ foreach($inputObjs as $inputObj) {
             integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
             crossorigin="anonymous"></script>
     <style>
+        body {
+            height: 100%;
+        }
+        
         body img.yoov-logo {
             width: 480px;
             max-width: 90%;
@@ -246,6 +250,7 @@ foreach($inputObjs as $inputObj) {
 
         .question-form .question-label {
             line-height: 1.2;
+            margin-bottom: 5px;
         }
 
         .question-form .user-answer {
@@ -327,7 +332,7 @@ foreach($inputObjs as $inputObj) {
     </style>
     <!-- Styles -->
 </head>
-<body class="h-100 d-flex flex-column align-items-center question-form"
+<body class="h-100 d-flex flex-column align-items-stretch question-form"
       style="{{ $bodyStyleStr }}">
 @if($isDemo)
     <button class="btn btn-primary" style="z-index:9999;width:200px;position:fixed;right:10px;top:10px;" onclick="useDemoData()">
