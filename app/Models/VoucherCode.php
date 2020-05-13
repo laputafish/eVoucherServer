@@ -21,4 +21,8 @@ class VoucherCode extends Model
   public function voucher() {
     return $this->belongsTo('App\Models\Voucher');
   }
+  
+  public function participant() {
+  	return $this->belongsTo(VoucherParticipant::class, 'participant_id');
+  }
 }

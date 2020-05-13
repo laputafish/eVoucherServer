@@ -17,23 +17,38 @@ use App\User;
 Route::get('/migrate_templates', 'ApiV2\VoucherTemplateController@migrateTemplates');
 Route::get('/get_template_path', 'ApiV2\TestController@getTemplatePath');
 Route::get('/media/image/{id}/{size?}', 'ApiV2\MediaController@showImage');
+// sharing link testing
+// $id is 'key' if timestamp not exists
+Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
+// Route::get('forms/{id}/{timestamp?}', 'ApiV2\CouponController@showForm');
+
+// Preview question form
+Route::get('q/{key}/{timestamp?}', 'ApiV2\FormQuestionController@showQuestionForm');
+
+//Route::post('q', 'ApiV2\FormQuestionController@postQuestionForm');
+Route::post('questions/submit', 'ApiV2\FormQuestionController@postQuestionForm');
+//});
+//Route::get('xquestions', function() {
+//	return 'get q';
+//});
 
 Route::get('/get_data', function() {
-  for ($i = 0; $i < 2000; $i++) {
-    Voucher::create([
-      'description' => 'Voucher #'.$i,
-      'agent_id' => rand(1,3),
-      'activation_date' => date('Y-m-d'),
-      'expiry_date' => date('Y-m-d', strtotime('+20 days')),
-      'qr_code_size' => 160,
-      'status' => 'pending'
-    ]);
-  }
+//  for ($i = 0; $i < 2000; $i++) {
+//    Voucher::create([
+//      'description' => 'Voucher #'.$i,
+//      'agent_id' => rand(1,3),
+//      'activation_date' => date('Y-m-d'),
+//      'expiry_date' => date('Y-m-d', strtotime('+20 days')),
+//      'qr_code_size' => 160,
+//      'status' => 'pending'
+//    ]);
+//  }
   $rows = Voucher::where('id', '>=', 7)->get();
   foreach($rows as $row) {
-    $row->update([
-      'agent_id' => rand(1,3)
-    ]);
+  	echo $row->agent_id.PHP_EOL."<Br/>";
+//    $row->update([
+//      'agent_id' => rand(1,3)
+//    ]);
   }
 //  $voucher = Voucher::find(1);
 //  for ($i = 0; $i < 100; $i++) {
@@ -45,17 +60,10 @@ Route::get('/get_data', function() {
 //    ]);
 //    $voucher->codeInfos()->save($codeInfo);
 //  }
-  return 'ok';
+  return 'get_data :: ok';
 });
 
-// sharing link testing
-// $id is 'key' if timestamp not exists
-Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
-// Route::get('forms/{id}/{timestamp?}', 'ApiV2\CouponController@showForm');
 
-// Preview question form
-Route::get('q/{key}/{timestamp?}', 'ApiV2\FormQuestionController@showQuestionForm');
-Route::post('q', 'ApiV2\FormQuestionController@postQuestionForm');
 
 // Download question form configs
 Route::get('d/{key}/{timestamp?}', 'ApiV2\FormQuestionController@downloadFormConfigs');
@@ -93,7 +101,7 @@ Route::get('assign_roles', function() {
         }
       }
     }
-    return 'ok';
+    return 'assign_roles :: ok';
 });
 
 // clear all qr code composition

@@ -28,20 +28,7 @@ class VoucherTemplateController extends BaseController {
       $voucher->template = '';
       $voucher->save();
     } else {
-      $templatePath = VoucherTemplateHelper::createTemplatePath($voucher->id);
-      $templateFile = 'v'.$voucher->id.'.tpl';
-      $templateFileFolder = storage_path('app/vouchers/'.$templatePath);
-      if (!file_exists($templateFileFolder)) {
-        mkdir($templateFileFolder,0777,true);
-      }
-      $templateFullPath = $templateFileFolder.'/'.$templateFile;
-      if (file_exists($templateFullPath)) {
-        unlink($templateFullPath);
-      }
-      $f = fopen($templateFullPath, 'wb');
-      fwrite($f, $template);
-      fclose($f);
-      $voucher->template_path = $templatePath;
+    	VoucherTemplateHelper::writeVoucherTemplate($voucher, $template);
       $voucher->template = '';
       $voucher->save();
       $result = true;

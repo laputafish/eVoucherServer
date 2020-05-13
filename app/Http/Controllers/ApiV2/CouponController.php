@@ -5,6 +5,7 @@ use App\Models\VoucherCode;
 use App\Models\VoucherParticipant;
 
 use App\Helpers\TemplateHelper;
+use App\Helpers\VoucherTemplateHelper;
 
 use Illuminate\Http\Request;
 
@@ -124,11 +125,18 @@ class CouponController extends BaseController {
 			$voucher->toArray()
 		);
 		
+		$voucherTemplate = VoucherTemplateHelper::readVoucherTemplate($voucher);
 		return TemplateHelper::processTemplate(
-			$voucher->template,
+			$voucherTemplate,
 			$voucher->codeConfigs,
 			$params
 		);
+		
+//		return TemplateHelper::processTemplate(
+//			$voucher->template,
+//			$voucher->codeConfigs,
+//			$params
+//		);
 	}
 	
 	private function processLeafletWithCode($voucherCode) {
@@ -140,11 +148,17 @@ class CouponController extends BaseController {
 			$voucherCode
 		);
 		
+		$voucherTemplate = VoucherTemplateHelper::readVoucherTemplate($voucher);
 		return TemplateHelper::processTemplate(
-			$voucher->template,
+			$voucherTemplate,
 			$voucher->codeConfigs,
 			$params
 		);
+//		return TemplateHelper::processTemplate(
+//			$voucher->template,
+//			$voucher->codeConfigs,
+//			$params
+//		);
 	}
 	
 }

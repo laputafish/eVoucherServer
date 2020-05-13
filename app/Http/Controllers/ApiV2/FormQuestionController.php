@@ -14,6 +14,7 @@ use App\Helpers\UploadFileHelper;
 use App\Helpers\VoucherHelper;
 use App\Helpers\QuestionnaireHelper;
 use App\Helpers\InputObjHelper;
+use App\Helpers\VoucherTemplateHelper;
 
 use App\Imports\AgentCodeImport;
 use Illuminate\Http\Request;
@@ -403,7 +404,8 @@ class FormQuestionController extends BaseController
 		
 		// check duplication
 		$emailAndPhone = $this->getEmailAndPhone($voucher, $request->all());
-		$count = $voucher->participants()->where('email', '%'.$emailAndPhone['email'].'%')->count();
+		
+		$count = $voucher->participants()->where('email', 'like', '%'.$emailAndPhone['email'].'%')->count();
 		if ($count > 0) {
 			return redirect('q/'.$formKey)->withInput()->withErrors(['email'=>'The email has been used!']);
 		}

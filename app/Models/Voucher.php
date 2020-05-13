@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Helpers\VoucherTemplateHelper;
 
 class Voucher extends Model
 {
@@ -222,12 +223,12 @@ class Voucher extends Model
 	  return 'v'.$this->id.'.tpl';
   }
 
-  public function getTemplateFullPathAttribute() {
+  public function getTemplateFullPath($appFolder) {
 	  $result = null;
 	  if (!is_null($this->template_path) && !empty($this->template_path)) {
-	    $result = storage_path('app/vouchers/'.
+	    $result = storage_path('app/'.$appFolder.'/'.
         $this->template_path.'/'.
-        'v'.$this->id.'.tpl';
+        'v'.$this->id.'.tpl');
     }
 	  return $result;
   }

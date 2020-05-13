@@ -6,6 +6,8 @@ use App\Models\TempLeaflet;
 
 use App\Helpers\TemplateHelper;
 use App\Helpers\QRCodeHelper;
+use App\Helpers\VoucherTemplateHelper;
+
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Http\Request;
 
@@ -23,16 +25,18 @@ class TemplateController extends BaseController
     $params = TemplateHelper::createParams($record, $input['codeInfo']);
 
     $key = newKey();
-    $new = $this->model->create([
+    $newTempLeaflet = $this->model->create([
       'user_id' => 0,
       'title' => $record['description'],
       'code_configs' => serialize($record['code_configs']),
       'key' => $key,
-      'template' => $record['template'],
+//      'template_path' => $templatePath,
+//      'template' => $record['template'],
       'params' => serialize($params)
     ]);
-
-    return response()->json([
+	  VoucherTemplateHelper::writeTempVoucherTemplate($newTempLeaflet, $record['template']);
+	
+	  return response()->json([
       'status'=>true,
       'result'=>$key
     ]);
@@ -52,13 +56,14 @@ class TemplateController extends BaseController
   }
 
   private function processTempLeaflet($key) {
-    $leaflet = TempLeaflet::where('key', $key)->first();
+    $tempLeaflet = TempLeaflet::where('key', $key)->first();
     $status = true;
-    if (isset($leaflet)) {
+    if (isset($tempLeaflet)) {
+    	$voucherTemplate = VoucherTemplateHelper::readTempVoucherTemplate($tempLeaflet);
       $result = TemplateHelper::processTemplate(
-        $leaflet->template,
-        unserialize($leaflet->code_configs),
-        unserialize($leaflet->params)
+        $voucherTemplate,
+        unserialize($tempLeaflet->code_configs),
+        unserialize($tempLeaflet->params)
       );
       // TempLeaflet::where('key', $key)->delete();
     } else {
@@ -83,8 +88,9 @@ class TemplateController extends BaseController
       $voucherCode
     );
 
+    $voucherTemplate = VoucherTemplateHelper::readVoucherTemplate($voucher);
     $result = TemplateHelper::processTemplate(
-      $voucher->template,
+      $voucherTemplate,
       $voucher->codeConfigs,
       $params
     );

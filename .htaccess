@@ -1,0 +1,28 @@
+# Options +FollowSymlinks
+RewriteEngine on
+
+# Force SSL
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ----------------------------------------------------------------------
+# Cross-domain AJAX requests
+# ----------------------------------------------------------------------
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE, PUT"
+    Header set Access-Control-Max-Age "1000"
+    Header set Access-Control-Allow-Headers "x-requested-with, Content-Type, origin, authorization, accept, client-security-token"
+</IfModule>
+
+RewriteRule ^(apiv2/(.*))$ public/$1 [L,NC]
+RewriteRule ^(api/(.*))$ public/$1 [L,NC]
+RewriteRule ^(oauth/(.*))$ public/$1 [L,NC]
+RewriteRule ^(media/(.*))$ public/$1 [L,NC]
+
+RewriteBase /
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]

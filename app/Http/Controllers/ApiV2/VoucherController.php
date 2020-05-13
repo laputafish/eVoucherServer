@@ -10,6 +10,7 @@ use App\Models\VoucherCustomForm;
 use App\Helpers\AccessKeyHelper;
 use App\Helpers\MediaHelper;
 use App\Helpers\QuestionnaireHelper;
+use App\Helpers\VoucherTemplateHelper;
 
 use Illuminate\Http\Request;
 
@@ -55,7 +56,7 @@ class VoucherController extends BaseModuleController
 		'expiry_date' => 'nullable|date',
 		'voucher_type' => 'in:voucher,form',
 		
-		'template' => 'nullable|string',
+//		'template' => 'nullable|string',
 		'has_template' => 'boolean',
 		
 		'has_custom_link' => 'boolean',
@@ -107,7 +108,7 @@ class VoucherController extends BaseModuleController
 		'expiry_date' => 'nullable|date',
 		'voucher_type' => 'in:voucher,form',
 		
-		'template' => 'nullable|string',
+//		'template' => 'nullable|string',
 		'has_template' => 'boolean',
 		
 		'has_custom_link' => 'boolean',
@@ -224,8 +225,8 @@ class VoucherController extends BaseModuleController
     $row->custom_forms = $customForms;
 
     // get form configs
-    $row->form_configs = VoucherTemplateHelper::readVoucherTemplate($row);
-    //json_decode($row->questionnaire_configs, true);
+		$row->template = VoucherTemplateHelper::readVoucherTemplate($row);
+    $row->form_configs = json_decode($row->questionnaire_configs, true);
 		
 		// unset($row->questionnaire_configs);
 		return $row;
@@ -431,6 +432,10 @@ class VoucherController extends BaseModuleController
 	
 	private function onVoucherUpdated($request, $row)
 	{
+		// save template
+		$template = $request->get('template', '');
+		VoucherTemplateHelper::writeVoucherTemplate($row, $template);
+		
 		// Voucher codes is saved independently
 		$input = $request->all();
 		if (array_key_exists('code_configs', $input)) {
@@ -456,12 +461,8 @@ class VoucherController extends BaseModuleController
 
 		// Form Configs
 		if (array_key_exists('form_configs', $input)) {
-//	    $formConfigs = $input['form_configs'];
-//      $row->questionnaire_configs = formConfigsToData($formConfigs);
-
-      $formConfigs = $input['form_configs'];
-      $template = formConfigsToData($formConfigs);
-      VoucherTemplateHelper::writeVoucherTemplate($row, $template);
+	    $formConfigs = $input['form_configs'];
+      $row->questionnaire_configs = formConfigsToData($formConfigs);
 		}
 
     if (array_key_exists('custom_forms', $input)) {
@@ -752,10 +753,17 @@ class VoucherController extends BaseModuleController
 			
 			// Remove participant
 			$voucher->participants()->where('id', $participantId)->delete();
+			
+			$participantCount = $voucher->participants()->count();
+			$voucher->participant_count = $participantCount;
+			$voucher->save();
 		}
 		
 		return 	response()->json([
-			'status' => true
+			'status' => true,
+			'result' => [
+				'participant_count' => $participantCount
+			]
 		]);
 	}
 	
@@ -780,6 +788,10 @@ class VoucherController extends BaseModuleController
 				$offset = ($page - 1) * $limit;
 				$data = $query->skip($offset)->take($limit)->get();
 				$pagedData = new \Illuminate\Pagination\LengthAwarePaginator($data, $totalCount, $limit, $page);
+				$pagedData->getCollection()->transform(function($value) {
+					$value->code;
+					return $value;
+				});
 				$result = $pagedData;
 				
 				$arResult = $result->toArray();
@@ -801,6 +813,7 @@ class VoucherController extends BaseModuleController
 		foreach($data as $record) {
 			$formContent = $record['form_content'];
 			$fieldValues = explode('||', $formContent);
+			$record['code_key'] = isset($record['code']) ? $record['code']['key'] : null;
 			foreach($inputObjs as $i=>$inputObj) {
 				$fieldValue = $fieldValues[$i];
 				$fieldName = 'field'.$i;
@@ -846,6 +859,10 @@ class VoucherController extends BaseModuleController
 				$offset = ($page - 1) * $limit;
 				$data = $query->skip($offset)->take($limit)->get();
 				$pagedData = new \Illuminate\Pagination\LengthAwarePaginator($data, $totalCount, $limit, $page);
+				$pagedData->getCollection()->transform(function($value) {
+					$value->participant;
+					return $value;
+				});
 				$result = $pagedData;
 				return response()->json([
 					'status' => true,

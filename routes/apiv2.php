@@ -117,7 +117,7 @@ Route::namespace('ApiV2')->group(function() {
 });
 
 Route::get('/info', function() {
-	return view('errors.404');
+	return view('errors.404', ['version' => '2.0']);
 //  $DB_HOST = '192.168.1.240';
 //  $DB_PORT = 3307;
 //  $DB_DATABASE = 'coupon_yoov_com';

@@ -31,8 +31,11 @@
   </style>
 </head>
 <body>
-  <div class="content">
-  <img src="{{ asset('assets/images/error_404.jpg') }}"/>
+  <div class="content" style="color: white;text-align:center;">
+    <img src="{{ asset('assets/images/error_404.jpg') }}"/>
+    @if(isset($version))
+    {{ $version }}
+    @endif
   </div>
 </body>
 </html>
