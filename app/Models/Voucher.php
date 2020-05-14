@@ -204,6 +204,7 @@ class Voucher extends Model
 						case 'simple-text':
 						case 'number':
 						case 'email':
+						case 'gender':
 						case 'text':
 						case 'single-choice':
 						case 'multiple-choice':

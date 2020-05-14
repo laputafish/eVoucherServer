@@ -175,8 +175,9 @@ foreach($inputObjs as $inputObj) {
       case 'simple-text':
       case 'text':
       case 'number':
-      case 'single-choice':
+      case 'gender':
 	    case 'phone':
+	    case 'single-choice':
       case 'multiple-choice':
       	$ruleTags[] = 'required';
       	$fieldRules = [];

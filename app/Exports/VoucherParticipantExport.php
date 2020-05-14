@@ -58,7 +58,7 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 					if ($keyFromCode) {
 						$excelCells[] = $participant->code->key;
 					} else {
-						$excelCells[] = $participant->key;
+						$excelCells[] = $participant->participant_key;
 					}
 				}
 				$formContent = $participant->form_content;
@@ -79,11 +79,13 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 							switch ($inputObj['inputType']) {
 								case 'simple-text':
 								case 'number':
+								case 'phone':
 								case 'email':
 								case 'text':
 									$excelCells[] = $fieldValue;
 									break;
 								case 'single-choice':
+								case 'gender':
 									$index = (int) $fieldValue;
 									$excelCells[] = $inputObj['options'][$index];
 									break;
@@ -99,7 +101,7 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 									}
 									break;
 								case 'name':
-								case 'phone':
+//								case 'phone':
 									$fieldValueSegs = explode('|', $fieldValue);
 									$fieldValueSegsCount = count($fieldValueSegs);
 									$excelCells[] = $fieldValueSegsCount > 0 ? $fieldValueSegs[0] : '';

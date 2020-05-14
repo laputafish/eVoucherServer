@@ -812,6 +812,9 @@ class VoucherController extends BaseModuleController
 				
 				$arResult = $result->toArray();
 				$arResult['data'] = $this->parseParticipantData($arResult['data'], $inputObjs);
+
+				$voucher->participant_count = count($arResult['data']);
+				$voucher->save();
 				return response()->json([
 					'status' => true,
 					'result' => $arResult
@@ -840,6 +843,7 @@ class VoucherController extends BaseModuleController
 					case 'gender':
 					case 'text':
 					case 'single-choice':
+					case 'gender':
 					case 'phone':
 					case 'multiple-choice':
 						$record[$fieldName] = $fieldValue;

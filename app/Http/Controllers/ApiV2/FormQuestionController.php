@@ -105,6 +105,7 @@ class FormQuestionController extends BaseController
 										case 'simple-text':
 										case 'name':
 										case 'email':
+										case 'gender':
 										case 'phone':
 										case 'text':
 										case 'single-choice':
@@ -553,7 +554,7 @@ class FormQuestionController extends BaseController
 	private function showCustomForm($formKey) {
 		$customForm = VoucherCustomForm::where('form_key', $formKey)->first();
 		if (isset($customForm)) {
-			return view('templaes.custom_form')->with([
+			return view('templates.custom_form')->with([
 			  'formType' => 'custom',
 				'formKey' => $formKey,
 				'formConfigs' => json_decode($customForm->form_configs, true)
