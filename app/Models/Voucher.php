@@ -132,7 +132,9 @@ class Voucher extends Model
 					switch ($inputObj['inputType']) {
 						case 'simple-text':
 						case 'number':
+						case 'gender':
 						case 'email':
+						case 'phone':
 						case 'text':
 						case 'single-choice':
 							$result[] = $columnName;
@@ -146,7 +148,6 @@ class Voucher extends Model
 							break;
 							
 						case 'name':
-						case 'phone':
 							$name = $inputObj['name'];
 							$segs = explode(',', $name);
 							$hasTwoParts = count($segs)>1;
@@ -176,6 +177,7 @@ class Voucher extends Model
 						case 'simple-text':
 						case 'number':
 						case 'email':
+						case 'gender':
 						case 'text':
 						case 'single-choice':
 						case 'multiple-choice':
@@ -205,10 +207,10 @@ class Voucher extends Model
 						case 'text':
 						case 'single-choice':
 						case 'multiple-choice':
+						case 'phone':
 							$result[] = $fieldName;
 							break;
 						case 'name':
-						case 'phone':
 							$result[] = $fieldName.'_0';
 							$result[] = $fieldName.'_1';
 							break;

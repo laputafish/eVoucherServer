@@ -108,6 +108,7 @@ $isDemo = isset($isDemo) ? ($isDemo && $formType=='question') : false;
 $pageTitle = 'YOOV';
 $selectedChoiceColor = 'blue';
 $selectedChoiceTextColor = 'white';
+$inputRegionMaxWidth = '640px';
 
 $maxWidth = '640px';
 $bodyStyleKeyValues = [
@@ -146,6 +147,8 @@ $selectedChoiceColor = get($pageKeyValues, 'selected-choice-color', $selectedCho
 unset($pageKeyValues['selected-choice-color']);
 $selectedChoiceTextColor = get($pageKeyValues, 'selected-choice-text-color', $selectedChoiceTextColor);
 unset($pageKeyValues['selected-choice-text-color']);
+$inputRegionMaxWidth = get($pageKeyValues, 'input-region-max-width', $inputRegionMaxWidth);
+unset($pageKeyValues['input-region-max-width']);
 
 $bodyStyleKeyValues = array_merge($bodyStyleKeyValues, $pageKeyValues);
 $bodyStyleStr = keyValuesToStr($bodyStyleKeyValues);
@@ -173,6 +176,7 @@ foreach($inputObjs as $inputObj) {
       case 'text':
       case 'number':
       case 'single-choice':
+	    case 'phone':
       case 'multiple-choice':
       	$ruleTags[] = 'required';
       	$fieldRules = [];
@@ -185,7 +189,6 @@ foreach($inputObjs as $inputObj) {
       	$messages[$fieldName] = $fieldMessages;
       	break;
 	    case 'name':
-	    case 'phone':
 	    	if ($inputObj['required']) {
 	    		$rules[$fieldName0] = ['required' => true];
 	    		$rules[$fieldName1] = ['required' => true];
@@ -246,6 +249,13 @@ foreach($inputObjs as $inputObj) {
             width: 100%;
             height: auto;
             object-fit: contain;
+        }
+
+        .question-form .input-region {
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: {{ $inputRegionMaxWidth }};
         }
 
         .question-form .question-label {
@@ -347,7 +357,17 @@ foreach($inputObjs as $inputObj) {
     <div class="container-fluid" style="max-width:{{ $maxWidth }}">
         @php($i=0)
         @foreach($inputObjs as $inputObj)
-            <div class="row {{ $inputObj['question']=='' ? 'mt-0' : 'mt-4' }}">
+            <?php
+                $regionClass = 'input-region';
+                switch($inputObj['inputType']) {
+                  case 'output-image':
+                  case 'output-remark':
+                  case 'output-submit':
+                  	$regionClass = '';
+                  	break;
+                }
+            ?>
+            <div class="{{ $regionClass }} row {{ $inputObj['question']=='' ? 'mt-0' : 'mt-4' }}">
                 <!-- *********** -->
                 <!-- simple-text -->
                 <!-- *********** -->
@@ -450,25 +470,25 @@ foreach($inputObjs as $inputObj) {
                     </div>
                     <div class="col-sm-7 user-answer">
                         <div class="row">
-                            <div class="col-sm-6 pr-sm-1">
+                            <div class="col-sm-12">
                                 <input {{$inputObj['required'] ? 'required' : ''}} type="text"
-                                       value="{{ old('field'.$i.'_0') }}"
+                                       value="{{ old('field'.$i) }}"
                                        data-obj-type="phone"
-                                       class="form-control" name="field{{$i}}_0" id="field{{$i}}_0"/>
+                                       class="form-control" name="field{{$i}}" id="field{{$i}}"/>
                                 <small>{{ $inputObj['note1'] }}</small>
                             </div>
-                            <div class="col-sm-6 pl-sm-0">
-                                <input {{$inputObj['required'] ? 'required' : ''}} type="text"
-                                       value="{{ old('field'.$i.'_1') }}"
-                                       data-obj-type="phone"
-                                       class="form-control" name="field{{$i}}_1" id="field{{$i}}_1"/>
-                                <small>{{ $inputObj['note2'] }}</small>
-                            </div>
+                            {{--<div class="col-sm-6 pl-sm-0">--}}
+                                {{--<input {{$inputObj['required'] ? 'required' : ''}} type="text"--}}
+                                       {{--value="{{ old('field'.$i.'_1') }}"--}}
+                                       {{--data-obj-type="phone"--}}
+                                       {{--class="form-control" name="field{{$i}}_1" id="field{{$i}}_1"/>--}}
+                                {{--<small>{{ $inputObj['note2'] }}</small>--}}
+                            {{--</div>--}}
                         </div>
                     </div>
                     @php($i++)
                 <!-- SINGLE CHOICE -->
-                @elseif($inputObj['inputType']=='single-choice')
+                @elseif($inputObj['inputType']=='single-choice' || $inputObj['inputType']=='gender')
                 <?php
                 $choice = -1;
                 $oldValue = old('field' . $i);
@@ -686,8 +706,7 @@ foreach($inputObjs as $inputObj) {
     $('input[name=field0_0]').val('John');
     $('input[name=field0_1]').val('Chan');
     $('input[name=field1]').val('johnchan@gmail.com');
-    $('input[name=field2_0]').val('852');
-    $('input[name=field2_1]').val('98765432');
+    $('input[name=field2]').val('98765432');
     $('input[name=field3]').val('Room 1, 1/F., First Bldg');
     $('input[name=field4]').val('First Street, Kwun Tong.');
     $('input[name=field5]').val('0');

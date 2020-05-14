@@ -216,6 +216,8 @@ class VoucherController extends BaseModuleController
 	{
 		$row = parent::getRow($id);
 		
+		$this->updateCounts($row);
+		
     // get custom templates
 		$customForms = [];
     foreach($row->customForms as $i=>$customForm) {
@@ -375,7 +377,7 @@ class VoucherController extends BaseModuleController
 			'id' => 0,
 			'description' => '',
 			'notes' => '',
-			'agent_id' => Agent::first()->id,
+			'agent_id' => Agent::whereUserId($this->user->id)->first()->id,
 			'activation_date' => '',
 			'expiry_date' => '',
 			'voucher_type' => 'voucher',
@@ -447,13 +449,7 @@ class VoucherController extends BaseModuleController
 			$this->saveEmails($row->id, $input['emails']);
 		}
 		
-		// Update Code count
-		$codeCount = $row->codeInfos()->count();
-		$row->code_count = $codeCount;
-		
-		// Update participant count
-		$participantCount = $row->participants()->count();
-		$row->participant_count = $participantCount;
+		$this->updateCounts($row);
 		
 		// Update custom link key
 		if (empty($row->custom_link_key)) {
@@ -473,6 +469,16 @@ class VoucherController extends BaseModuleController
 		$row->save();
 	}
 
+	private function updateCounts($voucher) {
+		// Update Code count
+		$codeCount = $voucher->codeInfos()->count();
+		$voucher->code_count = $codeCount;
+		
+		// Update participant count
+		$participantCount = $voucher->participants()->count();
+		$voucher->participant_count = $participantCount;
+	}
+	
 	public function update(Request $request, $id) {
 		$result = parent::update($request, $id);
 		return $result;
@@ -831,13 +837,14 @@ class VoucherController extends BaseModuleController
 					case 'simple-text':
 					case 'number':
 					case 'email':
+					case 'gender':
 					case 'text':
 					case 'single-choice':
+					case 'phone':
 					case 'multiple-choice':
 						$record[$fieldName] = $fieldValue;
 						break;
 					case 'name':
-					case 'phone':
 						$fieldValueSegs = explodeByCount('|', $fieldValue, 2, ' ');
 						$record[$fieldName.'_0'] = $fieldValueSegs[0];
 						$record[$fieldName.'_1'] = $fieldValueSegs[1];

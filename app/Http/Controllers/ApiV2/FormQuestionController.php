@@ -405,6 +405,15 @@ class FormQuestionController extends BaseController
 		// check duplication
 		$emailAndPhone = $this->getEmailAndPhone($voucher, $request->all());
 		
+//		print_r($request->all());
+//		echo PHP_EOL.PHP_EOL.PHP_EOL;
+//		$objs = $voucher->input_objs;
+//		foreach($objs as $i=>$obj) {
+//			echo '#'.$i.':   obj.question = '.$obj['question'].PHP_EOL;
+//		}
+//		print_r($emailAndPhone);
+//		return 'ok';
+		
 		$count = $voucher->participants()->where('email', 'like', '%'.$emailAndPhone['email'].'%')->count();
 		if ($count > 0) {
 			return redirect('q/'.$formKey)->withInput()->withErrors(['email'=>'The email has been used!']);
@@ -472,17 +481,19 @@ class FormQuestionController extends BaseController
 			
 			switch ($inputType) {
 				case 'phone':
-					$fieldName0 = $fieldName . '_0';
-					$fieldName1 = $fieldName . '_1';
-					$fields[] = $inputs[$fieldName0] . '|' . $inputs[$fieldName1];
-					$phone = $inputs[$fieldName1];
+//					$fieldName0 = $fieldName . '_0';
+//					$fieldName1 = $fieldName . '_1';
+//					$fields[] = $inputs[$fieldName0] . '|' . $inputs[$fieldName1];
+//					$fields[] = $inputs[$fieldName];
+					$phone = trim($inputs[$fieldName]);
 					break;
 				case 'email':
-					$fields[] = $inputs[$fieldName];
+//					$fields[] = $inputs[$fieldName];
 					$email = trim($inputs[$fieldName]);
 					break;
 			}
 		}
+
 		return [
 			'email' => $email,
 			'phone' => $phone
@@ -513,10 +524,10 @@ class FormQuestionController extends BaseController
 					$name = implode(', ', $nameSegs);
 					break;
 				case 'phone':
-					$fieldName0 = $fieldName.'_0';
-					$fieldName1 = $fieldName.'_1';
-					$fields[] = $inputs[$fieldName0].'|'.$inputs[$fieldName1];
-					$phone = $inputs[$fieldName1];
+//					$fieldName0 = $fieldName.'_0';
+//					$fieldName1 = $fieldName.'_1';
+					$fields[] = trim($inputs[$fieldName]);
+					$phone = $inputs[$fieldName];
 					break;
 				case 'email':
 					$fields[] = $inputs[$fieldName];

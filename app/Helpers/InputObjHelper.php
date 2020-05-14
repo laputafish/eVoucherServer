@@ -7,6 +7,8 @@ class InputObjHelper
 	public static function getInputObjRuleAndMessages($inputObjs) {
 		
 		$oneFieldInputTypes = [
+			'gender',
+			'phone',
 			'simple-text',
 			'text',
 			'number',
@@ -17,7 +19,6 @@ class InputObjHelper
 		
 		$twoFieldsInputTypes = [
 			'name',
-			'phone'
 		];
 		
 		$ruleList = [];
