@@ -34,5 +34,9 @@ class Agent extends Model
     }
     return $result;
   }
-    //
+
+  public function smtpServers() {
+    return $this->hasMany(AgentSmtpServer::class);
+  }
+
 }

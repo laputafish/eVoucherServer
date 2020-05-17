@@ -258,6 +258,9 @@ class BaseModuleController extends BaseController
     return $query;
   }
 
+  protected function beforeShowData($id) {
+  }
+
   protected function beforeShowDataReady($request, $row) {
     return $row;
   }
@@ -272,7 +275,7 @@ class BaseModuleController extends BaseController
     $input = $request->validate($this->updateRules);
     $input = $this->onUpdating($input, $row);
     $row->update($input);
-    $this->onUpdateComplete($request, $row);
+    $this->onUpdateCompleted($request, $row);
 
     $row = $this->getRow($id); //$this->model->find($id);
 
@@ -295,7 +298,7 @@ class BaseModuleController extends BaseController
 			$input = $this->onStoring($input);
 			$newRow = $this->model->create($input);
 			$id = $newRow->id;
-			$this->onStoreComplete($request, $newRow);
+			$this->onStoreCompleted($request, $newRow);
 		}
 		$responseRow = $this->getRow($id);
 		return response()->json([
@@ -310,11 +313,15 @@ class BaseModuleController extends BaseController
 	  }
   	return $input;
 	}
+
+	protected function onStoreCompleted($request, $newRow) {
+  }
+
   protected function onUpdating($input, $row=null) {
     return $input;
   }
 
-  protected function onUpdateComplete($request, $row)
+  protected function onUpdateCompleted($request, $row)
   {
   }
 

@@ -103,6 +103,8 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::post('media/upload', 'MediaController@upload');
 //  Route::get('media/image/{id}', 'MediaController@showImage');
   Route::resource('medias', 'MediaController');
+
+  Route::post('email/check', 'EmailController@checkConfig');
 });
 
 Route::namespace('ApiV2')->group(function() {

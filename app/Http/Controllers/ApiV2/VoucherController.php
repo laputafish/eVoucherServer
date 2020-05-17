@@ -526,12 +526,12 @@ class VoucherController extends BaseModuleController
 		return $result;
   }
   
-	protected function onStoreComplete($request, $row)
+	protected function onStoreCompleted($request, $row)
 	{
 		$this->onVoucherUpdated($request, $row);
 	}
 	
-	protected function onUpdateComplete($request, $row)
+	protected function onUpdateCompleted($request, $row)
 	{
     $this->onVoucherUpdated($request, $row);
 	}
@@ -548,7 +548,7 @@ class VoucherController extends BaseModuleController
 //		return 'ok';
 		$newRow = $this->model->create($input);
 		$id = $newRow->id;
-		$this->onStoreComplete($request, $newRow);
+		$this->onStoreCompleted($request, $newRow);
 		$this->saveEmails($id,
 			array_key_exists('emails', $input) ?
 				$input['emails'] :

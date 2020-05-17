@@ -1,6 +1,8 @@
 <?php namespace App\Http\Controllers\ApiV2;
 
 use App\Models\Menu;
+use App\Models\AgentSmtpServer;
+
 use Illuminate\Http\Request;
 
 use Bouncer;
@@ -56,7 +58,12 @@ class AgentController extends BaseModuleController
 			'remark' => ''
 		];
 	}
-	
+
+	protected function onShowWith($query) {
+	  $query = $query->with('smtpServers');
+	  return $query;
+  }
+
 	protected function onStoring($input)
 	{
 		$result = $input;
@@ -106,19 +113,11 @@ class AgentController extends BaseModuleController
 	public function index(Request $request)
 	{
 		Bouncer::refreshFor($this->user);
-		
-//		echo 'user name = ' . $this->user->name . PHP_EOL;
-//		echo 'is supervisor = ' . ($this->user->isA('supervisor') ? 'yes' : 'no') . PHP_EOL;
-//		echo 'not supervisor = ' . ($this->user->isNotA('supervisor') ? 'yes' : 'no') . PHP_EOL;
-		
 
-		
 		$query = $this->model;
 		if ($this->user->isNotA('supervisor')) {
-//			echo 'not supervisor.'.PHP_EOL;
 			$query = $query->whereUserId($this->user->id);
 		} else {
-//			echo 'is supervisor.'.PHP_EOL;
 		}
 		$query = $this->prepareIndexQuery($request, $query);
 		$query = $this->onIndexOrderBy($query);
@@ -143,12 +142,7 @@ class AgentController extends BaseModuleController
 			$pagedData->setCollection($this->onIndexDataReady($request, $pagedData->getCollection()));
 			$result = $pagedData;
 		} else {
-//			echo 'sql: '.PHP_EOL;
-//			echo $query->toSql().PHP_EOL;
-//			return 'ok 1111';
 			$data = $query->get();
-			
-//			echo 'count = '.$query->count().PHP_EOL;
 			$result = $this->onIndexDataReady($request, $data);
 		}
 		
@@ -157,5 +151,69 @@ class AgentController extends BaseModuleController
 			'result' => $result
 		]);
 	}
-	
+
+	protected function onAgentUpdated(Request $request, $row) {
+	  $smtpServers = $request->get('smtp_servers');
+	  $newSmtpServers = array_filter($smtpServers, function($server) {
+	    return $server['id'] == 0;
+    });
+
+	  $updatedSmtpServers = array_filter($smtpServers, function($server) {
+	    return $server['id'] != 0;
+    });
+
+	  $updatedSmtpServerIds = array_map(function($server) {
+	    return $server['id'];
+    }, $updatedSmtpServers);
+
+	  $existingSmtpServerIds = $row->smtpServers()->pluck('id')->toArray();
+
+	  // obsolate ids
+    $obsolateIds = array_diff($existingSmtpServerIds, $updatedSmtpServerIds);
+
+    // remove obsolate
+    $row->smtpServers()->whereIn('id', $obsolateIds)->delete();
+
+    // update existing
+    for($i = 0; $i < count($updatedSmtpServers); $i++) {
+      $server = $updatedSmtpServers[$i];
+      $row->smtpServers()->where('id', $server['id'])->update([
+        'description' => $server['description'],
+        'mail_driver' => $server['mail_driver'],
+        'mail_host' => $server['mail_host'],
+        'mail_port' => $server['mail_port'],
+        'mail_username' => $server['mail_username'],
+        'mail_password' => $server['mail_password'],
+        'mail_encryption' => $server['mail_encryption'],
+        'mail_from_address' => $server['mail_from_address'],
+        'mail_from_name' => $server['mail_from_name']
+      ]);
+    }
+
+    // add new
+    for($i = 0; $i < count($newSmtpServers); $i++) {
+      $server = $newSmtpServers[$i];
+
+      $newSmtpServer = new AgentSmtpServer([
+        'description' => $server['description'],
+        'mail_driver' => $server['mail_driver'],
+        'mail_host' => $server['mail_host'],
+        'mail_port' => $server['mail_port'],
+        'mail_username' => $server['mail_username'],
+        'mail_password' => $server['mail_password'],
+        'mail_encryption' => $server['mail_encryption'],
+        'mail_from_address' => $server['mail_from_address'],
+        'mail_from_name' => $server['mail_from_name']
+      ]);
+      $row->smtpServers()->save($newSmtpServer);
+    }
+  }
+
+	protected function onStoreCompleted($request, $newRow) {
+	  $this->onAgentUpdated($request, $newRow);
+  }
+
+  protected function onUpdateCompleted($request, $row) {
+	  $this->onAgentUpdated($request, $row);
+  }
 }
