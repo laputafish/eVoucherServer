@@ -17,7 +17,17 @@ class AgentSmtpServer extends Model {
     'mail_from_name'
   ];
 
+  protected $appends = ['voucher_count'];
+  
   public function agent() {
     return $this->belongsTo(Agent::class);
+  }
+  
+  public function vouchers() {
+  	return $this->hasMany(Voucher::class);
+  }
+  
+  public function getVoucherCountAttribute() {
+  	return $this->vouchers()->count();
   }
 }

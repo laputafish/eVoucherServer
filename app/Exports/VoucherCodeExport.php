@@ -25,9 +25,14 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
 	  // key exists for form => voucher
 	  $isFormType = $voucher->voucher_type === 'form';
 	  $haveKey = $voucher->action_type_before_goal === 'form_voucher';
-	  $keyFromCode = $voucher->goal_type === 'codes';
 	  
+	  $keyFromCode = $voucher->goal_type === 'codes';
     $this->codeFields = $this->getCodeFields($voucher->code_fields);
+    
+    
+
+
+    
     $headingLabels = [];
     foreach($this->codeFields as $codeField) {
       $headingLabels[] = $codeField['fieldName'];
@@ -72,16 +77,20 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
       if (!empty(trim($row->extra_fields))) {
         $extraFields = explode('|', $row->extra_fields);
         foreach ($extraFields as $i=>$fieldValue) {
-          $fieldType = $this->codeFields[$i+1]['fieldType'];
-          if ($fieldType == 'date') {
-            $dt =  date_create_from_format('Y-m-d', $fieldValue);
-//            $dt = strtotime($fieldValue);
-//            $excelCells[] = 25569 + ($dt / 86400);
-//            $excelCells[] = PHPExcel_Shared_Date::PHPToExcel($dt);
-            $excelCells[] = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($dt);
-          }else {
-            $excelCells[] = $fieldValue;
-          }
+        	if (count($this->codeFields)>$i+1) {
+		        $fieldType = $this->codeFields[$i + 1]['fieldType'];
+		        if ($fieldType == 'date') {
+			        $dt = date_create_from_format('Y-m-d', $fieldValue);
+			        //            $dt = strtotime($fieldValue);
+			        //            $excelCells[] = 25569 + ($dt / 86400);
+			        //            $excelCells[] = PHPExcel_Shared_Date::PHPToExcel($dt);
+			        $excelCells[] = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($dt);
+		        } else {
+			        $excelCells[] = $fieldValue;
+		        }
+	        } else {
+        		break;
+	        }
         }
       }
       $excelCells[] = '';

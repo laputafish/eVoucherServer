@@ -154,13 +154,13 @@ class AgentController extends BaseModuleController
 
 	protected function onAgentUpdated(Request $request, $row) {
 	  $smtpServers = $request->get('smtp_servers');
-	  $newSmtpServers = array_filter($smtpServers, function($server) {
+	  $newSmtpServers = array_values(array_filter($smtpServers, function($server) {
 	    return $server['id'] == 0;
-    });
+    }));
 
-	  $updatedSmtpServers = array_filter($smtpServers, function($server) {
+	  $updatedSmtpServers = array_values(array_filter($smtpServers, function($server) {
 	    return $server['id'] != 0;
-    });
+    }));
 
 	  $updatedSmtpServerIds = array_map(function($server) {
 	    return $server['id'];

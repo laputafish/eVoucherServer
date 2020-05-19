@@ -105,6 +105,7 @@ function getPageStyleStr($formConfigs)
 // *** end of routines
 
 $isDemo = isset($isDemo) ? ($isDemo && $formType=='question') : false;
+$isPreview = isset($isTemp) ? $isTemp : false;
 $pageTitle = 'YOOV';
 $selectedChoiceColor = 'blue';
 $selectedChoiceTextColor = 'white';
@@ -318,6 +319,10 @@ foreach($inputObjs as $inputObj) {
             border-radius: 0.7rem;
         }
 
+        .question-form .output-link:hover {
+            cursor: pointer;
+        }
+
         .question-form .radio-toggle.has-error .button-wrapper {
             border-color: red;
         }
@@ -345,6 +350,11 @@ foreach($inputObjs as $inputObj) {
 </head>
 <body class="h-100 d-flex flex-column align-items-stretch question-form"
       style="{{ $bodyStyleStr }}">
+@if($isPreview)
+    <img src="{{ URL::asset('/assets/images/preview_mark.png') }}"
+         class="d-inline-block position-fixed"
+         style="right:0;top:0;width:200px;height:auto;></img>
+@endif
 @if($isDemo)
     <button class="btn btn-primary" style="z-index:9999;width:200px;position:fixed;right:10px;top:10px;" onclick="useDemoData()">
         Demo Data
@@ -551,7 +561,13 @@ foreach($inputObjs as $inputObj) {
                 $styleContainer = keyValuesToStr($keyValuesContainer);
                 ?>
                     <div class="col-sm-12" style="{{$styleContainer}}">
+                        @if($inputObj['note1']=='')
                         <img src="{{$inputObj['question']}}" style="{{$styleElement}}"/>
+                        @else
+                        <img class="output-link"
+                             data-link="{{ $inputObj['note1'] }}"
+                             src="{{$inputObj['question']}}" style="{{$styleElement}}"/>
+                        @endif
                     </div>
                 @elseif($inputObj['inputType']=='output-remark')
                 <?php
@@ -571,9 +587,16 @@ foreach($inputObjs as $inputObj) {
                 //                  $fontSize = get($options, 'fontSize', '18px');
                 ?>
                     <div class="col-sm-12" style="{{$styleContainer}}">
+                        @if($inputObj['note1']=='')
                         <div style="{{$styleElement}}">
                             {!! $outputRemark !!}
                         </div>
+                        @else
+                        <div style="{{$styleElement}}" class="output-link" data-link="{{ $inputObj['note1'] }}">
+                            {!! $outputRemark !!}
+                        </div>
+                        @endif
+
                     </div>
                 @elseif($inputObj['inputType']=='output-submit')
                 <?php
@@ -641,6 +664,11 @@ foreach($inputObjs as $inputObj) {
 
       var hasSubmitButton = $('button[type=submit]').length > 0
       checkToggleSelected('.checkbox-toggle', hasSubmitButton)
+    });
+
+    $('body').on('click', '.output-link', function() {
+        var link = $(this).data('link');
+        window.location = link;
     });
 
     $(window).scrollTop(0);

@@ -252,6 +252,7 @@ class FormQuestionController extends BaseController
 			if (is_null($formConfigs)) return view('errors.404');
 			return view('templates.custom_form')->with([
 				'formKey' => $key,
+				'isTemp' => true,
 				'formConfigs' => $formConfigs
 			]);
 			
