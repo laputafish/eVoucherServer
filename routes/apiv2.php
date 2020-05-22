@@ -86,7 +86,8 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   // Agent Codes
   Route::post('agent_codes/upload', 'AgentCodeController@upload');
   Route::put('agent_codes/upload', 'AgentCodeController@update');
-
+  Route::post('agent_codes/parse/{key}', 'AgentCodeController@parse');
+	
   // Form Questions
 	Route::post('form_questions/upload', 'FormQuestionController@upload');
 	Route::post('form_questions/temp/create', 'FormQuestionController@saveFormConfigs');

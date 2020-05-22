@@ -42,17 +42,16 @@ class VoucherHelper {
 //      $codeInfo->update(['order' => $i+1]);
 //    }
 
+	  // update code order ensure from 1 to n
     $codeInfos = VoucherCode::whereVoucherId($voucher->id)->orderby('order')->get();
     foreach($codeInfos as $i=>$codeInfo) {
       $codeInfo->update(['order' => $i + 1]);
     }
 
-    // Add
+    // Append codes
     $j = count($codeInfos);
-
     $batchData = [];
     $now = date('Y-m-d H:i:s');
-
 
     foreach($codeInfosToAdd as $loopCodeInfo) {
       $keyCode = array_shift($loopCodeInfo);
@@ -65,14 +64,6 @@ class VoucherHelper {
         'created_at' => $now,
         'updated_at' => $now
       ];
-//      $newCodeInfo = new VoucherCode([
-//        'code' => $keyCode,
-//        'order' => $j++,
-//        'extra_fields' => implode('|', $loopCodeInfo),
-//        'key' => newKey()
-//      ]);
-//
-//      $voucher->codeInfos()->save($newCodeInfo);
     }
     $insertData = collect($batchData);
     $chunks = $insertData->chunk(1000);
