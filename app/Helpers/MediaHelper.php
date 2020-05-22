@@ -32,6 +32,15 @@ class MediaHelper {
 		}
 	}
 	
+	public static function removeUserTempFiles($userId) {
+    $medias = Media::where('user_id', $userId)->get();
+    foreach($medias as $media) {
+    	if ($media->type == 'temp') {
+    	  static::deleteMedia($media);
+	    }
+		}
+  
+	}
 	
 	public static function deleteMediaFiles($mediaPath, $filename)
 	{

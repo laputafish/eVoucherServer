@@ -407,22 +407,18 @@ class FormQuestionController extends BaseController
 		// check duplication
 		$emailAndPhone = $this->getEmailAndPhone($voucher, $request->all());
 		
-//		print_r($request->all());
-//		echo PHP_EOL.PHP_EOL.PHP_EOL;
-//		$objs = $voucher->input_objs;
-//		foreach($objs as $i=>$obj) {
-//			echo '#'.$i.':   obj.question = '.$obj['question'].PHP_EOL;
-//		}
-//		print_r($emailAndPhone);
-//		return 'ok';
-		
-		$count = $voucher->participants()->where('email', 'like', '%'.$emailAndPhone['email'].'%')->count();
-		if ($count > 0) {
-			return redirect('q/'.$formKey)->withInput()->withErrors(['email'=>'The email has been used!']);
+		if(!empty($emailAndPhone['email'])) {
+			$count = $voucher->participants()->where('email', 'like', '%' . $emailAndPhone['email'] . '%')->count();
+			if ($count > 0) {
+				return redirect('q/' . $formKey)->withInput()->withErrors(['email' => 'The email has been used!']);
+			}
 		}
-		$count = $voucher->participants()->where('phone', 'like', '%'.$emailAndPhone['phone'].'%')->count();
-		if ($count > 0) {
-			return redirect('q/'.$formKey)->withInput()->withErrors(['phone'=>'The phone no. has been used!']);
+		
+		if(!empty($emailAndPhone['phone'])) {
+			$count = $voucher->participants()->where('phone', 'like', '%' . $emailAndPhone['phone'] . '%')->count();
+			if ($count > 0) {
+				return redirect('q/' . $formKey)->withInput()->withErrors(['phone' => 'The phone no. has been used!']);
+			}
 		}
 		
 //		return 'ok';

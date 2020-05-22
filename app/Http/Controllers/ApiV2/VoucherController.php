@@ -62,10 +62,10 @@ class VoucherController extends BaseModuleController
 		'has_custom_link' => 'boolean',
 		// 'custom_link_key' => 'string',
 		
-		'entrance_page_type' => 'in:questionnaire,custom,none',
-		'entrance_page_id' => 'integer',
-		'entrance_page_type_after_quota' => 'in:questionnaire,custom,none',
-		'entrance_page_id_after_quota' => 'integer',
+//		'entrance_page_type' => 'in:questionnaire,custom,none',
+//		'entrance_page_id' => 'integer',
+//		'entrance_page_type_after_quota' => 'in:questionnaire,custom,none',
+//		'entrance_page_id_after_quota' => 'integer',
 		
 		'questionnaire' => 'nullable|string',
 		'questionnaire_fields' => 'nullable|string',
@@ -114,10 +114,10 @@ class VoucherController extends BaseModuleController
 		'has_custom_link' => 'boolean',
 		// 'custom_link_key' => 'string',
 		
-		'entrance_page_type' => 'in:questionnaire,custom,none',
-		'entrance_page_id' => 'integer',
-		'entrance_page_type_after_quota' => 'in:questionnaire,custom,none',
-		'entrance_page_id_after_quota' => 'integer',
+//		'entrance_page_type' => 'in:questionnaire,custom,none',
+//		'entrance_page_id' => 'integer',
+//		'entrance_page_type_after_quota' => 'in:questionnaire,custom,none',
+//		'entrance_page_id_after_quota' => 'integer',
 		
 		'questionnaire' => 'nullable|string',
 		'questionnaire_fields' => 'nullable|string',
@@ -171,22 +171,19 @@ class VoucherController extends BaseModuleController
 			$input['notes'] = '';
 		}
 		
-		if (!empty($row->sharing_image_id)) {
-			$newSharingImageId = array_key_exists('sharing_image_id', $input) ?
-				$input['sharing_image_id'] : 0;
-			$this->updateSharingImage($row->sharing_image_id, $newSharingImageId);
-		}
+		$newSharingImageId = array_key_exists('sharing_image_id', $input) ?
+			$input['sharing_image_id'] : 0;
+		$this->updateSharingImage($row->sharing_image_id, $newSharingImageId);
 		
-		if (!empty($row->form_sharing_image_id)) {
-			$newSharingImageId = array_key_exists('form_sharing_image_id', $input) ?
-				$input['form_sharing_image_id'] : 0;
-			$this->updateSharingImage($row->form_sharing_image_id, $newSharingImageId);
-		}
+		$newSharingImageId = array_key_exists('form_sharing_image_id', $input) ?
+			$input['form_sharing_image_id'] : 0;
+		$this->updateSharingImage($row->form_sharing_image_id, $newSharingImageId);
 		
 		if ($this->user->isNotA('supervisor')) {
 			$input['user_id'] = $this->user->id;
 		}
 		
+		MediaHelper::removeUserTempFiles($this->user->id);
 		return $input;
 	}
 	

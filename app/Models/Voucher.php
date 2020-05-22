@@ -65,12 +65,12 @@ class Voucher extends Model
 	protected static function boot()
 	{
 		parent::boot();
-		
-		static::deleting(function ($voucher) {
-			$voucher->codeInfos()->delete();
-			$voucher->emails()->delete();
-			return true;
-		});
+//
+//		static::deleting(function ($voucher) {
+//			$voucher->codeInfos()->delete();
+//			$voucher->emails()->delete();
+//			return true;
+//		});
 	}
 	
 	public function codeInfos()
@@ -96,6 +96,11 @@ class Voucher extends Model
 	public function sharingMedia()
 	{
 		return $this->belongsTo(Media::class, 'sharing_image_id');
+	}
+	
+	public function formSharingMedia()
+	{
+		return $this->belongsTo(Media::class, 'form_sharing_image_id');
 	}
 	
 	public function customForms()
