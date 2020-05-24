@@ -14,7 +14,20 @@ use App\User;
 //  Route::get('coupons/{key}', 'TemplateController@view');
 //});
 
-Route::get('/migrate_templates', 'ApiV2\VoucherTemplateController@migrateTemplates');
+Route::get('/actions/test_email', function() {
+  $data = [
+    'name' => 'Dominic Lee',
+    'body' => 'Email Body'
+  ];
+
+  \Mail::send('email.testMail', $data, function($message) {
+    $message->to('yoovtest@gmail.com', 'Tutorials Point')->subject
+    ('Laravel Basic Testing Mail');
+    $message->from('yoovoffice@gmail.com', 'Yoov Coupon');
+  });
+  echo "Basic Email Sent. Check your inbox.";
+});
+Route::get('/actions/migrate_templates', 'ApiV2\VoucherTemplateController@migrateTemplates');
 Route::get('/get_template_path', 'ApiV2\TestController@getTemplatePath');
 Route::get('/media/image/{id}/{size?}', 'ApiV2\MediaController@showImage');
 // sharing link testing

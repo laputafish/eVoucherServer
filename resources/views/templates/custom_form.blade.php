@@ -378,7 +378,7 @@ foreach($inputObjs as $inputObj) {
                   	break;
                 }
             ?>
-            <div class="{{ $regionClass }} row {{ $inputObj['question']=='' ? 'mt-0' : 'mt-4' }}">
+            <div class="{{ $regionClass }} row {{ $regionClass==='' ? 'mt-0' : 'mt-4' }}">
                 <!-- *********** -->
                 <!-- simple-text -->
                 <!-- *********** -->

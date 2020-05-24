@@ -55,7 +55,8 @@ class AgentController extends BaseModuleController
 			'fax_no' => '',
 			'web_url' => '',
 			'email' => '',
-			'remark' => ''
+			'remark' => '',
+      'smtp_servers' => [],
 		];
 	}
 

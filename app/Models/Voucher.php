@@ -31,8 +31,10 @@ class Voucher extends Model
 		'questionnaire',
 		'questionnaire_fields',
 		'questionnaire_configs',
-		'thankyou_configs',
-		'sorry_configs',
+    'participant_configs',
+
+//		'thankyou_configs',
+//		'sorry_configs',
 		
 		'goal_type', // fixed, codes, none
 		'goal_count',

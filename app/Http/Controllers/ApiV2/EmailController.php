@@ -9,7 +9,6 @@ class EmailController extends BaseController
     $message = '';
 
     $serverConfig = $request->get('smtpServer');
-    print_r($serverConfig);
     $smtpConfig = [
       'driver' => $serverConfig['mail_driver'],
       'host' => $serverConfig['mail_host'],
@@ -21,7 +20,7 @@ class EmailController extends BaseController
 
     ];
 
-//    \Config::set('mail', $smtpConfig);
+    \Config::set('mail', $smtpConfig);
     $fromEmail = $serverConfig['mail_from_address'];
     $fromName = $serverConfig['mail_from_name'];
 //    $fromEmail = 'yoovsuper@gmail.com';

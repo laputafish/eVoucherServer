@@ -37,24 +37,6 @@ class AgentCodeController extends BaseController
 		if (count($ar) > 0) {
 			$sheet0 = $ar[0];
 			if (count($sheet0)>1) {
-//				$row0 = $sheet0[0];
-				// Cells of first row is heading/field names
-//				if (count($row0)>0) {
-//					// iterate on each cell
-//					$voucherCells = [];
-//
-//					$cells = [];
-//					foreach($row0 as $i=>$loopCell) {
-//						if (empty($loopCell)) {
-//							break;
-//						}
-//						$cells[] = [
-//							'title' => $loopCell,
-//							'type' => 'string'
-//						];
-//					}
-//					$fields = $cells;
-//				}
 				for ($rowNo = 1; $rowNo <count($sheet0); $rowNo++) {
 					// check first cell if empty
 					if (!empty($sheet0[$rowNo][0])) {
@@ -97,7 +79,13 @@ class AgentCodeController extends BaseController
 				array_splice($fieldInfos, $codeIndex, 1);
 				array_unshift($fieldInfos, $codeFieldInfo);
 				$res = $this->updateVoucherCodes($voucher, $data, $fieldInfos);
-			}
+			} else {
+        // move code title to first
+        $codeFieldInfo = $fieldInfos[$codeIndex];
+        array_splice($fieldInfos, $codeIndex, 1);
+        array_unshift($fieldInfos, $codeFieldInfo);
+        $res = $this->updateVoucherCodes($voucher, $data, $fieldInfos);
+      }
 		}
 		TempUploadFileHelper::removeUserTempFiles($this->user->id);
 		

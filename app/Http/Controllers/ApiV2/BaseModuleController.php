@@ -227,7 +227,7 @@ class BaseModuleController extends BaseController
     $query = $this->model;
     $query = $this->onShowWith($query);
     $row = $query->find($id);
-    
+
     return $row;
   }
 

@@ -29,8 +29,8 @@ class VoucherTemplateController extends BaseController {
       $voucher->save();
     } else {
     	VoucherTemplateHelper::writeVoucherTemplate($voucher, $template);
-      $voucher->template = '';
-      $voucher->save();
+//      $voucher->template = '';
+//      $voucher->save();
       $result = true;
     }
     return $result;
