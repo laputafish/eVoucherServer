@@ -148,20 +148,21 @@ class AgentCodeController extends BaseController
 					}
 				}
 			}
-
-			$voucherFieldInfos = array_filter($fieldInfos, function($info) {
-				return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
-			});
-			$res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos);
-
-//			echo 'participant data count = '.count($participantData).PHP_EOL;
+			
 			$participantFieldInfos = array_filter($fieldInfos, function($info) {
 				return $info['fieldType'] != 'code' && $info['fieldType'] != 'code-other';
 			});
-//			echo 'participantFieldInfos: '.PHP_EOL;
-//			print_r($participantFieldInfos);
-//			echo PHP_EOL.PHP_EOL;
 			$res2 = $this->updateParticipantCodes($voucher, $participantData, $participantFieldInfos);
+			
+			$arParticipantIds = [];
+			if (isset($res2)) {
+				$arParticipantIds = $res2['result']['participantIds'];
+			}
+			$voucherFieldInfos = array_filter($fieldInfos, function($info) {
+				return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
+			});
+			$res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
+
 
 
 //			if ($isVoucherType) {
@@ -297,6 +298,7 @@ class AgentCodeController extends BaseController
 	
 	private function updateParticipantCodes($voucher, $data, $fieldInfos) {
 //		echo 'updateParticipantCodes: '.PHP_EOL;
+		$participantIds = [];
 		foreach($data as $item) {
 			$formContent = implode('||', array_map(function($el) {
 				return $el['value'];
@@ -307,8 +309,41 @@ class AgentCodeController extends BaseController
 				'phone' => $item['phone'],
 				'form_content' => $formContent
 			]);
-			$voucher->participants()->save($participant);
+			$newRow = $voucher->participants()->save($participant);
+			$participantIds[] = $newRow->id;
 		}
+		
+		$arInputObjs =[];
+		foreach($fieldInfos as $fieldInfo) {
+			$newInputObj = [
+				'name' => $fieldInfo['title'],
+				'inputType' => 'simple-text',
+				'question' => '',
+				'required' => 1,
+				'notes1' => '',
+				'notes2' => '',
+				'options' => []
+			];
+			switch ($fieldInfo['fieldType']) {
+				case 'email':
+					$newInputObj['inputType'] = 'email';
+					break;
+				case'phone':
+					$newInputObj['inputType'] = 'phone';
+					break;
+				case 'name':
+					$newInputObj['inputType'] = 'simple-text';
+					break;
+				default:
+					$newInputObj['inputType'] = 'simple-text';
+			}
+				
+				$arInputObjs[] = $newInputObj;
+		}
+		$voucher->participant_configs =  formConfigsToData([
+			'inputObjs' => $arInputObjs
+		]);
+		$voucher->save();
 		
 		// update participant_configs
 		// {
@@ -369,7 +404,136 @@ class AgentCodeController extends BaseController
 		//      {
 		//        "id": "4",
 		//        "name": "Address",
-		//        "order": "4","inputType":"simple-text","question":"\u5730\u5740","required":"1","options":[""],"note1":"*\u53ea\u9650\u9999\u6e2f\u7528\u6236\u53c3\u52a0","note2":""},{"id":"5","name":"","order":"5","inputType":"output-remark","question":"* \u8a66\u7528\u88dd\u5c07\u6703\u65bc\u767b\u8a18\u5f8c\u4e00\u661f\u671f\u5167\u4ee5\u90f5\u905e\u5bc4\u51fa","required":"1","options":["",""],"note1":"","note2":""},{"id":"6","name":"Q1","order":"6","inputType":"single-choice","question":"\u4f60\u8a8d\u5514\u8a8d\u8b58UL\u00b7OS\u5462\u500b\u54c1\u724c\uff1f","required":"1","options":["\u8a8d\u8b58","\u4e0d\u8a8d\u8b58"],"note1":"","note2":""},{"id":"7","name":"Q2","order":"7","inputType":"single-choice","question":"\u4f60\u6709\u7121\u66fe\u7d93\u7528\u904e\u6216\u8cb7\u904eUL\u00b7OS\u5605\u7522\u54c1\uff1f","required":"1","options":["\u66fe\u7d93\u4f7f\u7528","\u66fe\u7d93\u8cfc\u8cb7","\u672a\u66fe\u4f7f\u7528","\u672a\u66fe\u8cfc\u8cb7"],"note1":"","note2":""},{"id":"8","name":"Q3","order":"8","inputType":"multiple-choice","question":"\u4f60\u6709\u7121\u55ba\u4ee5\u4e0b\u5e97\u8216\u898b\u904eUL\u00b7OS\u5605\u7522\u54c1\uff1f\uff08\u53ef\u591a\u9078\uff09","required":"1","options":["\u5c48\u81e3\u6c0f","\u767e\u4f73","\u60e0\u5eb7","7-11","Donki","YATA","AEON","APITA","HKTVmall","\u5b8c\u5168\u7121\u898b\u904e"],"note1":"","note2":""},{"id":"9","name":"","order":"9","inputType":"output-remark","question":"* \u6bcf\u4eba\u53ea\u9650\u767b\u8a18\u4e59\u6b21\u53ca\u63db\u9818\u4e59\u4efd\uff0c\u63db\u5b8c\u5373\u6b62\u3002 | |* \u63db\u9818\u65e5\u671f\u70ba2020\u5e745\u670825\u65e5\u81f35\u670831\u65e5\uff0c\u903e\u671f\u7121\u6548\u3002","required":"1","options":["",""],"note1":"","note2":""},{"id":"10","name":"","order":"10","inputType":"output-image","question":"https:\/\/ticketdemo.yoov.com\/media\/image\/114","required":"1","options":["",""],"note1":"","note2":""},{"id":"11","name":"","order":"11","inputType":"output-submit","question":"\u7acb\u5373\u9818\u53d6\u8a66\u7528\u88dd","required":"1","options":["",""],"note1":"","note2":""},{"id":"12","name":"","order":"12","inputType":"system-page","question":"","required":"1","options":["background-color:#0D2E1D;color:White;font-size:14px;max-width:640px;padding-top:10px;selected-choice-text-color:White;selected-choice-color:#0D2E1D;",""],"note1":"","note2":""},{"id":"13","name":"","order":"13","inputType":"output-image","question":"https:\/\/ticketdemo.yoov.com\/media\/image\/124","required":"1","options":["",""],"note1":"","note2":""}]}
+		//        "order": "4",
+		//        "inputType": "simple-text",
+		//        "question": "\u5730\u5740",
+		//        "required": "1",
+		//        "options": [
+		//          ""
+		//        ],
+		//        "note1": "*\u53ea\u9650\u9999\u6e2f\u7528\u6236\u53c3\u52a0",
+		//        "note2": ""
+	  //      },
+		//      {
+		//        "id": "5",
+		//        "name": "",
+		//        "order": "5",
+		//        "inputType": "output-remark",
+		//        "question": "* \u8a66\u7528\u88dd\u5c07\u6703\u65bc\u767b\u8a18\u5f8c\u4e00\u661f\u671f\u5167\u4ee5\u90f5\u905e\u5bc4\u51fa",
+		//        "required": "1",
+		//        "options": ["",""],
+		//        "note1": "",
+		//        "note2": ""
+		//      },
+		//      {
+		//        "id": "6",
+		//        "name":"Q1",
+		//        "order":"6",
+		//        "inputType":"single-choice",
+		//        "question":"\u4f60\u8a8d\u5514\u8a8d\u8b58UL\u00b7OS\u5462\u500b\u54c1\u724c\uff1f",
+		//        "required":"1",
+		//        "options":["\u8a8d\u8b58","\u4e0d\u8a8d\u8b58"],
+		//        "note1":"",
+		//        "note2":""
+		//      },
+		//      {
+		//        "id":"7",
+		//        "name":"Q2",
+		//        "order":"7",
+		//        "inputType":"single-choice",
+		//        "question":"\u4f60\u6709\u7121\u66fe\u7d93\u7528\u904e\u6216\u8cb7\u904eUL\u00b7OS\u5605\u7522\u54c1\uff1f",
+		//        "required":"1",
+		//        "options":[
+		//          "\u66fe\u7d93\u4f7f\u7528",
+		//          "\u66fe\u7d93\u8cfc\u8cb7",
+		//          "\u672a\u66fe\u4f7f\u7528",
+		//          "\u672a\u66fe\u8cfc\u8cb7"
+		//        ],
+		//        "note1":"",
+		//        "note2":""
+		//      },
+		//      {
+		//        "id":"8",
+		//        "name":"Q3",
+		//        "order":"8",
+		//        "inputType":"multiple-choice",
+		//        "question":"\u4f60\u6709\u7121\u55ba\u4ee5\u4e0b\u5e97\u8216\u898b\u904eUL\u00b7OS\u5605\u7522\u54c1\uff1f\uff08\u53ef\u591a\u9078\uff09",
+		//        "required":"1",
+		//        "options":[
+		//          "\u5c48\u81e3\u6c0f",
+		//          "\u767e\u4f73",
+		//          "\u60e0\u5eb7",
+		//          "7-11",
+		//          "Donki",
+		//          "YATA",
+		//          "AEON",
+		//          "APITA",
+		//          "HKTVmall",
+		//          "\u5b8c\u5168\u7121\u898b\u904e"
+		//        ],
+		//        "note1":"",
+		//        "note2":""
+		//      },
+		//      {
+		//        "id":"9",
+		//        "name":"",
+		//        "order":"9",
+		//        "inputType":"output-remark",
+		//        "question":"* \u6bcf\u4eba\u53ea\u9650\u767b\u8a18\u4e59\u6b21\u53ca\u63db\u9818\u4e59\u4efd\uff0c\u63db\u5b8c\u5373\u6b62\u3002 | |* \u63db\u9818\u65e5\u671f\u70ba2020\u5e745\u670825\u65e5\u81f35\u670831\u65e5\uff0c\u903e\u671f\u7121\u6548\u3002",
+		//        "required":"1",
+		//        "options":["",""],
+		//        "note1":"",
+		//        "note2":""
+		//      },
+		//      {
+		//        "id":"10",
+		//        "name":"",
+		//        "order":"10",
+		//        "inputType":"output-image",
+		//        "question":"https:\/\/ticketdemo.yoov.com\/media\/image\/114",
+		//        "required":"1",
+		//        "options":["",""],
+		//        "note1":"",
+		//        "note2":""
+		//      },
+		//      {
+		//        "id":"11",
+		//        "name":"",
+		//        "order":"11",
+		//        "inputType":"output-submit",
+		//        "question":"\u7acb\u5373\u9818\u53d6\u8a66\u7528\u88dd",
+		//        "required":"1",
+		//        "options":["",""],
+		//        "note1":"",
+		//        "note2":""
+		//      },
+		//      {
+		//        "id":"12",
+		//        "name":"",
+		//        "order":"12",
+		//        "inputType":"system-page",
+		//        "question":"",
+		//        "required":"1",
+		//        "options":[
+		//          "background-color:#0D2E1D;color:White;font-size:14px;max-width:640px;padding-top:10px;selected-choice-text-color:White;selected-choice-color:#0D2E1D;",
+		//          ""
+		//        ],
+		//        "note1":"",
+		//        "note2":""
+		//      },
+		//      {
+		//        "id":"13",
+		//        "name":"",
+		//        "order":"13",
+		//        "inputType":"output-image",
+		//        "question":"https:\/\/ticketdemo.yoov.com\/media\/image\/124",
+		//        "required":"1",
+		//        "options":["",""],
+		//        "note1":"",
+		//        "note2":""
+		//      }
+		//    ]
+		//  }
 		// }
 		
 		
@@ -389,27 +553,19 @@ class AgentCodeController extends BaseController
 			'status' => true,
 			'result' => [
 				'message' => '',
-				'messageTag' => ''
+				'messageTag' => '',
+				'participantIds' => $participantIds
 			]
 		];
 	}
 	
 	// if fieldInfos contains type of participant, all will be moved to code-other type
-	private function updateVoucherCodes($voucher, $data, $fieldInfos) {
-//		echo 'updateVoucherCodes: '.PHP_EOL;
+	private function updateVoucherCodes($voucher, $data, $fieldInfos, $arParticipantIds=[]) {
 		$status = false;
-		
 		$codeFieldsStr = $this->createCodeFieldsStr($fieldInfos);
-//		echo 'codeFieldsStr = '.$codeFieldsStr.PHP_EOL;
-//		echo 'data: '.PHP_EOL;
-//		return [
-//			'status'=>true,
-//			'result'=>$data
-//		];
-//		echo PHP_EOL.PHP_EOL;
 		if (isset($voucher)) {
 			if (empty($voucher->code_fields) || $voucher->code_fields == $codeFieldsStr) {
-				$saveResult = VoucherHelper::addNewCodes($voucher, $data);
+				$saveResult = VoucherHelper::addNewCodes($voucher, $data, $arParticipantIds);
 				// result = [
 				//    new => ...
 				//    updated => ...

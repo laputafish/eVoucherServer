@@ -227,6 +227,7 @@ class VoucherController extends BaseModuleController
 		
 		$row->template = VoucherTemplateHelper::readVoucherTemplate($row);
     $row->form_configs = json_decode($row->questionnaire_configs, true);
+		$row->participant_configs = json_decode($row->participant_configs, true);
 		
 		// unset($row->questionnaire_configs);
 		return $row;
@@ -827,8 +828,13 @@ class VoucherController extends BaseModuleController
 	}
 	
 	private function parseParticipantData($data, $inputObjs) {
+//		echo 'parseParticipantData: '.PHP_EOL;
 		$result = [];
-		foreach($data as $record) {
+		foreach($data as $i=>$record) {
+//			echo 'parseParticipantData i='.$i.': '.PHP_EOL;
+//			echo PHP_EOL.PHP_EOL;
+//			print_r($record);
+//			echo PHP_EOL.PHP_EOL;
 			$formContent = $record['form_content'];
 			$fieldValues = explode('||', $formContent);
 			$record['code_key'] = isset($record['code']) ? $record['code']['key'] : null;

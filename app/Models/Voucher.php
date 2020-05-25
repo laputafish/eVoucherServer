@@ -129,7 +129,16 @@ class Voucher extends Model
 	public function getColumnHeadersAttribute() {
 		$result = [];
 		if (!empty($this->questionnaire_configs)) {
-			$formConfigs = json_decode($this->questionnaire_configs, true);
+			$formConfigs = [];
+			switch ($this->voucher_type) {
+				case 'form':
+					$formConfigs = json_decode($this->questionnaire_configs, true);
+					break;
+				case 'voucher':
+					$formConfigs = json_decode($this->participant_configs, true);
+					break;
+			}
+//			$formConfigs = json_decode($this->questionnaire_configs, true);
 			if (array_key_exists('inputObjs', $formConfigs)) {
 				$inputObjs = $formConfigs['inputObjs'];
 				foreach($inputObjs as $i=>$inputObj) {
@@ -176,7 +185,16 @@ class Voucher extends Model
 	public function getInputObjsAttribute() {
 		$result = [];
 		if (!empty($this->questionnaire_configs)) {
-			$formConfigs = json_decode($this->questionnaire_configs, true);
+			$formConfigs = [];
+			switch ($this->voucher_type) {
+				case 'form':
+					$formConfigs = json_decode($this->questionnaire_configs, true);
+					break;
+				case 'voucher':
+					$formConfigs = json_decode($this->participant_configs, true);
+					break;
+			}
+
 			if (array_key_exists('inputObjs', $formConfigs)) {
 				$inputObjs = $formConfigs['inputObjs'];
 				foreach($inputObjs as $i=>$inputObj) {
@@ -202,7 +220,16 @@ class Voucher extends Model
 	public function getInputObjFieldsAttribute() {
 		$result = [];
 		if (!empty($this->questionnaire_configs)) {
-			$formConfigs = json_decode($this->questionnaire_configs, true);
+			$formConfigs = [];
+			switch ($this->voucher_type) {
+				case 'form':
+					$formConfigs = json_decode($this->questionnaire_configs, true);
+					break;
+				case 'voucher':
+					$formConfigs = json_decode($this->participant_configs, true);
+					break;
+			}
+//			$formConfigs = json_decode($this->questionnaire_configs, true);
 			if (array_key_exists('inputObjs', $formConfigs)) {
 				$inputObjs = $formConfigs['inputObjs'];
 				foreach($inputObjs as $i=>$inputObj) {

@@ -8,7 +8,15 @@ class VoucherHelper {
 		return 'not implemented yet!';
 	}
 	
-  public static function addNewCodes($voucher, $codeArray) {
+  public static function addNewCodes($voucher, $codeArray, $arParticipantIds=[]) {
+  
+		$codeParticipantMapping = [];
+		if (!empty($arParticipantIds)) {
+			for($i = 0; $i < count($codeArray); $i++) {
+				$codeParticipantMapping[$codeArray[$i][0]] = $arParticipantIds[$i];
+			}
+		}
+  
     ini_set('max_execution_time', 300 );
 
     $existingCodeInfos = $voucher->codeInfos;
@@ -21,26 +29,6 @@ class VoucherHelper {
     $codeInfosToUpdate = array_filter($codeArray, function($item) use ($existingCodes) {
       return in_array($item[0], $existingCodes);
     });
-
-    // Update
-//    foreach($codeInfosToUpdate as $loopCodeInfo) {
-//      $keyCode = array_shift($loopCodeInfo);
-//
-//      $existingCodeInfo = $existingCodeInfos->where('code', $keyCode)->first();
-//      $key = $existingCodeInfo->key;
-//      if (empty($key)) {
-//        $key = newKey();
-//      }
-//
-//      $voucher->codeInfos()->whereCode($keyCode)->update([
-//        'extra_fields' => implode('|', $loopCodeInfo),
-//        'key' => $key
-//      ]);
-//    }
-//    $codeInfos = VoucherCode::whereVoucherId($voucher->id)->orderby('order')->get();
-//    foreach($codeInfos as $i=>$codeInfo) {
-//      $codeInfo->update(['order' => $i+1]);
-//    }
 
 	  // update code order ensure from 1 to n
     $codeInfos = VoucherCode::whereVoucherId($voucher->id)->orderby('order')->get();
@@ -55,8 +43,13 @@ class VoucherHelper {
 
     foreach($codeInfosToAdd as $loopCodeInfo) {
       $keyCode = array_shift($loopCodeInfo);
+      $participantId = 0;
+      if (count($codeParticipantMapping)>0) {
+      	$participantId = $participantId;
+      }
       $batchData[] = [
         'voucher_id' => $voucher->id,
+	      'participant_id' => $participantId,
         'code' => $keyCode,
         'order' => $j++,
         'extra_fields' => implode('|', $loopCodeInfo),
