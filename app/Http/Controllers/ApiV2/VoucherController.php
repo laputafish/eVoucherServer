@@ -370,11 +370,13 @@ class VoucherController extends BaseModuleController
 	
 	public function getBlankRecord()
 	{
+		$firstAgent = Agent::whereUserId($this->user->id)->first();
+		$agentId = isset($firstAgent) ? $firstAgent->id : 0;
 		return [
 			'id' => 0,
 			'description' => '',
 			'notes' => '',
-			'agent_id' => Agent::whereUserId($this->user->id)->first()->id,
+			'agent_id' => $agentId,
 			'activation_date' => '',
 			'expiry_date' => '',
 			'voucher_type' => 'voucher',
