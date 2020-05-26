@@ -5,21 +5,31 @@ namespace App\Helpers;
 class InputObjHelper
 {
 	public static function getInputObjRuleAndMessages($inputObjs) {
+
+		$inputObjTypes = InputObjType::whereIsInput(1)->select(['type','input_field_count'])->get();
+		$oneFieldInputTypes = $inputObjTypes->filter(function($item) {
+			return $item->input_field_count == 1;
+		});
 		
-		$oneFieldInputTypes = [
-			'gender',
-			'phone',
-			'simple-text',
-			'text',
-			'number',
-			'email',
-			'single-choice',
-			'multiple-choice'
-		];
+		$twoFieldsInputTypes = $inputObjTypes->filter(function($item) {
+			return $item->input_field_count == 2;
+		});
 		
-		$twoFieldsInputTypes = [
-			'name',
-		];
+//		[
+//			'gender',
+//			'phone',
+//			'simple-text',
+//			'text',
+//			'number',
+//			'email',
+//			'single-choice',
+//			'multiple-choice'
+//		];
+		
+//		$twoFieldsInputTypes =
+//			[
+//			'name',
+//		];
 		
 		$ruleList = [];
 		$messages = [];

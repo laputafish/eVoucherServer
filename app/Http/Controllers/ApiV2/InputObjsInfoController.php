@@ -100,7 +100,7 @@ class InputObjsInfoController extends BaseController
 
   public function getInputObjTypes()
   {
-    $inputObjTypes = InputObjType::orderby('order')->get();
+    $inputObjTypes = InputObjType::where('enabled',1)->orderby('order')->get();
     $result = [];
 
     foreach ($inputObjTypes as $i => $inputObjType) {
