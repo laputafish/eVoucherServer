@@ -120,10 +120,6 @@ class MediaHelper {
       $tempPath = storage_path('app/temp/'.$media->filename);
       $wPercentChanged = 0;
       $hPercentChanged = 0;
-//      echo 'originalWidth = '.$originalWidth.PHP_EOL;
-//      echo 'originalHeight = '.$originalHeight.PHP_EOL;
-//      echo 'width = '.$width.PHP_EOL;
-//      echo 'height = '.$height.PHP_EOL;
       
       if ($originalWidth > $width) {
       	$wPercentChanged = ($originalWidth - $width) / $width;
@@ -132,9 +128,6 @@ class MediaHelper {
       	$hPercentChanged = ($originalHeight - $height) / $height;
       }
 
-//      echo 'wPercentChanged = '.$wPercentChanged.PHP_EOL;
-//      echo 'hPercentChanged = '.$hPercentChanged.PHP_EOL;
-      
       if ($wPercentChanged != 0 || $hPercentChanged != 0) {
 	      if ($wPercentChanged > $hPercentChanged) {
 		      $newWidth = $width;
