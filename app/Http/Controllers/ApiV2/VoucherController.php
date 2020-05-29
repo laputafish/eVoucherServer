@@ -786,6 +786,8 @@ class VoucherController extends BaseModuleController
 	public function getParticipants(Request $request, $id) {
 		$voucher = $this->model->find($id);
 //		$inputObjFields = $this->getInputObjFields($voucher);
+		$voucher->participant_count = $voucher->participants()->count();
+		$voucher->save();
 		
 		$inputObjs = $voucher->input_objs;
 		if (isset($voucher)) {
@@ -813,8 +815,6 @@ class VoucherController extends BaseModuleController
 				$arResult = $result->toArray();
 				$arResult['data'] = $this->parseParticipantData($arResult['data'], $inputObjs);
 
-				$voucher->participant_count = count($arResult['data']);
-				$voucher->save();
 				return response()->json([
 					'status' => true,
 					'result' => $arResult

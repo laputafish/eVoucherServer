@@ -37,6 +37,7 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 		foreach($columnHeaders as $columnHeader) {
 			$headingLabels[] = str_replace('|', ' '.chr(13), $columnHeader);
 		}
+		$headingLabels[] = 'Created At';
 		return $headingLabels;
 	}
 	
@@ -113,6 +114,7 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 				} else {
 					echo 'form_content is empty';
 				}
+				$excelCells[] = $participant->created_at;
 				$excelRows[] = $excelCells;
 			}
 			
