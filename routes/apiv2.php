@@ -65,7 +65,9 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::resource('menu', 'MenuController');
   Route::get('make_menu_table', 'MenuController@makeMenu');
 
+  //********************
   // Vouchers
+  //********************
   Route::post('vouchers/{id}/codes/export', 'VoucherController@export');
   Route::resource('vouchers', 'VoucherController');
 
@@ -79,9 +81,11 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 	Route::post('vouchers/{id}/codes/export', 'VoucherController@exportCodes');
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 
+  //*******************
   // Agents
+  //*******************
   Route::resource('agents', 'AgentController');
-
+  Route::get('agents/{id}/smtp_servers', 'AgentController@getSmtpServers');
 
   // Agent Codes
   Route::post('agent_codes/upload', 'AgentCodeController@upload');
@@ -160,7 +164,7 @@ Route::get('/info', function() {
   return $result;
 });
 
-Route::get('/system/config', 'ApiV2\SystemController@getConfig');
+Route::get('/system/configs', 'ApiV2\SystemController@getConfigs');
 
 Route::get('/register/info2', function() {
   return 'register info2';

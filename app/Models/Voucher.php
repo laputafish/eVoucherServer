@@ -195,7 +195,7 @@ class Voucher extends Model
 					break;
 			}
 
-			if (array_key_exists('inputObjs', $formConfigs)) {
+			if (isset($formConfig) && array_key_exists('inputObjs', $formConfigs)) {
 				$inputObjs = $formConfigs['inputObjs'];
 				foreach($inputObjs as $i=>$inputObj) {
 					switch ($inputObj['inputType']) {
@@ -268,5 +268,9 @@ class Voucher extends Model
         'v'.$this->id.'.tpl');
     }
 	  return $result;
+  }
+
+  public function smtpServers() {
+	  return $this->belongsToMany(SmtpServer::class, 'voucher_smtp_servers', 'voucher_id', 'smtp_server_id');
   }
 }

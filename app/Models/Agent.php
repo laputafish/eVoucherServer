@@ -36,7 +36,7 @@ class Agent extends Model
   }
 
   public function smtpServers() {
-    return $this->hasMany(AgentSmtpServer::class);
+    return $this->belongsToMany(SmtpServer::class, 'agent_smtp_servers', 'agent_id', 'smtp_server_id');
   }
 
 }

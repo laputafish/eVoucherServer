@@ -3,7 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AgentSmtpServer extends Model {
+class xxxxAgentSmtpServer extends Model {
   protected $fillable = [
     'agent_id',
     'description',

@@ -1,7 +1,6 @@
 <?php namespace App\Http\Controllers\ApiV2;
 
 use App\Models\Menu;
-use App\Models\AgentSmtpServer;
 
 use Illuminate\Http\Request;
 
@@ -195,7 +194,7 @@ class AgentController extends BaseModuleController
     for($i = 0; $i < count($newSmtpServers); $i++) {
       $server = $newSmtpServers[$i];
 
-      $newSmtpServer = new AgentSmtpServer([
+      $newSmtpServer = new SmtpServer([
         'description' => $server['description'],
         'mail_driver' => $server['mail_driver'],
         'mail_host' => $server['mail_host'],
@@ -216,5 +215,13 @@ class AgentController extends BaseModuleController
 
   protected function onUpdateCompleted($request, $row) {
 	  $this->onAgentUpdated($request, $row);
+  }
+
+  protected function getSmtpServers($id) {
+	  $agent = $this->model->findOrFail($id);
+	  return response()->json([
+	    'status' => true,
+      'result' => $agent->smtpServers
+    ]);
   }
 }
