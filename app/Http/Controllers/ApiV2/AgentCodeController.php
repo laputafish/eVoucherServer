@@ -153,33 +153,20 @@ class AgentCodeController extends BaseController
 				return $info['fieldType'] != 'code' && $info['fieldType'] != 'code-other';
 			});
 			$res2 = $this->updateParticipantCodes($voucher, $participantData, $participantFieldInfos);
-			
+
+//			print_r($res2);
+//			return 'ok';
 			$arParticipantIds = [];
 			if (isset($res2)) {
 				$arParticipantIds = $res2['result']['participantIds'];
 			}
+//			print_r($arParticipantIds);
+//			return 'ok';
 			$voucherFieldInfos = array_filter($fieldInfos, function($info) {
 				return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
 			});
 			$res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
-
-
-
-//			if ($isVoucherType) {
-//				// move code title to first
-//				$codeFieldInfo = $fieldInfos[$codeIndex];
-//				array_splice($fieldInfos, $codeIndex, 1);
-//				array_unshift($fieldInfos, $codeFieldInfo);
-//				$res = $this->updateVoucherCodes($voucher, $data, $fieldInfos);
-//			} else {
-//				// move code title to first
-//				$codeFieldInfo = $fieldInfos[$codeIndex];
-//				array_splice($fieldInfos, $codeIndex, 1);
-//				array_unshift($fieldInfos, $codeFieldInfo);
-//				$res = $this->updateVoucherCodes($voucher, $data, $fieldInfos);
-//			}
 		}
-		// TempUploadFileHelper::removeUserTempFiles($this->user->id);
 		
 		$res = [
 			'status' => true,
@@ -190,15 +177,26 @@ class AgentCodeController extends BaseController
 		];
 		if (!$res1['status']) {
 			$res['status'] = false;
-			$res['result']['message'] = $res1['message'];
-			$res['result']['messageTag'] = $res1['messageTag'];
+			if (!array_key_exists('message', $res1['result'])) {
+//				echo 'res1: '.PHP_EOL.PHP_EOL;
+//				print_r($res1);
+			} else {
+				$res['result']['message'] = $res1['result']['message'];
+				$res['result']['messageTag'] = $res1['result']['messageTag'];
+			}
 		} else if(isset($res2) && !$res2['status']) {
 			$res['status'] = false;
-			$res['result']['message'] = $res2['message'];
-			$res['result']['messageTag'] = $res2['messageTag'];
+			if (!array_key_exists('message', $res2['result'])) {
+//				echo 'res2: '.PHP_EOL.PHP_EOL;
+//				print_r($res2);
+			} else {
+				$res['result']['message'] = $res2['result']['message'];
+				$res['result']['messageTag'] = $res2['result']['messageTag'];
+			}
 		} else {
 			$res = $res1;
 		}
+//		$res['messageTag'] = $arParticipantIds;
 		return response()->json($res);
 	}
 	

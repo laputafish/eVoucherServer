@@ -16,6 +16,9 @@ class VoucherHelper {
 				$codeParticipantMapping[$codeArray[$i][0]] = $arParticipantIds[$i];
 			}
 		}
+		// codeParticipantMapping = [
+	  //      {code => participant_id}*
+	  // ]
   
     ini_set('max_execution_time', 300 );
 
@@ -45,7 +48,7 @@ class VoucherHelper {
       $keyCode = array_shift($loopCodeInfo);
       $participantId = 0;
       if (count($codeParticipantMapping)>0) {
-      	$participantId = $participantId;
+      	$participantId = $codeParticipantMapping[$keyCode];
       }
       $batchData[] = [
         'voucher_id' => $voucher->id,

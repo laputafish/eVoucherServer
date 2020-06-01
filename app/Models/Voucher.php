@@ -76,6 +76,11 @@ class Voucher extends Model
 //		});
 	}
 	
+	public function codes()
+	{
+		return $this->hasMany('App\Models\VoucherCode');
+	}
+	
 	public function codeInfos()
 	{
 		return $this->hasMany('App\Models\VoucherCode');
@@ -196,7 +201,7 @@ class Voucher extends Model
 					break;
 			}
 
-			if (isset($formConfig) && array_key_exists('inputObjs', $formConfigs)) {
+			if (isset($formConfigs) && array_key_exists('inputObjs', $formConfigs)) {
 				$inputObjs = $formConfigs['inputObjs'];
 				foreach($inputObjs as $i=>$inputObj) {
 					switch ($inputObj['inputType']) {

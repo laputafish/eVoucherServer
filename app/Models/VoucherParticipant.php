@@ -23,4 +23,8 @@ class VoucherParticipant extends Model
 	public function code() {
 		return $this->hasOne('App\Models\VoucherCode', 'participant_id');
 	}
+	
+	public function mailingStatus() {
+		return $this->hasMany(VoucherMailiingStatus::class, 'participant_id');
+	}
 }

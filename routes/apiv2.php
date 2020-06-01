@@ -80,7 +80,8 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::put('vouchers/{voucherId}/codes/{id}', 'VoucherController@updateCode');
 	Route::post('vouchers/{id}/codes/export', 'VoucherController@exportCodes');
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
-
+	Route::get('vouchers/{id}/mailing_summary', 'VoucherController@getMailingSummary');
+	
   //*******************
   // Agents
   //*******************

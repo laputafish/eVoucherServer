@@ -52,6 +52,7 @@ class VoucherController extends BaseModuleController
 		'description' => 'nullable|string',
 		'notes' => 'nullable|string',
 		'agent_id' => 'required|integer',
+		'smtp_server_id' => 'required|integer',
 		'activation_date' => 'nullable|date',
 		'expiry_date' => 'nullable|date',
 		'voucher_type' => 'in:voucher,form',
@@ -104,6 +105,7 @@ class VoucherController extends BaseModuleController
 		'description' => 'nullable|string',
 		'notes' => 'nullable|string',
 		'agent_id' => 'required|integer',
+		'smtp_server_id' => 'required|integer',
 		'activation_date' => 'nullable|date',
 		'expiry_date' => 'nullable|date',
 		'voucher_type' => 'in:voucher,form',
@@ -785,6 +787,33 @@ class VoucherController extends BaseModuleController
 	
 	public function getParticipants(Request $request, $id) {
 		$voucher = $this->model->find($id);
+		$formConfigs = json_decode($voucher->participant_configs, true);
+
+		$result = [];
+		if (isset($formConfigs) && array_key_exists('inputObjs', $formConfigs)) {
+			$inputObjs = $formConfigs['inputObjs'];
+			foreach($inputObjs as $i=>$inputObj) {
+				switch ($inputObj['inputType']) {
+					case 'simple-text':
+					case 'number':
+					case 'email':
+					case 'gender':
+					case 'text':
+					case 'single-choice':
+					case 'multiple-choice':
+					case 'name':
+					case 'phone':
+						$result[] = $inputObj;
+						break;
+				}
+			}
+		}
+		
+//		$inputObjs = $formConfigs['inputObjs'];
+//		print_r($result);
+//		return 'ok';
+		
+		
 //		$inputObjFields = $this->getInputObjFields($voucher);
 		$voucher->participant_count = $voucher->participants()->count();
 		$voucher->save();
@@ -899,6 +928,25 @@ class VoucherController extends BaseModuleController
 		return response()->json([
 			'status' => true,
 			'result' => []
+		]);
+	}
+	
+	public function getMailingSummary($id) {
+		$voucher = $this->model->find($id);
+		$statusList = $voucher->codes()->select('status')->get();
+		$sendingTo = null;
+		if ($voucher->status === 'sending' && isset($voucher->processingCode) &&
+			isset($voucher->processingCode->participant)) {
+			$sendingTo = $voucher->processingCode->partcipant;
+		}
+		return response()->json([
+			'status' => true,
+			'result' => [
+				'summary' => [
+					'status_list' => $statusList,
+					'sending_to' => $sendingTo
+				]
+			]
 		]);
 	}
 }

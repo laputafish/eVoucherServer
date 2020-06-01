@@ -221,7 +221,10 @@ class AgentController extends BaseModuleController
 	  $agent = $this->model->findOrFail($id);
 	  return response()->json([
 	    'status' => true,
-      'result' => $agent->smtpServers
+      'result' => [
+      	'tag' => empty($agent->alias) ? $agent->name : $agent->alias,
+      	'smtpServers' => $agent->smtpServers
+      ]
     ]);
   }
 }
