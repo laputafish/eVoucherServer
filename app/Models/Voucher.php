@@ -8,10 +8,11 @@ use App\Helpers\VoucherTemplateHelper;
 class Voucher extends Model
 {
 	protected $fillable = [
+		'user_id',
 		'description',
 		'notes',
-    'user_id',
 		'agent_id',
+		'smtp_server_id',
 		'activation_date',
 		'expiry_date',
 		'voucher_type',
