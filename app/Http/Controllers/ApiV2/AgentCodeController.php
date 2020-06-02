@@ -3,6 +3,7 @@
 use App\Models\Menu;
 use App\Models\Media;
 use App\Models\Voucher;
+use App\Models\VoucherCode;
 use App\Models\TempUploadFile;
 use App\Models\VoucherParticipant;
 
@@ -786,5 +787,19 @@ class AgentCodeController extends BaseController
   {
     $dateTimeObject = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($excelDateValue);
     return $dateTimeObject->format('Y-m-d');
+  }
+  
+  public function resetStatus($id) {
+		$code = VoucherCode::find($id);
+		if (isset($code)) {
+			$oldStatus = $code->status;
+			$code->status = 'pending';
+			$code->sent_on = null;
+			$code->save();
+		}
+		return response()->json([
+			'status' => true,
+			'result' => []
+		]);
   }
 }

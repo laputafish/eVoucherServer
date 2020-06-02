@@ -933,7 +933,7 @@ class VoucherController extends BaseModuleController
 	
 	public function getMailingSummary($id) {
 		$voucher = $this->model->find($id);
-		$statusList = $voucher->codes()->select('status')->get();
+		$statusList = $voucher->codes()->pluck('status')->toArray();
 		$sendingTo = null;
 		if ($voucher->status === 'sending' && isset($voucher->processingCode) &&
 			isset($voucher->processingCode->participant)) {
