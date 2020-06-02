@@ -96,22 +96,30 @@ class TemplateHelper {
     return $valueStr;
   }
 
-  public static function createParams($arRecord, $codeInfo=null) {
-    $templateKeys = TemplateKey::all();
-    $voucherParams = static::createVoucherParams($arRecord, $templateKeys);
-    $codeParams = static::createCodeParams($codeInfo, $arRecord['code_fields'], $templateKeys);
-    $basicParams = array_merge($voucherParams, $codeParams);
+  public static function createParams($arVoucherFields, $codeInfo=null) {
+    $templateKeys = TemplateKey::all(); // basic keys
+	  // voucher_expiry_date
+	  // voucher_description
+	  // voucher_activation_date
+	  // qrcode
+	  // barcode
+	  // agent_web
+	  // agent_name
+	  
+    $voucherParams = static::createVoucherParams($arVoucherFields, $templateKeys);
+    $codeParams = static::createCodeParams($codeInfo, $arVoucherFields['code_fields'], $templateKeys);
+    $allVoucherCodeKeyValues = array_merge($voucherParams, $codeParams);
 
-    $imageCodeParams = static::createImageCodeParams($basicParams, $arRecord['code_configs']);
-    return array_merge($imageCodeParams, $basicParams);
+    $imageCodeParams = static::createImageCodeParams($allVoucherCodeKeyValues, $arVoucherFields['code_configs']);
+    return array_merge($imageCodeParams, $allVoucherCodeKeyValues);
   }
 
-  public static function createVoucherParams($arRecord, $templateKeys) {
+  public static function createVoucherParams($arVoucherFields, $templateKeys) {
     $keyInfos = $templateKeys->filter(function($obj) {
       return in_array($obj->category, ['voucher', 'agent']);
     });
 
-    $voucher = Voucher::find($arRecord['id']);
+    $voucher = Voucher::find($arVoucherFields['id']);
 
     $result = [];
     foreach($keyInfos as $keyInfo) {
@@ -162,5 +170,15 @@ class TemplateHelper {
     $str = preg_replace("/[^A-Za-z0-9 ]/", '', strtolower($label));
     return str_replace(' ', '_', $str);
   }
+  
+  public static function createParamsFromInputObjs($plainKeyValues, $inputObjs) {
+  	$values = explode('||', $plainKeyValues);
+    $result = [];
+    foreach($inputObjs as $i=>$inputObj) {
+    	$fieldName = str_replace(' ', '_', strtolower($inputObj['name']));
+    	$result[$fieldName] = $values[$i];
+		}
+		return $result;
+	}
 
 }

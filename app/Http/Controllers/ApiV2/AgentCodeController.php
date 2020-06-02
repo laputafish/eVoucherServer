@@ -17,7 +17,7 @@ class AgentCodeController extends BaseController
 {
 	public function parse($key)
 	{
-		$fieldInfos = \Input::get('fieldInfos');
+		$fieldDefs = \Input::get('fieldInfos');
 		$tempUploadFile = TempUploadFile::where('key', $key)->first();
 		if (!isset($tempUploadFile)) {
 			return response()->json([
@@ -32,7 +32,7 @@ class AgentCodeController extends BaseController
 		$voucherId = $tempUploadFile->voucher_id;
 		$voucher = Voucher::find($voucherId);
 		$isVoucherType = $voucher->voucher_type == 'voucher';
-		$codeIndex = $this->getCodeIndex($fieldInfos);
+		$codeIndex = $this->getCodeIndex($fieldDefs);
 		
 		$ar = \Excel::toArray(null, $fullPath);
 		if (count($ar) > 0) {
@@ -73,8 +73,8 @@ class AgentCodeController extends BaseController
 						//    ]
 						// ]
 						$cells = [];
-						for ($cellIndex = 0; $cellIndex < count($fieldInfos); $cellIndex++) {
-							$fieldInfo = $fieldInfos[$cellIndex];
+						for ($cellIndex = 0; $cellIndex < count($fieldDefs); $cellIndex++) {
+							$fieldDef = $fieldDefs[$cellIndex];
 							if ($cellIndex < count($sheet0[$rowNo])) {
 								$value = $sheet0[$rowNo][$cellIndex];
 								$type = getType($value);
@@ -86,9 +86,9 @@ class AgentCodeController extends BaseController
 									$value = $this->excel2Date($value);
 								}
 								
-								switch($fieldInfo['fieldType']) {
+								switch($fieldDef['fieldType']) {
 									case 'code':
-										$fieldInfos[$cellIndex]['type'] = 'string';
+										$fieldDefs[$cellIndex]['type'] = 'string';
 										$hasVoucher = true;
 										array_unshift($voucherCells, $value);
 										break;
@@ -100,8 +100,8 @@ class AgentCodeController extends BaseController
 										$hasParticipant = true;
 										$participantCells['name'] =  $value;
 										$participantCells['all'][] = [
-											'title' => $fieldInfo['title'],
-											'dataType' => $fieldInfo['type'],
+											'title' => $fieldDef['title'],
+											'dataType' => $fieldDef['type'],
 											'value' => $value
 										];
 										break;
@@ -109,8 +109,8 @@ class AgentCodeController extends BaseController
 										$hasParticipant = true;
 										$participantCells['email'] = $value;
 										$participantCells['all'][] = [
-											'title' => $fieldInfo['title'],
-											'dataType' => $fieldInfo['type'],
+											'title' => $fieldDef['title'],
+											'dataType' => $fieldDef['type'],
 											'value' => $value
 										];
 										break;
@@ -118,16 +118,16 @@ class AgentCodeController extends BaseController
 										$hasParticipant = true;
 										$participantCells['phone'] = $value;
 										$participantCells['all'][] = [
-											'title' => $fieldInfo['title'],
-											'dataType' => $fieldInfo['type'],
+											'title' => $fieldDef['title'],
+											'dataType' => $fieldDef['type'],
 											'value' => $value
 										];
 										break;
 									case 'participant-other':
 										$hasParticipant = true;
 										$participantCells['all'][] = [
-											'title' => $fieldInfo['title'],
-											'dataType' => $fieldInfo['type'],
+											'title' => $fieldDef['title'],
+											'dataType' => $fieldDef['type'],
 											'value' => $value
 										];
 										break;
@@ -150,7 +150,7 @@ class AgentCodeController extends BaseController
 				}
 			}
 			
-			$participantFieldInfos = array_filter($fieldInfos, function($info) {
+			$participantFieldInfos = array_filter($fieldDefs, function($info) {
 				return $info['fieldType'] != 'code' && $info['fieldType'] != 'code-other';
 			});
 			$res2 = $this->updateParticipantCodes($voucher, $participantData, $participantFieldInfos);
@@ -158,15 +158,22 @@ class AgentCodeController extends BaseController
 //			print_r($res2);
 //			return 'ok';
 			$arParticipantIds = [];
+			$participantConfigs = [];
 			if (isset($res2)) {
 				$arParticipantIds = $res2['result']['participantIds'];
+				$participantConfigs = $res2['result']['participantConfigs'];
 			}
 //			print_r($arParticipantIds);
 //			return 'ok';
-			$voucherFieldInfos = array_filter($fieldInfos, function($info) {
+			$voucherFieldInfos = array_filter($fieldDefs, function($info) {
 				return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
 			});
 			$res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
+			
+			$voucher = Voucher::find($voucherId);
+			$res1['result']['participantConfigs'] = json_decode($voucher->participant_configs, true);
+			$res1['result']['participantCount'] = $voucher->participants()->count();
+			
 		}
 		
 		$res = [
@@ -331,7 +338,7 @@ class AgentCodeController extends BaseController
 					$newInputObj['inputType'] = 'phone';
 					break;
 				case 'name':
-					$newInputObj['inputType'] = 'simple-text';
+					$newInputObj['inputType'] = 'name';
 					break;
 				default:
 					$newInputObj['inputType'] = 'simple-text';
@@ -339,9 +346,10 @@ class AgentCodeController extends BaseController
 				
 				$arInputObjs[] = $newInputObj;
 		}
-		$voucher->participant_configs =  formConfigsToData([
+		$participantConfigs = formConfigsToData([
 			'inputObjs' => $arInputObjs
 		]);
+		$voucher->participant_configs = $participantConfigs;
 		$voucher->save();
 		
 		// update participant_configs
@@ -553,7 +561,8 @@ class AgentCodeController extends BaseController
 			'result' => [
 				'message' => '',
 				'messageTag' => '',
-				'participantIds' => $participantIds
+				'participantIds' => $participantIds,
+				'participantConfigs' => $participantConfigs
 			]
 		];
 	}

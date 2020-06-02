@@ -6,11 +6,16 @@ use App\Models\Agent;
 use App\Models\VoucherCode;
 use App\Models\VoucherCodeConfig;
 use App\Models\VoucherCustomForm;
+use App\Models\SmtpServer;
 
 use App\Helpers\AccessKeyHelper;
 use App\Helpers\MediaHelper;
 use App\Helpers\QuestionnaireHelper;
 use App\Helpers\VoucherTemplateHelper;
+use App\Helpers\EmailHelper;
+use App\Helpers\TemplateHelper;
+
+use App\Jobs\ProcessVoucherEmail;
 
 use Illuminate\Http\Request;
 
@@ -321,6 +326,11 @@ class VoucherController extends BaseModuleController
 			$voucher->participants()->delete();
 			$voucher->participant_count = 0;
 			$voucher->code_fields = '';
+			if ($voucher->voucher_type === 'voucher') {
+				$voucher->participant_configs = QuestionnaireHelper::preprocessFormConfigs([
+					'inputObjs' => []
+				]);
+			}
 			$voucher->save();
 			
 			return response()->json([
@@ -380,6 +390,7 @@ class VoucherController extends BaseModuleController
 			'description' => '',
 			'notes' => '',
 			'agent_id' => $agentId,
+			'smtp_server_id' => 0,
 			'activation_date' => '',
 			'expiry_date' => '',
 			'voucher_type' => 'voucher',
@@ -819,6 +830,9 @@ class VoucherController extends BaseModuleController
 		$voucher->save();
 		
 		$inputObjs = $voucher->input_objs;
+//		print_r($inputObjs);
+//		return 'ok';
+		
 		if (isset($voucher)) {
 			if ($request->has('page')) {
 				$page = $request->get('page', 1);
@@ -843,7 +857,6 @@ class VoucherController extends BaseModuleController
 				
 				$arResult = $result->toArray();
 				$arResult['data'] = $this->parseParticipantData($arResult['data'], $inputObjs);
-
 				return response()->json([
 					'status' => true,
 					'result' => $arResult
@@ -883,9 +896,20 @@ class VoucherController extends BaseModuleController
 						$record[$fieldName] = $fieldValue;
 						break;
 					case 'name':
-						$fieldValueSegs = explodeByCount('|', $fieldValue, 2, ' ');
-						$record[$fieldName.'_0'] = $fieldValueSegs[0];
-						$record[$fieldName.'_1'] = $fieldValueSegs[1];
+						$twoFields = false;
+						if (count($inputObj['options'])>0) {
+							$keyValues = strToKeyValues($options[0]);
+							if (array_key_exists('twoFields', $keyValues)) {
+								$twoFields = $keyValues['twoFields'] == 1;
+							}
+						}
+						if ($twoFields) {
+							$fieldValueSegs = explodeByCount('|', $fieldValue, 2, ' ');
+							$record[$fieldName.'_0'] = $fieldValueSegs[0];
+							$record[$fieldName.'_1'] = $fieldValueSegs[1];
+						} else {
+							$record[$fieldName] = $fieldValue;
+						}
 						break;
 				}
 			}
@@ -946,6 +970,97 @@ class VoucherController extends BaseModuleController
 					'status_list' => $statusList,
 					'sending_to' => $sendingTo
 				]
+			]
+		]);
+	}
+	
+	public function sendEmails($id) {
+		$voucher = $this->model->find($id);
+		
+//
+//		// testing
+//		$voucherCode = $voucher->codes()->first();
+//		$smtpServer = $voucher->getSmtpServer();
+//		EmailHelper::setSmtpServer($smtpServer);
+//
+//		$emailContent = $voucher->email_templates;
+//		$participant = $voucherCode->participant;
+//		$voucher->codeConfigs;
+//
+//		$voucherParams = TemplateHelper::createParams(
+//			$voucher->toArray(),
+//			$voucherCode
+//		);
+//
+//		$participantParams = EmailHelper::getParticipantParams($voucher, $participant);
+//
+//		$finalEmailContent = TemplateHelper::processTemplate(
+//			$emailContent,
+//			$voucher->codeConfigs,
+//			$finalParams
+//		)
+//		print_r($participantParams);
+//		return 'ok'; // EmailHelper::sendVoucherEmail($voucher, $voucherCode);
+//
+//
+//
+		
+		$status = false;
+		$message = '';
+		
+		if (isset($voucher)) {
+			$codes = $voucher->codes;
+			foreach ($codes as $code) {
+				ProcessVoucherEmail::dispatch($voucher, $code);
+				break;
+			}
+		}
+//				)
+//				Mail
+//				$emailContent =
+//				$mail = Mail::to([
+//					'address' => $participant->email,
+//					'name' => $participant->name,
+//				])->subject($voucher->email_subject);
+//
+//				if (!empty($voucher->email_cc)) {
+//					$mail = $mail->cc($voucher->email_cc);
+//				}
+//				if (!empty($voucher->email_bcc)) {
+//					$mail = $mail->bcc($voucher->email_bcc);
+//				}
+//
+//				mail_cc
+//})
+//			}
+//
+//			$fromAddress = 'yoovtest@gmail.com';
+//			$fromName = 'YOOV Ticket Group';
+//			$subject = 'SUBJECT XXXX';
+//
+//			$data = [
+//				'fromAddress' => $fromAddress,
+//				'fromName' => $fromName,
+//				'subject' => $subject
+//			];
+//
+//			$emailBody = [
+//				'param1' => 'param1',
+//				'param2' => 'param2',
+//				'name' => '((name))',
+//				'body' => '((body))'
+//			];
+//
+//			$message = EmailHelper::send($data, $emailBody, 'email.testMail');
+			
+//			if (empty($message)) {
+//				$status = true;
+//			}
+//		}
+		return response()->json([
+			'stauts' => $status,
+			'result' => [
+				'message' => $message
 			]
 		]);
 	}

@@ -16,8 +16,10 @@ class EmailController extends BaseController
       'username' => $serverConfig['mail_username'],
       'password' => $serverConfig['mail_password'],
       'encryption' => $serverConfig['mail_encryption'],
-      'from_'
-
+      'from' => [
+      	'address' => $serverConfig['mail_from_address'],
+	      'name' => $serverConfig['mail_from_name']
+      ]
     ];
 
     \Config::set('mail', $smtpConfig);

@@ -6,6 +6,23 @@ function newKey()
 	return md5($result); // ENCRYPTION_KEY);
 }
 
+function strToKeyValues($str, $separator = ';')
+{
+	$result = [];
+	if (isset($str)) {
+		$segs = explode($separator, $str);
+		foreach ($segs as $seg) {
+			if (!empty($seg)) {
+				$keyPair = explode(':', $seg);
+				if (count($keyPair) > 1) {
+					$result[$keyPair[0]] = $keyPair[1];
+				}
+			}
+		}
+	}
+	return $result;
+}
+
 function keyValueArrayToStr($ar, $keyValueSeparator = ':', $itemSeparator = ';')
 {
 	$lines = [];

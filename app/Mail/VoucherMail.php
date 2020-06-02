@@ -11,18 +11,16 @@ class VoucherMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $voucherCode;
+    public $voucher;
+    public $mailContent;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($key)
+    public function __construct($voucher, $mailContent)
     {
-      $this->voucherCode = VoucherCode::where('key', $key)->first();
-
-
-        //
+      $this->mailContent = $mailContent;
     }
 
     /**
@@ -32,6 +30,12 @@ class VoucherMail extends Mailable
      */
     public function build()
     {
-        return $this->view('view.email.voucher');
+    	$smtpServer = $voucher->getSmtpServer();
+    	
+      return $this->from([
+      	'address' => $smtpServer['mail_from_address'],
+	      'name' => $smtpServer['mail_from_name']
+      ])->view('view.email.voucher')
+	      ->with('mailContent', $mailContent);
     }
 }

@@ -82,6 +82,8 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 	Route::get('vouchers/{id}/mailing_summary', 'VoucherController@getMailingSummary');
 	
+	Route::post('vouchers/{id}/send_emails', 'VoucherController@sendEmails');
+	
   //*******************
   // Agents
   //*******************

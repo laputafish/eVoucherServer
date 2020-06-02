@@ -190,33 +190,34 @@ class Voucher extends Model
 	
 	public function getInputObjsAttribute() {
 		$result = [];
-		if (!empty($this->questionnaire_configs)) {
-			$formConfigs = [];
-			switch ($this->voucher_type) {
-				case 'form':
+		$formConfigs = [];
+		
+		switch ($this->voucher_type) {
+			case 'form':
+				if (!empty($this->questionnaire_configs)) {
 					$formConfigs = json_decode($this->questionnaire_configs, true);
-					break;
-				case 'voucher':
-					$formConfigs = json_decode($this->participant_configs, true);
-					break;
-			}
+				}
+				break;
+			case 'voucher':
+				$formConfigs = json_decode($this->participant_configs, true);
+				break;
+		}
 
-			if (isset($formConfigs) && array_key_exists('inputObjs', $formConfigs)) {
-				$inputObjs = $formConfigs['inputObjs'];
-				foreach($inputObjs as $i=>$inputObj) {
-					switch ($inputObj['inputType']) {
-						case 'simple-text':
-						case 'number':
-						case 'email':
-						case 'gender':
-						case 'text':
-						case 'single-choice':
-						case 'multiple-choice':
-						case 'name':
-						case 'phone':
-							$result[] = $inputObj;
-							break;
-					}
+		if (isset($formConfigs) && array_key_exists('inputObjs', $formConfigs)) {
+			$inputObjs = $formConfigs['inputObjs'];
+			foreach($inputObjs as $i=>$inputObj) {
+				switch ($inputObj['inputType']) {
+					case 'simple-text':
+					case 'number':
+					case 'email':
+					case 'gender':
+					case 'text':
+					case 'single-choice':
+					case 'multiple-choice':
+					case 'name':
+					case 'phone':
+						$result[] = $inputObj;
+						break;
 				}
 			}
 		}
@@ -278,5 +279,9 @@ class Voucher extends Model
 
   public function smtpServers() {
 	  return $this->belongsToMany(SmtpServer::class, 'voucher_smtp_servers', 'voucher_id', 'smtp_server_id');
+  }
+  
+  public function getSmtpServer() {
+		return SmtpServer::find($this->smtp_server_id);
   }
 }
