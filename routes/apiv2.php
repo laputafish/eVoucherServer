@@ -100,6 +100,8 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 	Route::post('form_questions/upload', 'FormQuestionController@upload');
 	Route::post('form_questions/temp/create', 'FormQuestionController@saveFormConfigs');
 
+	// Html File
+  Route::post('html_file/upload_zip', 'HtmlFileController@uploadZip');
 		
   // Template Keys
   Route::get('template_keys', 'TemplateKeyController@index');
