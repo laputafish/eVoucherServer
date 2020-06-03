@@ -233,6 +233,8 @@ class VoucherController extends BaseModuleController
     // get form configs
 		
 		$row->template = VoucherTemplateHelper::readVoucherTemplate($row);
+		$row->email_template = VoucherTemplateHelper::readVoucherTemplate($row, 'email');
+		
     $row->form_configs = json_decode($row->questionnaire_configs, true);
 		$row->participant_configs = json_decode($row->participant_configs, true);
 		
@@ -446,40 +448,46 @@ class VoucherController extends BaseModuleController
 		];
 	}
 	
-	private function onVoucherUpdated($request, $row)
+	private function onVoucherUpdated($request, $voucher)
 	{
-		// save template
+		// Update voucher template
 		$template = $request->get('template', '');
-		VoucherTemplateHelper::writeVoucherTemplate($row, $template);
+		$voucher->template_path = VoucherTemplateHelper::writeVoucherTemplate('vouchers', $voucher->id, $template);
+		$voucher->save();
+		
+		// Update email template
+		$template = $request->get('email_template', '');
+		$voucher->template_path = VoucherTemplateHelper::writeVoucherTemplate('vouchers', $voucher->id, $template, 'email');
+		$voucher->save();
 		
 		// Voucher codes is saved independently
 		$input = $request->all();
 		if (array_key_exists('code_configs', $input)) {
-			$this->saveCodeConfigs($row->id, $input['code_configs']);
+			$this->saveCodeConfigs($voucher->id, $input['code_configs']);
 		}
 		
 		if (array_key_exists('emails', $input)) {
-			$this->saveEmails($row->id, $input['emails']);
+			$this->saveEmails($voucher->id, $input['emails']);
 		}
 		
-		$this->updateCounts($row);
+		$this->updateCounts($voucher);
 		
 		// Update custom link key
-		if (empty($row->custom_link_key)) {
-			$row->custom_link_key = newKey();
+		if (empty($voucher->custom_link_key)) {
+			$voucher->custom_link_key = newKey();
 		}
 
 		// Form Configs
 		if (array_key_exists('form_configs', $input)) {
 	    $formConfigs = $input['form_configs'];
-      $row->questionnaire_configs = formConfigsToData($formConfigs);
+      $voucher->questionnaire_configs = formConfigsToData($formConfigs);
 		}
 
     if (array_key_exists('custom_forms', $input)) {
-	    $this->updateCustomForms($row, $input['custom_forms']);
+	    $this->updateCustomForms($voucher, $input['custom_forms']);
     }
     
-		$row->save();
+		$voucher->save();
 	}
 
 	private function updateCounts($voucher) {

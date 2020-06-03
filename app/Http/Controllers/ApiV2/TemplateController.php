@@ -34,7 +34,8 @@ class TemplateController extends BaseController
 //      'template' => $record['template'],
       'params' => serialize($params)
     ]);
-	  VoucherTemplateHelper::writeTempVoucherTemplate($newTempLeaflet, $record['template']);
+	  $newTempLeaflet->template_path = VoucherTemplateHelper::writeVoucherTemplate('tempLeaflets', $newTempLeaflet->id, $record['template']);
+	  $newTempLeaflet->save();
 	
 	  return response()->json([
       'status'=>true,

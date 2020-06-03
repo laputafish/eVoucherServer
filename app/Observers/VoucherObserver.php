@@ -15,9 +15,17 @@ class VoucherObserver {
 			$media->save();
 		}
 		$voucher->medias()->sync([]);
-		$templateFullPath = $voucher->getTemplateFullPath('vouchers');
+		
+		// Remove voucher template
+		$templateFullPath = VoucherTemplateHelper::getTemplateFullPath('vouchers', $voucher->template_path, $voucher->id, 'v');
 		if (file_exists($templateFullPath)) {
 			unlink($templateFullPath);
+		}
+		
+		// Remove voucher email tempalte
+		$emailTemplateFullPath = VoucherTemplateHelper::getTemplateFullPath('vouchers', $voucher->template_path, $voucher->id, 'v', 'email');
+		if (file_exists($emailTemplateFullPath)) {
+			unlink($emailTemplateFullPath);
 		}
 		
 		if (!empty($voucher->sharing_image_id)) {

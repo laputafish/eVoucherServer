@@ -267,15 +267,15 @@ class Voucher extends Model
 	  return 'v'.$this->id.'.tpl';
   }
 
-  public function getTemplateFullPath($appFolder) {
-	  $result = null;
-	  if (!is_null($this->template_path) && !empty($this->template_path)) {
-	    $result = storage_path('app/'.$appFolder.'/'.
-        $this->template_path.'/'.
-        'v'.$this->id.'.tpl');
-    }
-	  return $result;
-  }
+//  public function getTemplateFullPath($appFolder) {
+//	  $result = null;
+//	  if (!is_null($this->template_path) && !empty($this->template_path)) {
+//	    $result = storage_path('app/'.$appFolder.'/'.
+//        $this->template_path.'/'.
+//        'v'.$this->id.'.tpl');
+//    }
+//	  return $result;
+//  }
 
   public function smtpServers() {
 	  return $this->belongsToMany(SmtpServer::class, 'voucher_smtp_servers', 'voucher_id', 'smtp_server_id');
