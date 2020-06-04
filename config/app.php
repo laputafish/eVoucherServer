@@ -170,6 +170,8 @@ return [
     Maatwebsite\Excel\ExcelServiceProvider::class,
     Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
     Milon\Barcode\BarcodeServiceProvider::class,
+	  Chumper\Zipper\ZipperServiceProvider::class,
+	  
     /*
      * Application Service Providers...
      */
@@ -231,6 +233,7 @@ return [
     'Excel' => Maatwebsite\Excel\Facades\Excel::class,
     'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
     'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
+	  'Zipper' => Chumper\Zipper\Zipper::class,
 
     'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
     'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactgory::class,

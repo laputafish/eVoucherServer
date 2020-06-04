@@ -13,7 +13,8 @@ class TempUploadFile extends Model {
 		'user_id',
 		'key',
 		'filename',
-		'voucher_id'
+		'voucher_id',
+		'type'
 	];
 	
 }

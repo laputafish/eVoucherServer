@@ -181,4 +181,38 @@ class TemplateHelper {
 		return $result;
 	}
 
+	public static function embedImages($htmlContent, $folder) {
+  	$reg = '/[\'\"](images\/[^\'\"]*)[\'\"]/';
+  	$matched = preg_match_all($reg, $htmlContent, $matches);
+//  	echo 'matched = '.$matched.PHP_EOL;
+  	
+  	$result = $htmlContent;
+  	if ($matched) {
+  		foreach($matches[1] as $i=>$match) {
+//  			echo '#'.$i.': match = '.$match.PHP_EOL;
+  			$result = static::embedBase64($result, $match, $folder);
+		  }
+	  }
+  	
+    return $result;
+	}
+	
+	public static function embedBase64($content, $imagePartialPath, $folder) {
+  	$imagePath = $folder.'/'.$imagePartialPath;
+  	$ext = pathinfo($imagePath, PATHINFO_EXTENSION);
+  	$imageBlob = file_get_contents($imagePath);
+  	$imageRaw = 'data:image/'.$ext.';base64,'.base64_encode($imageBlob);
+  	return str_replace($imagePartialPath, $imageRaw, $content);
+	}
+	
+	public static function extractContent($content, $tag) {
+  	$reg = '/<'.$tag.'[^>]*>(.*?)<\/'.$tag.'>/';
+  	$matched = preg_match_all($reg, $content, $matches);
+  	
+  	$result = $content;
+  	if ($matched) {
+  		$result = $matches[0][0];
+	  }
+	  return $result;
+	}
 }
