@@ -62,7 +62,13 @@ class Voucher extends Model
 		'form_sharing_description',
 		'form_sharing_image_id',
 		
-		'status'
+		'status',
+		'script',
+		'email_subject',
+		'email_template',
+		'email_html_body',
+		'email_body',
+		'email_cc'
 	];
 	
 	protected static function boot()

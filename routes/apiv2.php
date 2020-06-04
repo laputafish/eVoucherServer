@@ -100,6 +100,9 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 	Route::post('form_questions/upload', 'FormQuestionController@upload');
 	Route::post('form_questions/temp/create', 'FormQuestionController@saveFormConfigs');
 
+	// Email
+	Route::post('templates/create_preview', 'TemplateController@createPreview');
+	
 	// Html File
   Route::post('html_file/upload_zip', 'HtmlFileController@uploadZip');
 		
@@ -109,6 +112,9 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   // Template
   Route::post('templates/create_temp', 'TemplateController@createTemp');
 
+  // Email Template
+	Route::post('email_templates/test', 'EmailTemplateController@test');
+	
   // Media
   Route::post('media/upload_image', 'MediaController@uploadImage');
   Route::post('media/upload', 'MediaController@upload');

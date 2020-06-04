@@ -209,9 +209,23 @@ class TemplateHelper {
   	$reg = '/<'.$tag.'[^>]*>(.*?)<\/'.$tag.'>/';
   	$matched = preg_match_all($reg, $content, $matches);
   	
-  	$result = $content;
+  	$result = '';
   	if ($matched) {
-  		$result = $matches[0][0];
+  		$result = $matches[1][0];
+	  }
+	  return $result;
+	}
+	
+	public static function extractStyles($content) {
+  	$reg = '/<style[^>]*>(.*?)<\/style>/';
+  	$matched = preg_match_all($reg, $content, $matches);
+  	
+  	$result = '';
+  	if ($matched) {
+  		$result = '';
+  		foreach($matches[0] as $match) {
+  			$result .= $match;
+		  }
 	  }
 	  return $result;
 	}

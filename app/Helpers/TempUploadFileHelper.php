@@ -49,11 +49,45 @@ class TempUploadFileHelper {
 	public static function removeUserTempFiles ($userId) {
 		$tempUploadFiles = TempUploadFile::where('user_id', $userId)->get();
 		foreach($tempUploadFiles as $row) {
-			$fullPath = storage_path('app/uploads/'.$row->filename);
-			if (file_exists($fullPath)) {
-				unlink($fullPath);
+			switch ($row->type) {
+				case 'image':
+				case 'excel':
+					$fullPath = storage_path('app/uploads/' . $row->filename);
+					if (file_exists($fullPath)) {
+						unlink($fullPath);
+					}
+					break;
+				case 'zip':
+					$extractFolder = storage_path('app/uploads/' . $row->key);
+					if (file_exists($extractFolder)) {
+						deleteDir($extractFolder);
+					}
+					$fullPath = storage_path('app/uploads/' . $row->filename);
+					if (file_exists($fullPath)) {
+						unlink($fullPath);
+					}
+					break;
 			}
 			TempUploadFile::where('key', $row->key)->delete();
 		}
+	}
+	
+	public static function getUploadFileContentByKey($key) {
+		$tempUploadFile = TempUploadFile::where('key', $key)->first();
+		$fileName = $tempUploadFile['filename'];
+		$filePath = storage_path('app/uploads').'/'.$fileName;
+		
+		$result = '';
+		if (!is_null($filePath)) {
+			if (file_exists($filePath)) {
+				$filesize = filesize($filePath);
+				if ($filesize > 0) {
+					$fp = fopen($filePath, 'rb');
+					$result = fread($fp, $filesize);
+					fclose($fp);
+				}
+			}
+		}
+		return $result;
 	}
 }

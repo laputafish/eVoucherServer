@@ -103,7 +103,13 @@ class VoucherController extends BaseModuleController
 		'form_sharing_description' => 'nullable|string',
 		'form_sharing_image_id' => 'integer',
 
-		'status' => 'in:preparing,pending,ready_to_send,completed'
+		'status' => 'in:preparing,pending,ready_to_send,completed',
+		
+		'email_subject' => 'nullabel|string',
+		'email_html_body' => 'nullabel|string',
+		'email_cc' => 'nullabel|string',
+		'email_bcc' => 'nullabel|string',
+		
 	];
 	
 	protected $updateRules = [
@@ -156,7 +162,12 @@ class VoucherController extends BaseModuleController
     'form_sharing_description' => 'nullable|string',
     'form_sharing_image_id' => 'integer',
 
-		'status' => 'in:preparing,pending,ready_to_send,completed'
+		'status' => 'in:preparing,pending,ready_to_send,completed',
+		
+		'email_subject' => 'nullable|string',
+		'email_html_body' => 'nullable|string',
+		'email_cc' => 'nullable|string',
+		'email_bcc' => 'nullable|string',
 	];
 
 	protected $updateRulesCode = [

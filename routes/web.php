@@ -14,6 +14,9 @@ use App\User;
 //  Route::get('coupons/{key}', 'TemplateController@view');
 //});
 
+//***************
+// test email
+//***************
 Route::get('/actions/test_email', function() {
   $data = [
     'name' => 'Dominic Lee',
@@ -27,6 +30,8 @@ Route::get('/actions/test_email', function() {
   });
   echo "Basic Email Sent. Check your inbox.";
 });
+
+
 Route::get('/actions/migrate_templates', 'ApiV2\VoucherTemplateController@migrateTemplates');
 Route::get('/get_template_path', 'ApiV2\TestController@getTemplatePath');
 Route::get('/media/image/{id}/{size?}', 'ApiV2\MediaController@showImage');
@@ -34,6 +39,9 @@ Route::get('/media/image/{id}/{size?}', 'ApiV2\MediaController@showImage');
 // $id is 'key' if timestamp not exists
 Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
 // Route::get('forms/{id}/{timestamp?}', 'ApiV2\CouponController@showForm');
+
+// Preview email
+Route::get('/t/preview/{key}/{timestamp?}', 'ApiV2\TemplateController@showPreview');
 
 // Preview question form
 Route::get('q/{key}/{timestamp?}', 'ApiV2\FormQuestionController@showQuestionForm');

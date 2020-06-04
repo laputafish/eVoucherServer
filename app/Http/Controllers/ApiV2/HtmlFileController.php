@@ -35,14 +35,20 @@ class HtmlFileController extends BaseController
 				$htmlFile = FileHelper::getFirstFile($zipFolder);
 				$htmlFileContent = file_get_contents($htmlFile);
 				$adjustedContent = str_replace("\n", "", $htmlFileContent);
-				$adjustedContent = str_replace("\r", "", $adjustedContent);
-				$headContent = TemplateHelper::extractContent($adjustedContent, 'head');
-				$styleContent = TemplateHelper::extractContent($adjustedContent, 'style');
-				$bodyContent = TemplateHelper::extractContent($adjustedContent, 'body');
+				$pageContent = str_replace("\r", "", $adjustedContent);
+				$headContent = TemplateHelper::extractContent($pageContent, 'head');
+				
+				$styleContent = TemplateHelper::extractStyles($headContent);
+				$bodyContent = TemplateHelper::extractContent($pageContent, 'body');
+				
 //				$mergedContent = TemplateHelper::embedImages($bodyContent, $zipFolder);
 				
-				$mergedContent = $bodyContent;
+				$mergedContent = TemplateHelper::embedImages(
+					$styleContent.$bodyContent,
+					$zipFolder);
+				
 //$mergedContent = $htmlFileContent;
+		    TempUploadFileHelper::removeUserTempFiles ($this->user->id);
         $status = true;
       }
     }

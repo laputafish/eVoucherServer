@@ -30,23 +30,23 @@ function getInputOptions($inputOptions)
   }
   return $options;
 }
-
-function strToKeyValues($str, $separator = ';')
-{
-  $result = [];
-  if (isset($str)) {
-    $segs = explode($separator, $str);
-    foreach ($segs as $seg) {
-      if (!empty($seg)) {
-        $keyPair = explode(':', $seg);
-        if (count($keyPair) > 1) {
-          $result[$keyPair[0]] = $keyPair[1];
-        }
-      }
-    }
-  }
-  return $result;
-}
+//
+//function strToKeyValues($str, $separator = ';')
+//{
+//  $result = [];
+//  if (isset($str)) {
+//    $segs = explode($separator, $str);
+//    foreach ($segs as $seg) {
+//      if (!empty($seg)) {
+//        $keyPair = explode(':', $seg);
+//        if (count($keyPair) > 1) {
+//          $result[$keyPair[0]] = $keyPair[1];
+//        }
+//      }
+//    }
+//  }
+//  return $result;
+//}
 
 function keyValuesToStr($keyValues)
 {

@@ -7,6 +7,7 @@ use App\Models\TempLeaflet;
 use App\Helpers\TemplateHelper;
 use App\Helpers\QRCodeHelper;
 use App\Helpers\VoucherTemplateHelper;
+use App\Helpers\TempUploadFileHelper;
 
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Http\Request;
@@ -114,4 +115,40 @@ class TemplateController extends BaseController
       'template' => $processed
     ]);
   }
+	
+	public function createPreview(Request $request)
+	{
+		$content = $request->get('content');
+		
+		$newKey = newKey();
+		$filePath = storage_path('app/temp/'.$newKey.'.html');
+		if (file_exists($filePath)) {
+			unlink($filePath);
+		}
+		$f = fopen($filePath, 'wb');
+		fwrite($f, $content);
+		fclose($f);
+		
+		$key = TempUploadFileHelper::newTempFile($this->user->id, 0, $filePath, 'common');
+		return response()->json([
+			'status' => true,
+			'result' => [
+				'key' => $key
+			]
+		]);
+	}
+	
+	public function showPreview(Request $request, $key) {
+		$keyInDb = $key;
+		
+		if ($keyInDb[0] === '_') {
+			$keyInDb = substr($key, 1);
+		}
+		$content = TempUploadFileHelper::getUploadFileContentByKey($keyInDb);
+		
+		return view('email.preview_template')->with([
+			'key' => $key,
+			'content'=>$content
+		]);
+	}
 }
