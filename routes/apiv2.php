@@ -121,7 +121,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 //  Route::get('media/image/{id}', 'MediaController@showImage');
   Route::resource('medias', 'MediaController');
 
-  Route::post('email/check', 'EmailController@checkConfig');
+  Route::post('email/check', 'EmailController@sendTestEmail');
 
   Route::get('input_objs_info', 'InputObjsInfoController@index');
 });

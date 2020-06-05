@@ -229,4 +229,27 @@ class TemplateHelper {
 	  }
 	  return $result;
 	}
+	
+	public static function applyTags($template, $tagValues, $codeConfigs=null) {
+    if (is_null($codeConfigs)) {
+    	$codeConfigs = [
+    		[
+    			'code_group' => 'qrcode',
+			    'code_type' => 'QRCODE',
+			    'code_color' => '0,0,0',
+			    'width' => 7,
+			    'height' => 7
+		    ],
+    		[
+    			'code_group' => 'barcode',
+			    'code_type' => 'C128',
+			    'code_color' => '0,0,0',
+			    'width' => 3,
+			    'height' =>  67
+		    ],
+	    ];
+    }
+    
+    return static::processTemplate($template, $codeConfigs, $tagValues);
+	}
 }

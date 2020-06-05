@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 
 class EmailController extends BaseController
 {
-  public function checkConfig(Request $request)
+  public function sendTestEmail(Request $request)
   {
     $message = '';
 
