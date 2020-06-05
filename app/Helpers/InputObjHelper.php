@@ -73,4 +73,12 @@ class InputObjHelper
 			'messages' => $messages
 		];
 	}
+	
+	public static function getFieldTagNames($inputObjs) {
+		$result = [];
+		foreach($inputObjs as $inputObj) {
+			$result[] = nameToTag($inputObj['name']);
+		}
+		return $result;
+	}
 }

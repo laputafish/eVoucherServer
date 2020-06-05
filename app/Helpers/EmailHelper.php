@@ -48,20 +48,24 @@ class EmailHelper {
 	
 	public static function sendVoucherEmail($voucher, $voucherCode)
 	{
-		$emailContent = $voucher->email_template;
+		$emailTemplate = VoucherTemplateHelper::readVoucherTemplate($voucher, 'email');
 		$participant = $voucherCode->participant;
-		
 		$voucher->codeConfigs;
+		
+		$tagValues = TagGroupHelper::getTagValues(null, $voucherCode);
+		print_r($tagValues);
+		dd('ok');
 		
 		$voucherParams = TemplateHelper::createParams(
 			$voucher->toArray(),
 			$voucherCode
 		);
+		
 		$participantParams = static::getParticipantParams($voucher, $participant);
 		
 		$finalParams = array_merge($voucherParams, $participantParams);
 		
-		if (strpos($emailContent, '{voucher}')!==false) {
+		if (strpos($emailTemplate, '{voucher}')!==false) {
 			$voucherTemplateContent = '';
 			$voucherContent = TemplateHelper::processTemplate(
 				$voucherTemplateContent,
@@ -73,7 +77,7 @@ class EmailHelper {
 			]);
 		}
 		$finalEmailContent = TemplateHelper::processTemplate(
-			$emailContent,
+			$emailTemplate,
 			$voucher->codeConfigs,
 			$finalParams
 		);

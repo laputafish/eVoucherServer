@@ -10,4 +10,10 @@ class FileHelper {
 		}
 		return $result;
 	}
+	
+	public static function checkCreateFolder($folderPath) {
+		if (!file_exists($folderPath)) {
+			mkdir($folderPath, 0777, true);
+		}
+	}
 }

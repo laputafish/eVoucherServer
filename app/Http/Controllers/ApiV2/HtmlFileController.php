@@ -48,7 +48,7 @@ class HtmlFileController extends BaseController
 					$zipFolder);
 				
 //$mergedContent = $htmlFileContent;
-		    TempUploadFileHelper::removeUserTempFiles ($this->user->id);
+		    //TempUploadFileHelper::removeUserTempFiles ($this->user->id);
         $status = true;
       }
     }

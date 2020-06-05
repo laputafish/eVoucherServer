@@ -182,7 +182,9 @@ class TemplateHelper {
 	}
 
 	public static function embedImages($htmlContent, $folder) {
-  	$reg = '/[\'\"](images\/[^\'\"]*)[\'\"]/';
+  	// replace img src
+		$reg = '/[\'\"]+(images\/[^\'\"]*)[\'\"]+/';
+//  	$reg = '/[\'\"](images\/[^\'\"]*)[\'\"]/';
   	$matched = preg_match_all($reg, $htmlContent, $matches);
 //  	echo 'matched = '.$matched.PHP_EOL;
   	

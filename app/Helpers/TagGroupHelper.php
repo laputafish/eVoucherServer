@@ -2,11 +2,18 @@
 
 class TagGroupHelper {
 	public static function getTagValues($tagGroups, $voucherCode=null) {
-		$result = [];
+		if (is_null($tagGroups)) {
+			$tagGroups = \Config::get('constants.tagGroups');
+		}
 		if (is_null($voucherCode)) {
 			$result = static::getDummyTagValues($tagGroups);
 		} else {
 			$result = static::getDataTagValues($tagGroups, $voucherCode);
+			print_r($result);
+			echo 'ready to getDataTagValues result count = '.count($result)."<Br/>";
+
+			return [];
+			
 		}
 		return $result;
 	}
@@ -31,6 +38,7 @@ class TagGroupHelper {
 				case 'image_code':
 				case 'voucher':
 				case 'agent':
+				case 'code':
 					for($j = 0; $j < count($tagGroups[$i]['tags']); $j++) {
 						$tag = $tagGroups[$i]['tags'][$j];
 						$result[$tag] = $DEFAULT_MAPPING[$tag];
@@ -60,14 +68,95 @@ class TagGroupHelper {
 	}
 	
 	public static function getDataTagValues($tagGroups, $voucherCode) {
-		$tagList = static::tagGroupToTagList($tagGroups);
-		$voucher = $voucherCode->voucher;
-		$participant = $voucherCode->participant;
 		$result = [];
+		$tagList = static::tagGroupToTagList($tagGroups);
 		foreach($tagList as $tag) {
 			$result[$tag] = '';
 		}
+		$voucher = $voucherCode->voucher;
+//		echo 'isset(voucher) = '.$voucher->description."<BR/>";
+		// voucher
+		$result['voucher_activation_date'] = $voucher->activation_date;
+		$result['voucher_expiry_date'] = $voucher->expiry_date;
+		$result['voucher_description'] = $voucher->description;
+		// agent
+		$agent = $voucher->agent;
+		if (isset($agent)) {
+			$result['agent_name'] = $agent->name;
+			$result['agent_web'] = $agent->web_url;
+		} else {
+			$result['agent_name'] = '';
+			$result['agent_web'] = '';
+		}
+		
+		// image_code
+		$codeConfigs = $voucher->codeConfigs;
+//		echo 'isset(codeConfigs): '.(isset($codeConfigs) ? 'yes' : 'no');
+//		echo 'codeConfigs.count  = ' .$codeConfigs->count();
+//		return [];
+//		print_r($codeConfigs->toArray());
+		if (isset($codeConfigs)) {
+			$result['qrcode'] = static::getCodeConfigOfGroup($codeConfigs, 'qrcode');
+			$result['barcode'] = static::getCodeConfigOfGroup($codeConfigs, 'barcode');
+		} else {
+			$result['qrcode'] = '';
+			$result['barcode'] = '';
+		}
+		
 		return $result;
+		
+		// code
+		$codeInfoValues = $voucherCode;
+		if (isset($codeFields)) {
+			$codeFields = explode('|', $voucher->code_fields);
+			$hasCode = false;
+			$nonCodeFields = [];
+			foreach ($codeFields as $keyValueStr) {
+				$keyValue = explode(':', $keyValueStr);
+				$key = nameToTag($keyValue[0]);
+				if ($key != 'code') {
+					$nonCodeFields[] = $key;
+				} else {
+					$hasCode = true;
+				}
+			}
+			if ($hasCode) {
+				$result['code_code'] = $voucherCode->code;
+			}
+			$extraFieldValues = explode('|', $voucherCode->extra_fields);
+			foreach ($nonCodeFields as $i => $fieldName) {
+				if ($i < count($extraFieldValues)) {
+					$result[$fieldName] = $extraFieldValues[$i];
+				} else {
+					$result[$fieldName] = '';
+				}
+			}
+		}
+		
+		// participant
+		$participant = $voucherCode->participant;
+		if (isset($participant)) {
+			$participantConfigs = json_decode($voucher->participant_configs, true);
+			$fieldTagNames = InputObjHelper::getFieldTagNames($participantConfigs['inputObjs']);
+			$fieldValues = ParticipantHelper::getFieldValues($participant->form_content);
+			foreach($fieldTagNames as $i=>$fieldTagName) {
+				if ($i < count($fieldValues)) {
+					$result[$fieldTagName] = $fieldValues[$i];
+				}
+			}
+		}
+		
+		return $result;
+	}
+	
+	private static function getCodeConfigOfGroup($codeConfigs, $codeGroup) {
+		$configs = $codeConfigs->filter(function($config) use($codeGroup) {
+			return $config->code_group == $codeGroup;
+		});
+		print_r($configs);
+		echo 'xxcount = '.$codeConfigs->count();
+		return '';
+		return isset($configs) ? $configs : '';
 	}
 	
 	public static function tagGroupToTagList($tagGroups) {

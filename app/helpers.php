@@ -110,3 +110,7 @@ function deleteDir($dirPath) {
 	}
 	rmdir($dirPath);
 }
+
+function nameToTag($str) {
+	return str_replace(' ', '_', strtolower($str));
+}
