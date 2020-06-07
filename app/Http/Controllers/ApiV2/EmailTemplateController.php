@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
 
 class EmailTemplateController extends BaseModuleController
 {
-	public function test(Request $request) {
+	public function sendTestEmailx(Request $request) {
 		$voucher = Voucher::find(2068);
 		$voucherCode = $voucher->codes()->first();
 		
@@ -37,7 +37,7 @@ class EmailTemplateController extends BaseModuleController
 		echo 'tagValues';
 		print_r($tagValues);
 		return ; //dd('ok');
-		
+
 		$voucherParams = TemplateHelper::createParams(
 			$voucher->toArray(),
 			$voucherCode
@@ -67,20 +67,26 @@ class EmailTemplateController extends BaseModuleController
 	
 	// end of testing
 	
-	public function test2(Request $request) {
+	public function sendTestEmail(Request $request) {
 		$template = $request->get('template');
 		$email = $request->get('email');
 		$smtpServer = $request->get('smtpServer');
-		$tagGroups = $request->get('tagGroups');
 		$subject = $request->get('subject');
 		$cc = $request->get('cc');
 		$bcc = $request->get('bcc');
-		
+
+    $tagGroups = $request->get('tagGroups');
+
+    // Apply tag values
 		$tagValues = TagGroupHelper::getTagValues($tagGroups);
 		$appliedTemplate = TemplateHelper::applyTags($template, $tagValues);
 
+		// Send email
 		$smtpConfig = SmtpServerHelper::getConfig($smtpServer);
 
+//echo 'smtpConfig: '.PHP_EOL;
+//print_r($smtpConfig);
+//return 'ok';
 		$errorMsg = EmailTemplateHelper::sendHtml(
 			$smtpConfig,
 			[
@@ -93,7 +99,8 @@ class EmailTemplateController extends BaseModuleController
 				'fromName' => $smtpConfig['from']['name']
 			]
 		);
-		
+
+		// Prepare message if err
 		$status = true;
 		$message = '';
 		if ($errorMsg) {

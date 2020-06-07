@@ -16,7 +16,9 @@ class TemplateHelper {
   }
 
   private static function getCodeImage($codeConfigs, $params, $codeGroup) {
-    $result = '';
+//    $result = '';
+//    print_r($codeConfigs);
+//    return '';
     $codeConfig = static::findCodeConfig($codeConfigs, $codeGroup);
     $codeColor = '0,0,0';
 //    if (!empty(trim($codeConfig['code_color']))) {
@@ -41,20 +43,21 @@ class TemplateHelper {
 //      $qrCode = QrCode::margin(0)->size($qrCodeSize)->generate($params['qr_code']);
 //    }
 //    $template = str_replace('{qr_code}', $qrCode, $template);
-
+//echo '111'.PHP_EOL;
     // Fill Barcode
     $barcode = static::getCodeImage($codeConfigs, $params, 'barcode');
     $template = str_replace('{barcode}', $barcode, $template);
-
+//echo '222'.PHP_EOL;
     // Fill  QR Code
     $qrCode = static::getCodeImage($codeConfigs, $params, 'qrcode');
     $template = str_replace('{qrcode}', $qrCode, $template);
-
+//echo '333'.PHP_EOL;
     // Fill fields
     foreach($params as $key=>$value) {
       $template = str_replace( '{'.$key.'}', $value, $template);
     }
-//return 'ok';
+//echo '444'.PHP_EOL;
+    //return 'ok';
     return $template;
   }
 
@@ -231,7 +234,30 @@ class TemplateHelper {
 	  }
 	  return $result;
 	}
-	
+
+	public static function applyCodeTags($template, $tagValues, $codeConfigs=null) {
+    if (is_null($codeConfigs)) {
+      $codeConfigs = [
+        [
+          'code_group' => 'qrcode',
+          'code_type' => 'QRCODE',
+          'code_color' => '0,0,0',
+          'width' => 7,
+          'height' => 7
+        ],
+        [
+          'code_group' => 'barcode',
+          'code_type' => 'C128',
+          'code_color' => '0,0,0',
+          'width' => 3,
+          'height' =>  67
+        ],
+      ];
+    }
+
+    return static::processTemplate($template, $codeConfigs, $tagValues);
+  }
+
 	public static function applyTags($template, $tagValues, $codeConfigs=null) {
     if (is_null($codeConfigs)) {
     	$codeConfigs = [

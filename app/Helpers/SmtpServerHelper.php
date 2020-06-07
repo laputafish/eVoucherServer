@@ -12,7 +12,14 @@ class SmtpServerHelper {
 			'from' => [
 				'address' => $server['mail_from_address'],
 				'name' => $server['mail_from_name']
-			]
+			],
+      'stream' => [
+        'ssl' => [
+          'allow_self_signed' => true,
+          'verify_peer' => false,
+          'verify_peer_name' => false,
+        ],
+      ],
 		];
 	}
 }

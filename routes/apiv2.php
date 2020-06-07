@@ -77,7 +77,8 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 	Route::delete('vouchers/{id}/participants', 'VoucherController@clearParticipants');
 	
 	Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
-  Route::put('vouchers/{voucherId}/codes/{id}', 'VoucherController@updateCode');
+  Route::put('vouchers/{voucherId}/codes/{codeId}', 'VoucherController@updateCode');
+  Route::post('vouchers/{voucherId}/codes/{codeId}/set_status', 'VoucherController@setStatus');
 	Route::post('vouchers/{id}/codes/export', 'VoucherController@exportCodes');
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 	Route::get('vouchers/{id}/mailing_summary', 'VoucherController@getMailingSummary');
@@ -113,7 +114,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::post('templates/create_temp', 'TemplateController@createTemp');
 
   // Email Template
-	Route::post('email_templates/test', 'EmailTemplateController@test');
+	Route::post('email_templates/send_test_email', 'EmailTemplateController@sendTestEmail');
 	
   // Media
   Route::post('media/upload_image', 'MediaController@uploadImage');
@@ -121,7 +122,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 //  Route::get('media/image/{id}', 'MediaController@showImage');
   Route::resource('medias', 'MediaController');
 
-  Route::post('email/check', 'EmailController@sendTestEmail');
+  Route::post('smtp_server/check', 'SmtpServerController@sendTestEmail');
 
   Route::get('input_objs_info', 'InputObjsInfoController@index');
 });

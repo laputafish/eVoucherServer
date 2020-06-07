@@ -1,7 +1,7 @@
 <?php namespace App\Helpers;
 
 class TagGroupHelper {
-	public static function getTagValues($tagGroups, $voucherCode=null) {
+	public static function getTagValues($tagGroups=null, $voucherCode=null) {
 		if (is_null($tagGroups)) {
 			$tagGroups = \Config::get('constants.tagGroups');
 		}
@@ -9,11 +9,10 @@ class TagGroupHelper {
 			$result = static::getDummyTagValues($tagGroups);
 		} else {
 			$result = static::getDataTagValues($tagGroups, $voucherCode);
-			print_r($result);
-			echo 'ready to getDataTagValues result count = '.count($result)."<Br/>";
+//			echo 'ready to getDataTagValues result count = '.count($result)."<Br/>";
+//
+//			return [];
 
-			return [];
-			
 		}
 		return $result;
 	}
@@ -88,13 +87,14 @@ class TagGroupHelper {
 			$result['agent_name'] = '';
 			$result['agent_web'] = '';
 		}
-		
+
 		// image_code
 		$codeConfigs = $voucher->codeConfigs;
 //		echo 'isset(codeConfigs): '.(isset($codeConfigs) ? 'yes' : 'no');
 //		echo 'codeConfigs.count  = ' .$codeConfigs->count();
 //		return [];
 //		print_r($codeConfigs->toArray());
+
 		if (isset($codeConfigs)) {
 			$result['qrcode'] = static::getCodeConfigOfGroup($codeConfigs, 'qrcode');
 			$result['barcode'] = static::getCodeConfigOfGroup($codeConfigs, 'barcode');
@@ -102,12 +102,12 @@ class TagGroupHelper {
 			$result['qrcode'] = '';
 			$result['barcode'] = '';
 		}
-		
-		return $result;
-		
+//		return $result;
+
 		// code
-		$codeInfoValues = $voucherCode;
-		if (isset($codeFields)) {
+//		$codeInfoValues = $voucherCode;
+		if (isset($voucher->code_fields)) {
+
 			$codeFields = explode('|', $voucher->code_fields);
 			$hasCode = false;
 			$nonCodeFields = [];
@@ -126,13 +126,13 @@ class TagGroupHelper {
 			$extraFieldValues = explode('|', $voucherCode->extra_fields);
 			foreach ($nonCodeFields as $i => $fieldName) {
 				if ($i < count($extraFieldValues)) {
-					$result[$fieldName] = $extraFieldValues[$i];
+					$result['code_'.$fieldName] = $extraFieldValues[$i];
 				} else {
-					$result[$fieldName] = '';
+					$result['code_'.$fieldName] = '';
 				}
 			}
 		}
-		
+
 		// participant
 		$participant = $voucherCode->participant;
 		if (isset($participant)) {
@@ -145,18 +145,24 @@ class TagGroupHelper {
 				}
 			}
 		}
-		
 		return $result;
 	}
 	
 	private static function getCodeConfigOfGroup($codeConfigs, $codeGroup) {
+
 		$configs = $codeConfigs->filter(function($config) use($codeGroup) {
 			return $config->code_group == $codeGroup;
 		});
-		print_r($configs);
-		echo 'xxcount = '.$codeConfigs->count();
-		return '';
-		return isset($configs) ? $configs : '';
+//		print_r($configs->toArray());
+//		echo 'xxcount = '.$codeConfigs->count();
+//		return '';
+
+    $result = '';
+    if (isset($configs)) {
+      $first = $configs->first()->toArray();
+      $result = $first['composition'];
+    }
+		return $result;
 	}
 	
 	public static function tagGroupToTagList($tagGroups) {

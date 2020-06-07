@@ -14,10 +14,15 @@ use App\Helpers\QuestionnaireHelper;
 use App\Helpers\VoucherTemplateHelper;
 use App\Helpers\EmailHelper;
 use App\Helpers\TemplateHelper;
+use App\Helpers\VoucherHelper;
 
 use App\Jobs\ProcessVoucherEmail;
 
 use Illuminate\Http\Request;
+
+use App\Helpers\TagGroupHelper;
+
+use App\Events\VoucherCodeStatusUpdatedEvent;
 
 class VoucherController extends BaseModuleController
 {
@@ -775,16 +780,91 @@ class VoucherController extends BaseModuleController
 	{
 	}
 
-	public function updateCode(Request $request, $voucherId, $id)
+	public function setStatus(Request $request, $voucherId, $codeId)
+  {
+    $status = $request->get('status');
+    if (!empty($status)) {
+      $message = '';
+      $voucherCode = VoucherCode::find($codeId);
+      switch ($voucherCode->status) {
+        case 'pending':
+        case 'completed':
+        case 'fails':
+          $voucherCode->status = 'ready';
+          $voucherCode->sent_on = null;
+          $voucherCode->error_message = '';
+          $voucherCode->save();
+          event(new VoucherCodeStatusUpdatedEvent($voucherCode));
+          $message = 'The code has been placed in queue.';
+          break;
+        default:
+          $message = 'The code already placed in queue.';
+      }
+    }
+
+    return [
+      'status' => true,
+      'result' => [
+        'message' => $message,
+        'voucherCode' => $voucherCode
+      ]
+    ];
+  }
+//	  $voucherCode->
+//	  $participant = $voucherCode->participant;
+//
+//	  $status = false;
+//	  $message = '';
+//
+//	  if (isset($participant)) {
+//	    $voucher = $voucherCode->voucher;
+//      $template = VoucherTemplateHelper::readVoucherTemplate($voucher, 'email');
+//      $allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
+//
+//      $appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
+//      $smtpServer = $voucher->getSmtpServer();
+//      $smtpConfig = SmtpServerHelper::getConfig($smtpServer);
+//
+//      $errorMsg = EmailTemplateHelper::sendHtml(
+//        $smtpConfig,
+//        [
+//          'subject' => $voucher->email_subject,
+//          'toEmail' => $participant->email,
+//          'toName' => $participant->name,
+//          'cc' => $voucher->mail_cc,
+//          'bcc' => $voucher->email_bcc,
+//          'body' => $appliedTemplate,
+//          'fromEmail' => $smtpConfig['from']['address'],
+//          'fromName' => $smtpConfig['from']['name']
+//        ]
+//      );
+//
+//      if ($errorMsg) {
+//        $message = $errorMsg;
+//      } else {
+//        $status = true;
+//      }
+//    } else {
+//	    $message = 'Participant not exists!';
+//    }
+//	  return response()->json([
+//	    'status' => $status,
+//      'result' => [
+//        'message' => $message
+//      ]
+//    ]);
+//  }
+
+	public function updateCode(Request $request, $voucherId, $codeId)
 	{
 		$status = false;
 		$result = [];
 		$input = $this->getInput($this->updateRulesCode);
 		$voucher = $this->model->find($voucherId);
 		if (isset($voucher)) {
-			$voucher->codeInfos()->whereId($id)->update($input);
+			$voucher->codeInfos()->whereId($codeId)->update($input);
 			$status = true;
-			$result = $voucher->codeInfos()->whereId($id)->first();
+			$result = $voucher->codeInfos()->whereId($codeId)->first();
 		}
 		return response()->json([
 			'status' => $status,
@@ -917,7 +997,7 @@ class VoucherController extends BaseModuleController
 					case 'name':
 						$twoFields = false;
 						if (count($inputObj['options'])>0) {
-							$keyValues = strToKeyValues($options[0]);
+							$keyValues = strToKeyValues($inputObj['options'][0]);
 							if (array_key_exists('twoFields', $keyValues)) {
 								$twoFields = $keyValues['twoFields'] == 1;
 							}

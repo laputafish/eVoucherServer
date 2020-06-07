@@ -8,6 +8,7 @@ use App\Helpers\TemplateHelper;
 use App\Helpers\QRCodeHelper;
 use App\Helpers\VoucherTemplateHelper;
 use App\Helpers\TempUploadFileHelper;
+use App\Helpers\TagGroupHelper;
 
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Http\Request;
@@ -118,15 +119,17 @@ class TemplateController extends BaseController
 	
 	public function createPreview(Request $request)
 	{
-		$content = $request->get('content');
-		
+		$template = $request->get('content');
+		$tagValues = $request->get('tagValues', TagGroupHelper::getTagValues());
+		$appliedTemplate = TemplateHelper::applyTags($template, $tagValues);
+
 		$newKey = newKey();
 		$filePath = storage_path('app/temp/'.$newKey.'.html');
 		if (file_exists($filePath)) {
 			unlink($filePath);
 		}
 		$f = fopen($filePath, 'wb');
-		fwrite($f, $content);
+		fwrite($f, $appliedTemplate);
 		fclose($f);
 		
 		$key = TempUploadFileHelper::newTempFile($this->user->id, 0, $filePath, 'common');
@@ -144,11 +147,12 @@ class TemplateController extends BaseController
 		if ($keyInDb[0] === '_') {
 			$keyInDb = substr($key, 1);
 		}
-		$content = TempUploadFileHelper::getUploadFileContentByKey($keyInDb);
-		
-		return view('email.preview_template')->with([
+		$template = TempUploadFileHelper::getUploadFileContentByKey($keyInDb);
+//		$tagValues = TagGroupHelper::getTagValues();
+//		$appliedTemplate = TemplateHelper::applyTags($template, $tagValues);
+		return view('templates.preview_template')->with([
 			'key' => $key,
-			'content'=>$content
+			'content'=>$template
 		]);
 	}
 }

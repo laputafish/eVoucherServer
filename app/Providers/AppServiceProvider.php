@@ -8,6 +8,14 @@ use App\Observers\VoucherObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 
+use Illuminate\Support\Facades\Log;
+
+//class LaravelLoggerProxy {
+//  public function log($msg) {
+//    Log::info($msg);
+//  }
+//}
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -19,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
         Voucher::observe(VoucherObserver::class);
+
+//        $pusher = $this->app->make('Pusher');
+//        $pusher->set_logger(new LaravelLoggerProxy());
     }
 
     /**

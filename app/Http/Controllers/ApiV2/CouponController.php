@@ -6,6 +6,7 @@ use App\Models\VoucherParticipant;
 
 use App\Helpers\TemplateHelper;
 use App\Helpers\VoucherTemplateHelper;
+use App\Helpers\TagGroupHelper;
 
 use Illuminate\Http\Request;
 
@@ -41,22 +42,24 @@ class CouponController extends BaseController {
 	
 	public function showCoupon($id, $timestamp=null) {
 		$voucher = null;
-		if (is_null($timestamp)) {
+		$isFormal = is_null($timestamp);
+
+		if ($isFormal) {
 			$key = $id;
 			$voucherCode = VoucherCode::where('key', $key)->first();
 			if (isset($voucherCode)) {
 				$voucher = $voucherCode->voucher;
-				$processedTemplate = $this->processLeafletWithCode($voucherCode);
+				$appliedTemplate = $this->processLeafletWithCode($voucherCode);
 			} else {
 				$participant = VoucherParticipant::where('participant_key', $key)->first();
 				if (isset($participant)) {
 					$voucher = $participant->voucher;
-					$processedTemplate = $this->processLeafletNoCode($voucher);
+					$appliedTemplate = $this->processLeafletNoCode($voucher);
 				}
 			}
 		} else {
 			$voucher = Voucher::find($id);
-			$processedTemplate = '';
+			$appliedTemplate = '';
 		}
 		if (isset($voucher)) {
 			$og = [
@@ -78,7 +81,7 @@ class CouponController extends BaseController {
 		
 		return view('templates.coupon', [
 			'og' => $og,
-			'template' => $processedTemplate,
+			'template' => $appliedTemplate,
 			'script' => $script
 		]);
 	}
@@ -142,15 +145,42 @@ class CouponController extends BaseController {
 	private function processLeafletWithCode($voucherCode) {
 		$voucher = $voucherCode->voucher;
 		$voucher->codeConfigs;
-		
+//echo '111'.PHP_EOL;
+    $template = VoucherTemplateHelper::readVoucherTemplate($voucher);
+//echo '222'.PHP_EOL;
+    $allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
+//echo '333'.PHP_EOL;
+		$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
+//return 'ok';
+//		$params = TemplateHelper::createParams(
+//			$voucher->toArray(),
+//			$voucherCode
+//		);
+		return $appliedTemplate;
+//		return TemplateHelper::processTemplate(
+//			$template,
+//			$voucher->codeConfigs,
+//			$params
+//		);
+//		return TemplateHelper::processTemplate(
+//			$voucher->template,
+//			$voucher->codeConfigs,
+//			$params
+//		);
+	}
+	
+	private function processLeafletWithCode2($voucherCode) {
+		$voucher = $voucherCode->voucher;
+		$voucher->codeConfigs;
+    $template = VoucherTemplateHelper::readVoucherTemplate($voucher);
+
 		$params = TemplateHelper::createParams(
 			$voucher->toArray(),
 			$voucherCode
 		);
-		
-		$voucherTemplate = VoucherTemplateHelper::readVoucherTemplate($voucher);
+
 		return TemplateHelper::processTemplate(
-			$voucherTemplate,
+			$template,
 			$voucher->codeConfigs,
 			$params
 		);
@@ -160,5 +190,5 @@ class CouponController extends BaseController {
 //			$params
 //		);
 	}
-	
+
 }

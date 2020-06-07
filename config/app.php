@@ -171,7 +171,8 @@ return [
     Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
     Milon\Barcode\BarcodeServiceProvider::class,
 	  Chumper\Zipper\ZipperServiceProvider::class,
-	  
+//	  Pusher\Pusher::class,
+
     /*
      * Application Service Providers...
      */
@@ -234,6 +235,7 @@ return [
     'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
     'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
 	  'Zipper' => Chumper\Zipper\Zipper::class,
+//    'Pusher' => Pusher\Pusher::class,
 
     'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
     'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactgory::class,

@@ -24,6 +24,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+      $schedule->command('send:voucherEmails')
+        ->everyMinute()
+        ->sendOutputTo(storage_path('logs/sendEmails.log'));
+
         // $schedule->command('inspire')
         //          ->hourly();
     }

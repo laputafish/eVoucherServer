@@ -15,6 +15,21 @@ use App\User;
 //});
 
 //***************
+// test Pusher
+//***************
+Route::get('/broadcast', function() {
+  event(new \App\Events\TestEvent('Broadcasting in Laravel using PUsher'));
+  return 'sent';
+});
+
+Route::get('/broadcast2', function() {
+  $voucherCode = \App\Models\VoucherCode::first();
+  event(new \App\Events\VoucherCodeStatusUpdatedEvent($voucherCode));
+  return 'sent';
+});
+
+
+//***************
 // test email
 //***************
 Route::get('/actions/test_email', function() {

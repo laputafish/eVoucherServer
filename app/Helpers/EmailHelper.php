@@ -1,20 +1,10 @@
 <?php namespace App\Helpers;
 
+use App\Helpers\SmtpServerHelper;
+
 class EmailHelper {
 	public static function setSmtpServer($smtpServer) {
-		$smtpConfig = [
-			'driver' => $smtpServer['mail_driver'],
-			'host' => $smtpServer['mail_host'],
-			'port' => $smtpServer['mail_port'],
-			'username' => $smtpServer['mail_username'],
-			'password' => $smtpServer['mail_password'],
-			'encryption' => $smtpServer['mail_encryption'],
-			'from' => [
-				'address' => $smtpServer['mail_from_address'],
-				'name' => $smtpServer['mail_from_name']
-			]
-		];
-		
+		$smtpConfig = SmtpServerHelper::getConfig($smtpServer);
 		\Config::set('mail', $smtpConfig);
 	}
 	

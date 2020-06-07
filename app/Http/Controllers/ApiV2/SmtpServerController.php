@@ -2,25 +2,16 @@
 
 use Illuminate\Http\Request;
 
-class EmailController extends BaseController
+use App\Helpers\SmtpServerHelper;
+
+class SmtpServerController extends BaseController
 {
   public function sendTestEmail(Request $request)
   {
     $message = '';
 
     $serverConfig = $request->get('smtpServer');
-    $smtpConfig = [
-      'driver' => $serverConfig['mail_driver'],
-      'host' => $serverConfig['mail_host'],
-      'port' => $serverConfig['mail_port'],
-      'username' => $serverConfig['mail_username'],
-      'password' => $serverConfig['mail_password'],
-      'encryption' => $serverConfig['mail_encryption'],
-      'from' => [
-      	'address' => $serverConfig['mail_from_address'],
-	      'name' => $serverConfig['mail_from_name']
-      ]
-    ];
+    $smtpConfig = SmtpServerHelper::getConfig($serverConfig);
 
     \Config::set('mail', $smtpConfig);
     $fromEmail = $serverConfig['mail_from_address'];
