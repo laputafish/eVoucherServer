@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use App\Helpers\TagGroupHelper;
 
 use App\Events\VoucherCodeStatusUpdatedEvent;
+use App\Events\VoucherStatusUpdatedEvent;
 
 class VoucherController extends BaseModuleController
 {
@@ -780,7 +781,20 @@ class VoucherController extends BaseModuleController
 	{
 	}
 
-	public function setStatus(Request $request, $voucherId, $codeId)
+	public function setStatus($id, $status) {
+		$voucher = $this->model->find($id);
+		$voucher->status = $status;
+		$voucher->save();
+		event(new VoucherStatusUpdatedEvent($voucher));
+		return response()->json([
+			'status' => true,
+			'result' => [
+				'message' => 'Voucher status is successfully updated.'
+			]
+		]);
+	}
+	
+	public function setCodeStatus(Request $request, $voucherId, $codeId)
   {
     $status = $request->get('status');
     if (!empty($status)) {
@@ -1018,6 +1032,22 @@ class VoucherController extends BaseModuleController
 		return $result;
 	}
 	
+	public function getCodeSummary(Request $request, $id) {
+		$voucher = $this->model->find($id);
+		$voucherCodes = $voucher->codes;
+		$summary = [
+			'pending' => $voucherCodes->where('status', 'pending')->count(),
+			'ready' => $voucherCodes->where('status', 'ready')->count(),
+			'completed' => $voucherCodes->where('status', 'completed')->count(),
+			'fails' => $voucherCodes->where('status', 'fails')->count(),
+		];
+		return [
+			'status' => true,
+			'result' => [
+				'code_summary' => $summary
+			]
+		];
+	}
 	public function getCodes(Request $request, $id)
 	{
 		$voucher = $this->model->find($id);
@@ -1055,55 +1085,16 @@ class VoucherController extends BaseModuleController
 	}
 	
 	public function getMailingSummary($id) {
-		$voucher = $this->model->find($id);
-		$statusList = $voucher->codes()->pluck('status')->toArray();
-		$sendingTo = null;
-		if ($voucher->status === 'sending' && isset($voucher->processingCode) &&
-			isset($voucher->processingCode->participant)) {
-			$sendingTo = $voucher->processingCode->partcipant;
-		}
-		return response()->json([
-			'status' => true,
-			'result' => [
-				'summary' => [
-					'status_list' => $statusList,
-					'sending_to' => $sendingTo
-				]
-			]
-		]);
+		$summaryResult = VoucherHelper::getMailingSummary($id);
+		// $summaryResult = [
+		//  'status' => true|false,
+		//  'result' => [...]
+		// ]
+		return response()->json($summaryResult);
 	}
 	
 	public function sendEmails($id) {
 		$voucher = $this->model->find($id);
-		
-//
-//		// testing
-//		$voucherCode = $voucher->codes()->first();
-//		$smtpServer = $voucher->getSmtpServer();
-//		EmailHelper::setSmtpServer($smtpServer);
-//
-//		$emailContent = $voucher->email_templates;
-//		$participant = $voucherCode->participant;
-//		$voucher->codeConfigs;
-//
-//		$voucherParams = TemplateHelper::createParams(
-//			$voucher->toArray(),
-//			$voucherCode
-//		);
-//
-//		$participantParams = EmailHelper::getParticipantParams($voucher, $participant);
-//
-//		$finalEmailContent = TemplateHelper::processTemplate(
-//			$emailContent,
-//			$voucher->codeConfigs,
-//			$finalParams
-//		)
-//		print_r($participantParams);
-//		return 'ok'; // EmailHelper::sendVoucherEmail($voucher, $voucherCode);
-//
-//
-//
-		
 		$status = false;
 		$message = '';
 		
@@ -1114,48 +1105,6 @@ class VoucherController extends BaseModuleController
 				break;
 			}
 		}
-//				)
-//				Mail
-//				$emailContent =
-//				$mail = Mail::to([
-//					'address' => $participant->email,
-//					'name' => $participant->name,
-//				])->subject($voucher->email_subject);
-//
-//				if (!empty($voucher->email_cc)) {
-//					$mail = $mail->cc($voucher->email_cc);
-//				}
-//				if (!empty($voucher->email_bcc)) {
-//					$mail = $mail->bcc($voucher->email_bcc);
-//				}
-//
-//				mail_cc
-//})
-//			}
-//
-//			$fromAddress = 'yoovtest@gmail.com';
-//			$fromName = 'YOOV Ticket Group';
-//			$subject = 'SUBJECT XXXX';
-//
-//			$data = [
-//				'fromAddress' => $fromAddress,
-//				'fromName' => $fromName,
-//				'subject' => $subject
-//			];
-//
-//			$emailBody = [
-//				'param1' => 'param1',
-//				'param2' => 'param2',
-//				'name' => '((name))',
-//				'body' => '((body))'
-//			];
-//
-//			$message = EmailHelper::send($data, $emailBody, 'email.testMail');
-			
-//			if (empty($message)) {
-//				$status = true;
-//			}
-//		}
 		return response()->json([
 			'stauts' => $status,
 			'result' => [

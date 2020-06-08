@@ -798,11 +798,11 @@ class AgentCodeController extends BaseController
     return $dateTimeObject->format('Y-m-d');
   }
   
-  public function resetStatus($id) {
+  public function changeStatus($id, $status) {
 		$code = VoucherCode::find($id);
 		if (isset($code)) {
 			$oldStatus = $code->status;
-			$code->status = 'pending';
+			$code->status = $status;
 			$code->sent_on = null;
 			$code->save();
 		}

@@ -22,7 +22,15 @@ class VoucherCodeStatusUpdatedEvent implements ShouldBroadcast
      */
     public function __construct($voucherCode)
     {
-      $this->voucherCode = $voucherCode;
+	    $participant = $voucherCode->participant;
+	    $this->voucherCode = [
+		    'id' => $voucherCode->id,
+		    'status' => $voucherCode->status,
+		    'sent_on' => $voucherCode->sent_on,
+		    'error_message' => $voucherCode->error_message,
+		    'participant_name' => $participant->name,
+		    'participant_email' => $participant->email
+	    ];
     }
 
 //    public function broadcastWith() {
@@ -37,7 +45,7 @@ class VoucherCodeStatusUpdatedEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-      return ['voucher.code.channel'];
+      return ['voucher.channel'];
     }
 
     public function broadcastAs() {

@@ -13,7 +13,7 @@ return [
   |
   */
 
-  'name' => env('APP_NAME', 'Yoov Coupon'),
+  'name' => env('APP_NAME', 'Yoov Ticket'),
 
   /*
   |--------------------------------------------------------------------------
@@ -26,7 +26,8 @@ return [
   |
   */
 
-  'env' => env('APP_ENV', 'production'),
+  'env' => env('APP_ENV', 'development'),
+//  'env' => env('APP_ENV', 'production'),
 
   /*
   |--------------------------------------------------------------------------
@@ -39,7 +40,7 @@ return [
   |
   */
 
-  'debug' => env('APP_DEBUG', false),
+  'debug' => env('APP_DEBUG', true),
 
   /*
   |--------------------------------------------------------------------------
@@ -178,7 +179,7 @@ return [
      */
     App\Providers\AppServiceProvider::class,
     App\Providers\AuthServiceProvider::class,
-    // App\Providers\BroadcastServiceProvider::class,
+    App\Providers\BroadcastServiceProvider::class,
     App\Providers\EventServiceProvider::class,
     App\Providers\RouteServiceProvider::class,
   ],

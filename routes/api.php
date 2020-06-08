@@ -30,7 +30,7 @@ Route::post('recover', 'AuthController@recover');
 Route::group(['middleware' => ['jwt.auth']], function() {
   Route::get('logout', 'AuthController@logout');
 
-  Route::get('test', function(){
+  Route::get('test', function() {
     return response()->json(['foo'=>'bar']);
   });
 });

@@ -17,9 +17,19 @@ use App\User;
 //***************
 // test Pusher
 //***************
-Route::get('/broadcast', function() {
-  event(new \App\Events\TestEvent('Broadcasting in Laravel using PUsher'));
-  return 'sent';
+Route::get('/pusher_test', function() {
+//	$pusher = new Pusher\Pusher(
+//		'1fe6acadae70811a093e',
+//		'addcd3397b91e9ae78e1',
+//		'1014561',
+//		['cluster'=>'ap1']
+//	);
+//	$pusher->trigger('my-channel', 'my-event', ['message'=>'hello world']);
+	
+	print_r(config('broadcasting'));
+	echo PHP_EOL."<BR/>";
+  event(new App\Events\TestEvent('Broadcasting in Laravel using PUsher'));
+  return 'Event has been sent!';
 });
 
 Route::get('/broadcast2', function() {

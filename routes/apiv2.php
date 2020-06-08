@@ -68,17 +68,20 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   //********************
   // Vouchers
   //********************
-  Route::post('vouchers/{id}/codes/export', 'VoucherController@export');
   Route::resource('vouchers', 'VoucherController');
-
+  Route::post('vouchers/{id}/status/{status}', 'VoucherController@setStatus');
+	
+  // voucher participants
   Route::get('vouchers/{id}/participants', 'VoucherController@getParticipants');
   Route::delete('vouchers/{id}/participants/{participantIs}', 'VoucherController@deleteParticipant');
   Route::post('vouchers/{id}/participants/export', 'VoucherController@exportParticipants');
 	Route::delete('vouchers/{id}/participants', 'VoucherController@clearParticipants');
 	
+	Route::post('vouchers/{id}/codes/export', 'VoucherController@export');
 	Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
+	Route::get('vouchers/{id}/code_summary', 'VoucherController@getCodeSummary');
   Route::put('vouchers/{voucherId}/codes/{codeId}', 'VoucherController@updateCode');
-  Route::post('vouchers/{voucherId}/codes/{codeId}/set_status', 'VoucherController@setStatus');
+  Route::post('vouchers/{voucherId}/codes/{codeId}/set_status', 'VoucherController@setCodeStatus');
 	Route::post('vouchers/{id}/codes/export', 'VoucherController@exportCodes');
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 	Route::get('vouchers/{id}/mailing_summary', 'VoucherController@getMailingSummary');
@@ -95,7 +98,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::post('agent_codes/upload', 'AgentCodeController@upload');
   Route::put('agent_codes/upload', 'AgentCodeController@update');
   Route::post('agent_codes/parse/{key}', 'AgentCodeController@parse');
-	Route::post('agent_codes/{id}/reset_status', 'AgentCodeController@resetStatus');
+	Route::post('agent_codes/{id}/change_status/{status}', 'AgentCodeController@changeStatus');
 	
   // Form Questions
 	Route::post('form_questions/upload', 'FormQuestionController@upload');
