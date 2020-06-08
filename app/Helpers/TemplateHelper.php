@@ -16,7 +16,7 @@ class TemplateHelper {
   }
 
   private static function getCodeImage($codeConfigs, $params, $codeGroup) {
-//    $result = '';
+    $result = '';
 //    print_r($codeConfigs);
 //    return '';
     $codeConfig = static::findCodeConfig($codeConfigs, $codeGroup);
@@ -25,6 +25,7 @@ class TemplateHelper {
 //    	$codeColor = trim($codeConfig['code_color']);
 //    }
     $arColors = explode(',', $codeColor);
+
     if (isset($codeConfig) && !empty($params[$codeGroup])) {
       if ($codeGroup === 'qrcode') {
         $imgBase64 = \DNS2D::getBarcodePNG($params[$codeGroup], $codeConfig['code_type'], $codeConfig['width'], $codeConfig['width'], $arColors);

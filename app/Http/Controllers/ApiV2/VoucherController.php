@@ -15,6 +15,7 @@ use App\Helpers\VoucherTemplateHelper;
 use App\Helpers\EmailHelper;
 use App\Helpers\TemplateHelper;
 use App\Helpers\VoucherHelper;
+use App\Helpers\LogHelper;
 
 use App\Jobs\ProcessVoucherEmail;
 
@@ -109,7 +110,7 @@ class VoucherController extends BaseModuleController
 		'form_sharing_description' => 'nullable|string',
 		'form_sharing_image_id' => 'integer',
 
-		'status' => 'in:preparing,pending,ready_to_send,completed',
+		'status' => 'in:preparing,pending,sending,completed',
 		
 		'email_subject' => 'nullabel|string',
 		'email_html_body' => 'nullabel|string',
@@ -168,7 +169,7 @@ class VoucherController extends BaseModuleController
     'form_sharing_description' => 'nullable|string',
     'form_sharing_image_id' => 'integer',
 
-		'status' => 'in:preparing,pending,ready_to_send,completed',
+		'status' => 'in:preparing,sending,pending,completed',
 		
 		'email_subject' => 'nullable|string',
 		'email_html_body' => 'nullable|string',
@@ -223,20 +224,38 @@ class VoucherController extends BaseModuleController
 		}
 	}
 	
-  protected function beforeShowData($id) {
-	  $row = parent::getRow($id);
+//  protected function beforeShowData($id) {
+//	  // $row = parent::getRow($id);
+//    if ($row->codeInfos()->count() === 0) {
+//      if (!empty($row->code_fields)) {
+//        $row->code_fields = '';
+//        $row->save();
+//      }
+//    }
+//  }
+
+	protected function getRow($id)
+	{
+//	  dd('VoucherController :: getRow');
+		$row = parent::getRow($id);
     if ($row->codeInfos()->count() === 0) {
       if (!empty($row->code_fields)) {
         $row->code_fields = '';
         $row->save();
       }
     }
-  }
+    if ($row->codeInfos()->whereIn('status', ['pending', 'hold'])->count() > 0) {
+      if ($row->status === 'completed') {
+        $row->status = 'pending';
+        $row->save();
+      }
+    } else {
+      if ($row->status === 'pending') {
+        $row->status = 'completed';
+        $row->save();
+      }
+    }
 
-	protected function getRow($id)
-	{
-		$row = parent::getRow($id);
-		
 		$this->updateCounts($row);
 		
     // get custom templates
@@ -793,7 +812,23 @@ class VoucherController extends BaseModuleController
 			]
 		]);
 	}
-	
+
+	public function sendEmail($voucherId, $codeId) {
+	  LogHelper::$enabled = false;
+	  $voucherCode = VoucherCode::find($codeId);
+	  $status = false;
+	  if (isset($voucherCode)) {
+	    $status = VoucherHelper::sendVoucherEmail($voucherCode);
+    }
+    $message = $status ? 'Email has been successfully sent.' : 'Error: Fails to send.';
+	  return response()->json([
+	    'status' => $status,
+      'result' => [
+        'message' => $message
+      ]
+    ]);
+  }
+
 	public function setCodeStatus(Request $request, $voucherId, $codeId)
   {
     $status = $request->get('status');

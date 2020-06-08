@@ -224,6 +224,7 @@ class BaseModuleController extends BaseController
   //****************
   protected function getRow($id)
   {
+//    echo 'BaseModuleController :: getRow'.PHP_EOL;
     $query = $this->model;
     $query = $this->onShowWith($query);
     $row = $query->find($id);

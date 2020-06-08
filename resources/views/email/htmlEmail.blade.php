@@ -8,7 +8,6 @@ use App\Helpers\FileHelper;
 
 	//echo 'htmlEmail.blade.php'.PHP_EOL;
 //	function extractImageFiles(&$content, &$message, $emailKey) {
-	  echo 'extractImageFiles begins'.PHP_EOL;
 		$result = [];
 
 	//	$folder = storage_path('app/temp/email_sending/'.$emailKey);

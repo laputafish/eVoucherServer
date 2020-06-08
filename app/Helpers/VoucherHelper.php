@@ -105,20 +105,12 @@ class VoucherHelper {
 		  
 	  $status = true;
 	  foreach($voucherCodes as $voucherCode) {
+
       $voucher = $voucherCode->voucher;
-		
-		  // Update voucher code status
-		  $voucherCode->status = 'processing';
-		  $voucherCode->save();
-		  event(new VoucherCodeStatusUpdatedEvent($voucherCode));
-		  
-      $res = static::sendVoucherEmail($voucherCode);
-      $status = $res['status'];
-      if ($status) {
-        static::updateVoucherCodeStatus($voucherCode, 'completed', date('Y-m-d H:i:s'));
-      } else {
-        static::updateVoucherCodeStatus($voucherCode, 'fails', date('Y-m-d H:i:s'), $res['message']);
-      }
+
+
+      $ok = static::sendVoucherEmail($voucherCode);
+
 		
 		  event(new VoucherMailingStatusUpdatedEvent($voucher));
 		  if (VoucherCode::whereVoucherId($voucher->id)->whereStatus('pending')->count()==0) {
@@ -128,7 +120,7 @@ class VoucherHelper {
       }
     }
     // return true to enable looping even there is error
-    return $status;
+    return $ok;
   }
 
   public static function resetVoucherCodeStatus($voucherCode) {
@@ -199,7 +191,10 @@ class VoucherHelper {
 			$voucher = $voucherCode->voucher;
 		}
 
-		
+    // Update voucher code status
+    $voucherCode->status = 'processing';
+    $voucherCode->save();
+    event(new VoucherCodeStatusUpdatedEvent($voucherCode));
 		$template = VoucherTemplateHelper::readVoucherTemplate($voucher, 'email');
 		$participant = $voucherCode->participant;
 
@@ -244,10 +239,20 @@ class VoucherHelper {
 			$voucherCode->save();
 		}
 		LogHelper::log('VoucherHelper::sendVoucherEmail :: message: '. $message);
-		return [
-			'status' => $status,
-			'message' => $message
-		];
+
+//		$res = [
+//			'status' => $status,
+//			'message' => $message
+//		];
+//
+//    $status = $res['status'];
+    if ($status) {
+      static::updateVoucherCodeStatus($voucherCode, 'completed', date('Y-m-d H:i:s'));
+    } else {
+      static::updateVoucherCodeStatus($voucherCode, 'fails', date('Y-m-d H:i:s'), $message);
+    }
+
+		return $status; // $res['status'];
 	}
 	
 	
