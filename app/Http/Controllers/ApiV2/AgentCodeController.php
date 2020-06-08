@@ -291,6 +291,22 @@ class AgentCodeController extends BaseController
 	
 	}
 
+	public function updateViews($id) {
+	  $status = false;
+	  $voucherCode = VoucherCode::find($id);
+	  if (isset($voucherCode)) {
+	    $status = true;
+	    $voucherCode->views++;
+	    $voucherCode->save();
+	    event(new VoucherCodeViewsUpdated($voucherCode));
+    } else {
+	    $message = 'Error: cannot update views.';
+    }
+    return response()->json([
+      'status' => $status,
+      'result' => []
+    ]);
+  }
 	private function getCodeIndex($fieldInfos) {
 		$result = 0;
 		for($i = 0; $i < count($fieldInfos); $i++) {

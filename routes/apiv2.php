@@ -96,6 +96,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::get('agents/{id}/smtp_servers', 'AgentController@getSmtpServers');
 
   // Agent Codes
+  Route::post('agent_codes/{id}/update_views', 'AgentCodeController@updateViews');
   Route::post('agent_codes/upload', 'AgentCodeController@upload');
   Route::put('agent_codes/upload', 'AgentCodeController@update');
   Route::post('agent_codes/parse/{key}', 'AgentCodeController@parse');
