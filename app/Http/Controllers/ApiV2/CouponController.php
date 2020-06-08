@@ -10,6 +10,8 @@ use App\Helpers\TagGroupHelper;
 
 use Illuminate\Http\Request;
 
+use App\Events\VoucherCodeViewsUpdatedEvent;
+
 class CouponController extends BaseController {
 	public function showForm($id, $timestamp=null) {
 		if (is_null($timestamp)) {
@@ -50,6 +52,9 @@ class CouponController extends BaseController {
 			if (isset($voucherCode)) {
 				$voucher = $voucherCode->voucher;
 				$appliedTemplate = $this->processLeafletWithCode($voucherCode);
+				$voucherCode->views++;
+				$voucherCode->save();
+				event(new VoucherCodeViewsUpdatedEvent($voucherCode));
 			} else {
 				$participant = VoucherParticipant::where('participant_key', $key)->first();
 				if (isset($participant)) {
