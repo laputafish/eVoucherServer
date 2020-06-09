@@ -83,21 +83,30 @@ class EmailTemplateController extends BaseModuleController
 
 		// Send email
 		$smtpConfig = SmtpServerHelper::getConfig($smtpServer);
+		$mailInfo = [
+			'subject' => $subject,
+			'toEmail' => $email,
+			'cc' => $cc,
+			'bcc' => $bcc,
+			'body' => $appliedTemplate,
+			'fromEmail' => $smtpConfig['from']['address'],
+			'fromName' => $smtpConfig['from']['name']
+		];
 
-//echo 'smtpConfig: '.PHP_EOL;
-//print_r($smtpConfig);
-//return 'ok';
+		
+		
+//		return view('email.htmlEmail')->with(['content' => $appliedTemplate]);
+//		$path = storage_path('logs/template_by_test.html');
+//		if (file_exists($path)) {
+//			unlink($path);
+//		}
+//		file_put_contents($path, $appliedTemplate);
+		
+		
+		
 		$errorMsg = EmailTemplateHelper::sendHtml(
 			$smtpConfig,
-			[
-				'subject' => $subject,
-				'toEmail' => $email,
-				'cc' => $cc,
-				'bcc' => $bcc,
-				'body' => $appliedTemplate,
-				'fromEmail' => $smtpConfig['from']['address'],
-				'fromName' => $smtpConfig['from']['name']
-			]
+			$mailInfo
 		);
 
 		// Prepare message if err

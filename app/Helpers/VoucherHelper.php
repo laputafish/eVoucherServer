@@ -220,16 +220,32 @@ class VoucherHelper {
 			'fromName' => $smtpConfig['from']['name']
 		];
 		
-		$errorMsg = EmailTemplateHelper::sendHtml($smtpConfig, $mailInfo);
+		
+//		$path = storage_path('logs/template_sending_email.html');
+//		if (file_exists($path)) {
+//			unlink($path);
+//		}
+//		file_put_contents($path, $appliedTemplate);
+		
+		
+		
+		
+		$errorMsg = EmailTemplateHelper::sendHtml(
+			$smtpConfig,
+			$mailInfo);
 		
 		// Prepare message if err
 		$status = true;
 		$message = '';
 		if ($errorMsg) {
 			$status = false;
-			$message = $errorMsg;
+			if (strpos($errorMsg, 'exceeded') !== false) {
+				$message = 'Messaging limits exceeded!';
+			} else {
+				$message = $errorMsg;
+			}
 			$voucherCode->status = 'fails';
-			$voucherCode->error_message = $errorMsg;
+			$voucherCode->error_message = $message;
 			$voucherCode->sent_on = date('Y-m-d H:i:s');
 			$voucherCode->save();
 		} else {
@@ -252,7 +268,7 @@ class VoucherHelper {
       static::updateVoucherCodeStatus($voucherCode, 'fails', date('Y-m-d H:i:s'), $message);
     }
 
-		return $status; // $res['status'];
+		return true; //  $status; // $res['status'];
 	}
 	
 	

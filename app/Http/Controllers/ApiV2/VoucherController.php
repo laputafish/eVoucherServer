@@ -274,6 +274,7 @@ class VoucherController extends BaseModuleController
     $row->form_configs = json_decode($row->questionnaire_configs, true);
 		$row->participant_configs = json_decode($row->participant_configs, true);
 		
+		$row->total_views = $row->codes()->sum('views');
 		// unset($row->questionnaire_configs);
 		return $row;
 	}

@@ -16,8 +16,6 @@ class SmtpServerController extends BaseController
     \Config::set('mail', $smtpConfig);
     $fromEmail = $serverConfig['mail_from_address'];
     $fromName = $serverConfig['mail_from_name'];
-//    $fromEmail = 'yoovsuper@gmail.com';
-//    $fromName = 'YOOV SUPER';
     $toEmail = $request->get('receiverEmailAddress');
     $mailBody = [
       'name' => '',

@@ -5,6 +5,7 @@ use App\Models\Menu;
 use Illuminate\Http\Request;
 
 use Bouncer;
+use App\Models\SmtpServer;
 
 class AgentController extends BaseModuleController
 {

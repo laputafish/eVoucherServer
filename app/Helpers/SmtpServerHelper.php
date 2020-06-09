@@ -20,6 +20,8 @@ class SmtpServerHelper {
           'verify_peer_name' => false,
         ],
       ],
+			'sendmail' => '/usr/sbin/sendmail -bs',
+			'pretend' => false
 		];
 	}
 }

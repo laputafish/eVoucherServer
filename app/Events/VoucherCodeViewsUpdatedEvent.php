@@ -15,6 +15,7 @@ class VoucherCodeViewsUpdatedEvent implements ShouldBroadcast
   use Dispatchable, InteractsWithSockets, SerializesModels;
 
   public $voucherCode;
+  public $totalViews;
   /**
    * Create a new event instance.
    *
@@ -22,11 +23,13 @@ class VoucherCodeViewsUpdatedEvent implements ShouldBroadcast
    */
   public function __construct($voucherCode)
   {
-    $this->voucherCode = [
+  	$voucher = $voucherCode->voucher;
+  	$this->voucherCode = [
       'id' => $voucherCode->id,
       'views' => $voucherCode->views,
 	    'voucher_id' => $voucherCode->voucher_id
     ];
+  	$this->totalViews = $voucher->codes()->sum('views');
   }
 
   /**
