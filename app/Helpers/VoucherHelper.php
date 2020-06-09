@@ -103,13 +103,13 @@ class VoucherHelper {
 		  ->whereIn('voucher_id', $processingVoucherIds)
 		  ->get();
 		  
-	  $status = true;
+	  $success = true;
 	  foreach($voucherCodes as $voucherCode) {
 
       $voucher = $voucherCode->voucher;
 
 
-      $ok = static::sendVoucherEmail($voucherCode);
+      $success = static::sendVoucherEmail($voucherCode);
 
 		
 		  event(new VoucherMailingStatusUpdatedEvent($voucher));
@@ -120,7 +120,7 @@ class VoucherHelper {
       }
     }
     // return true to enable looping even there is error
-    return $ok;
+    return $success;
   }
 
   public static function resetVoucherCodeStatus($voucherCode) {

@@ -37,7 +37,7 @@ class VoucherStatusUpdatedEvent implements ShouldBroadcast
    */
   public function broadcastOn()
   {
-    return new Channel('voucher.channel');
+	  return ['voucher'.$this->voucher->id.'.channel'];
   }
 
   public function broadcastAs() {

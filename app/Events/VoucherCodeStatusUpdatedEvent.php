@@ -25,6 +25,7 @@ class VoucherCodeStatusUpdatedEvent implements ShouldBroadcast
 	    $participant = $voucherCode->participant;
 	    $this->voucherCode = [
 		    'id' => $voucherCode->id,
+		    'voucher_id' => $voucherCode->voucher_id,
 		    'status' => $voucherCode->status,
 		    'sent_on' => $voucherCode->sent_on,
 		    'error_message' => $voucherCode->error_message,
@@ -45,7 +46,11 @@ class VoucherCodeStatusUpdatedEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-      return ['voucher.channel'];
+//    	echo 'this->voucherCode: '.PHP_EOL;
+//    	print_r($this->voucherCode);
+//    	echo PHP_EOL;
+//
+      return ['voucher'.$this->voucherCode['voucher_id'].'.channel'];
     }
 
     public function broadcastAs() {

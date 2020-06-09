@@ -75,12 +75,14 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::get('vouchers/{id}/participants', 'VoucherController@getParticipants');
   Route::delete('vouchers/{id}/participants/{participantIs}', 'VoucherController@deleteParticipant');
   Route::post('vouchers/{id}/participants/export', 'VoucherController@exportParticipants');
+  Route::post('vouchers/{id}/reset_all_codes_mailing_status', 'VoucherController@resetAllCodesMailingStatus');
 	Route::delete('vouchers/{id}/participants', 'VoucherController@clearParticipants');
 	
 	Route::post('vouchers/{id}/codes/export', 'VoucherController@export');
 	Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
 	Route::get('vouchers/{id}/code_summary', 'VoucherController@getCodeSummary');
   Route::put('vouchers/{voucherId}/codes/{codeId}', 'VoucherController@updateCode');
+  
   Route::post('vouchers/{voucherId}/codes/{codeId}/set_status', 'VoucherController@setCodeStatus');
   Route::post('vouchers/{voucherId}/codes/{codeId}/send_email', 'VoucherController@sendEmail');
 	Route::post('vouchers/{id}/codes/export', 'VoucherController@exportCodes');

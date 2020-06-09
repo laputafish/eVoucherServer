@@ -1121,10 +1121,6 @@ class VoucherController extends BaseModuleController
 	
 	public function getMailingSummary($id) {
 		$summaryResult = VoucherHelper::getMailingSummary($id);
-		// $summaryResult = [
-		//  'status' => true|false,
-		//  'result' => [...]
-		// ]
 		return response()->json($summaryResult);
 	}
 	
@@ -1146,5 +1142,21 @@ class VoucherController extends BaseModuleController
 				'message' => $message
 			]
 		]);
+	}
+	
+	public function resetAllCodesMailingStatus($id)
+	{
+		$voucher = $this->model->find($id);
+		if (isset($voucher)) {
+			$codes = $voucher->codes;
+			foreach ($codes as $code) {
+				$code->status = 'pending';
+				$code->error_message = '';
+				$code->sent_on = null;
+				$code->save();
+			}
+		}
+		$summaryResult = VoucherHelper::getMailingSummary($id);
+		return response()->json($summaryResult);
 	}
 }

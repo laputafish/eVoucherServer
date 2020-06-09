@@ -25,6 +25,7 @@ class VoucherCodeViewsUpdatedEvent implements ShouldBroadcast
     $this->voucherCode = [
       'id' => $voucherCode->id,
       'views' => $voucherCode->views,
+	    'voucher_id' => $voucherCode->voucher_id
     ];
   }
 
@@ -35,7 +36,7 @@ class VoucherCodeViewsUpdatedEvent implements ShouldBroadcast
    */
   public function broadcastOn()
   {
-    return ['voucher.channel'];
+	  return ['voucher'.$this->voucherCode['voucher_id'].'.channel'];
   }
 
   public function broadcastAs() {
