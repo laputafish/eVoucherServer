@@ -105,13 +105,11 @@ class VoucherHelper {
 		  
 	  $success = true;
 	  foreach($voucherCodes as $voucherCode) {
-
-      $voucher = $voucherCode->voucher;
-
-
+      $voucher = Voucher::find($voucherCode->voucher_id);
+      if ($voucher->status != 'sending') {
+        break;
+      }
       $success = static::sendVoucherEmail($voucherCode);
-
-		
 		  event(new VoucherMailingStatusUpdatedEvent($voucher));
 		  if (VoucherCode::whereVoucherId($voucher->id)->whereStatus('pending')->count()==0) {
       	$voucher->status = 'completed';
