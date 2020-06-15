@@ -45,7 +45,8 @@ class CouponController extends BaseController {
 	public function showCoupon($id, $timestamp=null) {
 		$voucher = null;
 		$isFormal = is_null($timestamp);
-
+    $appliedTemplate = '';
+    
 		if ($isFormal) {
 			$key = $id;
 			$voucherCode = VoucherCode::where('key', $key)->first();
