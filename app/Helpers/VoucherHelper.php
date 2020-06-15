@@ -99,9 +99,17 @@ class VoucherHelper {
   
   public static function processVoucherCodes($voucherCodeStatus) {
 	  $processingVoucherIds = Voucher::whereStatus('sending')->pluck('id')->toArray();
-	  $voucherCodes = VoucherCode::where('status', $voucherCodeStatus)
-		  ->whereIn('voucher_id', $processingVoucherIds)
-		  ->get();
+
+	  if ($voucherCodeStatus == 'pending') {
+      $voucherCodes = VoucherCode::where('status', $voucherCodeStatus)
+        ->whereHas('participant')
+        ->whereIn('voucher_id', $processingVoucherIds)
+        ->get();
+    } else {
+      $voucherCodes = VoucherCode::where('status', $voucherCodeStatus)
+        ->whereIn('voucher_id', $processingVoucherIds)
+        ->get();
+    }
 		  
 	  $success = true;
 	  foreach($voucherCodes as $voucherCode) {
@@ -151,29 +159,23 @@ class VoucherHelper {
 	  if (!isset($voucher)) {
 	  	$result['message'] = 'Voucher id "'.$id.'" is undefined.';
 	  } else {
-		  $statusList = $voucher->codes()->pluck('status')->toArray();
-		
-//		  $sendingTo = null;
-//		  $processingCode = $voucher->codes()->where('status', 'processing')->first();
-//		  if (isset($processingCode) && isset($processingCode->participant)) {
-//			  $sendingTo = $processingCode->participant;
-//		  }
+		  $statusList = $voucher->codes()->select('status', 'participant_id')->get();
+
 		  $status = true;
 		  $result = [
 			  'summary' => [
-//				  'sending_to' => $sendingTo,
-				  'pending' => count(array_filter($statusList, function ($item) {
-					  return $item == 'pending';
-				  })),
-				  'completed' => count(array_filter($statusList, function ($item) {
-					  return $item == 'completed';
-				  })),
-				  'fails' => count(array_filter($statusList, function ($item) {
-					  return $item == 'fails';
-				  })),
-				  'processing' => count(array_filter($statusList, function ($item) {
-					  return $item == 'processing';
-				  })),
+				  'pending' => $statusList->filter(function($item) {
+            return $item->status == 'pending' && $item->participant_id != 0;
+          })->count(),
+          'completed' => $statusList->filter(function($item) {
+            return $item->status == 'completed' && $item->participant_id != 0;
+          })->count(),
+				  'fails' => $statusList->filter(function($item) {
+            return $item->status == 'fails' && $item->participant_id != 0;
+          })->count(),
+				  'processing' => $statusList->filter(function($item) {
+            return $item->status == 'processing' && $item->participant_id != 0;
+          })->count(),
 			  ]
 		  ];
 	  }

@@ -241,7 +241,31 @@ class MediaHelper {
 		}
 		cascadePurgeFolders($oldFolder, base_path('storage/app/' . $prefixPath));
 	}
-	
-	
+
+	public static function purge($testMode=false) {
+    $defaultImageFolder = 'images';
+    $medias = Media::all();
+    $items = [];
+    $count = 0;
+    foreach($medias as $media) {
+      $pathPrefix = $media->type == 'temp' ? 'temp' : 'images';
+      $mediaFolder = storage_path('app/' .$pathPrefix.'/'.$media->path);
+      if (!file_exists($mediaFolder)) {
+        $count ++;
+        $items[] = [
+          'id' => $media->id,
+          'partialPath' => $media->path,
+          'filename' => $media->filename
+        ];
+        if (!$testMode) {
+          Media::whereId($media->id)->delete();
+        }
+      }
+    }
+    return [
+      'count' => $count,
+      'items' => $items
+    ];
+  }
 	
 }

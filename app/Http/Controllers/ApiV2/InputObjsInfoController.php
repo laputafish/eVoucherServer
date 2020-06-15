@@ -52,14 +52,16 @@ class InputObjsInfoController extends BaseController
       $type = $inputObjGroup->inputObjType->type;
       $attributeKeys = $inputObjGroup->attributes()->orderby('order')->pluck('attribute_key')->toArray();
       if (array_key_exists($type, $result)) {
-        $result[$type] = [
+        $result[$type][] = [
           'caption' => $inputObjGroup->caption,
           'attributeKeys' => $attributeKeys
         ];
       } else {
-        $result[$type][] = [
-          'caption' => $inputObjGroup->caption,
-          'attributeKeys' => $attributeKeys
+        $result[$type] = [
+          [
+            'caption' => $inputObjGroup->caption,
+            'attributeKeys' => $attributeKeys
+          ]
         ];
       }
     }

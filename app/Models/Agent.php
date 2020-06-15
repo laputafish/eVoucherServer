@@ -22,13 +22,16 @@ class Agent extends Model
     return $this->hasMany('App\Models\Voucher');
   }
 
+  public function getImageIdsAttribute() {
+    return array_map(function($image) {return $image->id;}, $this->images);
+  }
   public function getImagesAttribute() {
     $vouchers = $this->vouchers;
     $result = [];
     if (isset($vouchers)) {
       foreach($vouchers as $voucher) {
         $result = array_merge($result,
-          $voucher->medias()->pluck('id')->toArray()
+          $voucher->medias->toArray()
         );
       }
     }

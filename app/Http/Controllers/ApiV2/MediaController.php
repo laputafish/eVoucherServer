@@ -17,7 +17,7 @@ class MediaController extends BaseController
     parent::__construct();
   }
 
-  public function index() {
+  public function getMediaIds() {
     $query = $this->user->medias();
     if (\Input::has('scope')) {
       $scope = \Input::get('scope');
@@ -38,6 +38,51 @@ class MediaController extends BaseController
         case 'agent':
           $rows = Agent::whereUserId($this->user->id)
             ->select('id', 'name')->get();
+          $result = [];
+          foreach($rows as $row) {
+            $result[] = [
+              'id' => $row->id,
+              'description' => $row->name,
+              'images' => $row->images
+            ];
+          }
+//          $result = $rows->toArray();
+//          foreach($result as $record) {
+//            unset($record['vouchers']);
+//          }
+          break;
+        case 'all':
+          $result = Media::whereUserId($this->user->id)->select('id')->get();
+      }
+    } else {
+      $result = $query->get();
+    }
+    return response()->json([
+      'status' => true,
+      'result' => $result
+    ]);
+  }
+
+  public function index() {
+    $query = $this->user->medias();
+    if (\Input::has('scope')) {
+      $scope = \Input::get('scope');
+      switch($scope) {
+        case 'local':
+          $voucherId = \Input::get('voucherId');
+          $voucher = Voucher::find($voucherId);
+          $result = $voucher->medias;
+          break;
+        case 'voucher':
+          $result = Voucher::select('id', 'description')->whereUserId($this->user->id)->with('medias')->get();
+          $result = $result->map(function ($row) {
+            $row->images = $row->medias;
+            unset($row->medias);
+            return $row;
+          });
+          break;
+        case 'agent':
+          $rows = Agent::whereUserId($this->user->id)->get();
           $result = [];
           foreach($rows as $row) {
             $result[] = [
@@ -289,5 +334,28 @@ class MediaController extends BaseController
 				'message' => 'Deleted Successfully.'
 			]
 		]);
+  }
+
+  public function purge() {
+    $res = MediaHelper::purge();
+    return response()->json([
+      'status' => true,
+      'result' => [
+        'message' => $res['count'] . ' record(s) without any files is found and removed.',
+        'items' => $res['items']
+      ]
+    ]);
+  }
+
+  public function purgeTest() {
+    $test = true;
+    $res = MediaHelper::purge($test);
+    return response()->json([
+      'status' => true,
+      'result' => [
+        'message' => $res['count'] . ' record(s) without any files is found and removed.',
+        'items' => $res['items']
+      ]
+    ]);
   }
 }

@@ -22,7 +22,7 @@ class AccessKeyController extends BaseModuleController
     switch ($command) {
 	    case 'export':
 	    	switch ($module) {
-			    case 'voucher_codes':
+			    case 'voucher_codes': // includes participants if exists
 				    return $this->exportVoucherCodes($params);
 			    case 'voucher_participants':
 				    return $this->exportVoucherParticipants($params);

@@ -4,12 +4,15 @@ use App\Models\Agent;
 use App\Models\VoucherCode;
 use App\Models\TempLeaflet;
 use App\Models\SmtpServer;
+use App\Models\Command;
+use App\Models\System;
 
 use App\Helpers\TemplateHelper;
 use App\Helpers\QRCodeHelper;
+
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Http\Request;
-use App\Models\System;
+
 
 class SystemController extends BaseController
 {
@@ -27,6 +30,22 @@ class SystemController extends BaseController
     return response()->json([
       'status' => true,
       'result' => $result
+    ]);
+  }
+
+  public function resetCommand($command) {
+    switch($command) {
+      case 'sendVoucherEmails':
+        $row = Command::whereName('sendVoucherEmails')->first();
+        $row->forced = 1;
+        $row->save();
+        break;
+    }
+    return response()->json([
+      'status' => true,
+      'result' => [
+        'message' => 'Command "' .$command .'" is reset successfully.'
+      ]
     ]);
   }
 }

@@ -70,22 +70,24 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   //********************
   Route::resource('vouchers', 'VoucherController');
   Route::post('vouchers/{id}/status/{status}', 'VoucherController@setStatus');
-	
+  Route::post('vouchers/{id}/assign_codes', 'VoucherController@assignCodes');
+  Route::post('vouchers/{id}/clear_code_assignments', 'VoucherController@clearCodeAssignments');
+
   // voucher participants
   Route::get('vouchers/{id}/participants', 'VoucherController@getParticipants');
   Route::delete('vouchers/{id}/participants/{participantIs}', 'VoucherController@deleteParticipant');
   Route::post('vouchers/{id}/participants/export', 'VoucherController@exportParticipants');
+  Route::post('vouchers/{id}/reset_failed_codes', 'VoucherController@resetFailedCodes');
   Route::post('vouchers/{id}/reset_all_codes_mailing_status', 'VoucherController@resetAllCodesMailingStatus');
 	Route::delete('vouchers/{id}/participants', 'VoucherController@clearParticipants');
 	
-	Route::post('vouchers/{id}/codes/export', 'VoucherController@export');
 	Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
 	Route::get('vouchers/{id}/code_summary', 'VoucherController@getCodeSummary');
   Route::put('vouchers/{voucherId}/codes/{codeId}', 'VoucherController@updateCode');
   
   Route::post('vouchers/{voucherId}/codes/{codeId}/set_status', 'VoucherController@setCodeStatus');
   Route::post('vouchers/{voucherId}/codes/{codeId}/send_email', 'VoucherController@sendEmail');
-	Route::post('vouchers/{id}/codes/export', 'VoucherController@exportCodes');
+	Route::post('vouchers/{id}/codes_with_participants/export', 'VoucherController@exportCodesWithParticipants');
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 	Route::get('vouchers/{id}/mailing_summary', 'VoucherController@getMailingSummary');
 	
@@ -128,6 +130,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::post('media/upload', 'MediaController@upload');
 //  Route::get('media/image/{id}', 'MediaController@showImage');
   Route::resource('medias', 'MediaController');
+  Route::get('media_ids', 'MediaController@getMediaIds');
 
   Route::post('smtp_server/check', 'SmtpServerController@sendTestEmail');
 

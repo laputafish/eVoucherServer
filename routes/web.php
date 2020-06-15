@@ -56,6 +56,13 @@ Route::get('/actions/test_email', function() {
   echo "Basic Email Sent. Check your inbox.";
 });
 
+//*****************
+// System Command
+//*****************
+Route::get('/system/medias/purge', 'ApiV2\MediaController@purge');
+Route::get('/system/medias/purge/test', 'ApiV2\MediaController@purgeTest');
+Route::get('/system/command/{command}/reset', 'ApiV2\SystemController@resetCommand');
+
 
 Route::get('/actions/migrate_templates', 'ApiV2\VoucherTemplateController@migrateTemplates');
 Route::get('/get_template_path', 'ApiV2\TestController@getTemplatePath');
@@ -73,43 +80,6 @@ Route::get('q/{key}/{timestamp?}', 'ApiV2\FormQuestionController@showQuestionFor
 
 //Route::post('q', 'ApiV2\FormQuestionController@postQuestionForm');
 Route::post('questions/submit', 'ApiV2\FormQuestionController@postQuestionForm');
-//});
-//Route::get('xquestions', function() {
-//	return 'get q';
-//});
-
-Route::get('/get_data', function() {
-//  for ($i = 0; $i < 2000; $i++) {
-//    Voucher::create([
-//      'description' => 'Voucher #'.$i,
-//      'agent_id' => rand(1,3),
-//      'activation_date' => date('Y-m-d'),
-//      'expiry_date' => date('Y-m-d', strtotime('+20 days')),
-//      'qr_code_size' => 160,
-//      'status' => 'pending'
-//    ]);
-//  }
-  $rows = Voucher::where('id', '>=', 7)->get();
-  foreach($rows as $row) {
-  	echo $row->agent_id.PHP_EOL."<Br/>";
-//    $row->update([
-//      'agent_id' => rand(1,3)
-//    ]);
-  }
-//  $voucher = Voucher::find(1);
-//  for ($i = 0; $i < 100; $i++) {
-//    $codeInfo = new VoucherCode([
-//      'order' => 0,
-//      'code' => '0019999900100008000000g0rDtK'.str_pad($i, 4, '0', STR_PAD_LEFT),
-//      'extra_fields' => '00092979|2019-11-14|2020-05-23',
-//      'key' => ''
-//    ]);
-//    $voucher->codeInfos()->save($codeInfo);
-//  }
-  return 'get_data :: ok';
-});
-
-
 
 // Download question form configs
 Route::get('d/{key}/{timestamp?}', 'ApiV2\FormQuestionController@downloadFormConfigs');

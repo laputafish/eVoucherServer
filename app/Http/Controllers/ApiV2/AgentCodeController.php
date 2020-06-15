@@ -149,62 +149,104 @@ class AgentCodeController extends BaseController
 					}
 				}
 			}
-			
+
+			$result = [];
+			$result['messages'] = [];
+			$result['messageTags'] = [];
+      $res2 = null;
+      $res1 = null;
+
+			// add participants
+      $arParticipantIds = [];
 			$participantFieldInfos = array_filter($fieldDefs, function($info) {
 				return $info['fieldType'] != 'code' && $info['fieldType'] != 'code-other';
 			});
-			$res2 = $this->updateParticipantCodes($voucher, $participantData, $participantFieldInfos);
+			if (count($participantFieldInfos)>0) {
+        $res2 = $this->updateParticipantCodes($voucher, $participantData, $participantFieldInfos);
+        if (isset($res2)) {
+          $arParticipantIds = $res2['result']['participantIds'];
+          $result['participantIds'] = $res2['result']['participantIds'];
 
-//			print_r($res2);
-//			return 'ok';
-			$arParticipantIds = [];
-			$participantConfigs = [];
-			if (isset($res2)) {
-				$arParticipantIds = $res2['result']['participantIds'];
-				$participantConfigs = $res2['result']['participantConfigs'];
-			}
-//			print_r($arParticipantIds);
-//			return 'ok';
+          $voucher = Voucher::find($voucherId);
+  			  $result['participantConfigs'] = json_decode($voucher->participant_configs, true);
+//          $result['participantConfigs'] = $res2['result']['participantConfigs'];
+        }
+      }
+//			$arParticipantIds = [];
+//			$participantConfigs = [];
+//			if (isset($res2)) {
+//				$arParticipantIds = $res2['result']['participantIds'];
+//				$participantConfigs = $res2['result']['participantConfigs'];
+//			}
+
 			$voucherFieldInfos = array_filter($fieldDefs, function($info) {
 				return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
 			});
-			$res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
-			
-			$voucher = Voucher::find($voucherId);
-			$res1['result']['participantConfigs'] = json_decode($voucher->participant_configs, true);
-			$res1['result']['participantCount'] = $voucher->participants()->count();
-			
-		}
-		
-		$res = [
-			'status' => true,
-			'result' => [
-				'message' => '',
-				'messageTag' => ''
-			]
-		];
-		if (!$res1['status']) {
-			$res['status'] = false;
-			if (!array_key_exists('message', $res1['result'])) {
-//				echo 'res1: '.PHP_EOL.PHP_EOL;
-//				print_r($res1);
-			} else {
-				$res['result']['message'] = $res1['result']['message'];
-				$res['result']['messageTag'] = $res1['result']['messageTag'];
-			}
-		} else if(isset($res2) && !$res2['status']) {
-			$res['status'] = false;
-			if (!array_key_exists('message', $res2['result'])) {
-//				echo 'res2: '.PHP_EOL.PHP_EOL;
-//				print_r($res2);
-			} else {
-				$res['result']['message'] = $res2['result']['message'];
-				$res['result']['messageTag'] = $res2['result']['messageTag'];
-			}
+			if (count($voucherFieldInfos) > 0) {
+        $res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
+        $result = array_merge($result, $res1['result']);
+      }
+//			$voucher = Voucher::find($voucherId);
+//			$res1['result']['participantConfigs'] = json_decode($voucher->participant_configs, true);
+//			$res1['result']['participantCount'] = $voucher->participants()->count();
+      $status = true;
+      if (isset($res1)) {
+			  if (!$res1['status']) {
+			    $status = false;
+			    $result['messages'][] = $res1['message'];
+			    $result['messageTags'][] = $res1['messageTag'];
+        }
+      }
+      if (isset($res2)) {
+			  if (!$res2['status']) {
+			    $status = false;
+			    $result['messages'][] = $res2['message'];
+          $result['messageTags'][] = $res2['messageTag'];
+        }
+      }
+      $res = [
+        'status' => $status,
+        'result' => $result
+      ];
 		} else {
-			$res = $res1;
-		}
-//		$res['messageTag'] = $arParticipantIds;
+		  $res = [
+		    'status' => false,
+        'result' => [
+          'message' => 'No data to import!'
+        ]
+      ];
+    }
+
+//		print_r($result);
+//		return 'ok';
+//		$res = [
+//			'status' => true,
+//			'result' => [
+//				'message' => '',
+//				'messageTag' => ''
+//			]
+//		];
+//
+//		if (isset($res1)) {
+//
+//    }
+//		if (!$res1['status']) {
+//			$res['status'] = false;
+//			if (!array_key_exists('message', $res1['result'])) {
+//			} else {
+//				$res['result']['message'] = $res1['result']['message'];
+//				$res['result']['messageTag'] = $res1['result']['messageTag'];
+//			}
+//		} else if(isset($res2) && !$res2['status']) {
+//			$res['status'] = false;
+//			if (!array_key_exists('message', $res2['result'])) {
+//			} else {
+//				$res['result']['message'] = $res2['result']['message'];
+//				$res['result']['messageTag'] = $res2['result']['messageTag'];
+//			}
+//		} else {
+//			$res = $res1;
+//		}
 		return response()->json($res);
 	}
 	

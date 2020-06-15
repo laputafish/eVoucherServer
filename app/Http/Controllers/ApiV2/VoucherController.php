@@ -303,7 +303,7 @@ class VoucherController extends BaseModuleController
 		]);
 	}
 	
-	public function exportCodes($id)
+	public function exportCodesWithParticipants($id)
 	{
 		$accessKey = AccessKeyHelper::create(
 			$this->user,
@@ -1144,7 +1144,23 @@ class VoucherController extends BaseModuleController
 			]
 		]);
 	}
-	
+
+	public function resetFailedCodes($id)
+  {
+    $voucher = $this->model->find($id);
+    if (isset($voucher)) {
+      $codes = $voucher->codes()->whereStatus('fails')->get();
+      foreach ($codes as $code) {
+        $code->status = 'pending';
+        $code->error_message = '';
+        $code->sent_on = null;
+        $code->save();
+      }
+    }
+    $summaryResult = VoucherHelper::getMailingSummary($id);
+    return response()->json($summaryResult);
+  }
+
 	public function resetAllCodesMailingStatus($id)
 	{
 		$voucher = $this->model->find($id);
@@ -1160,4 +1176,85 @@ class VoucherController extends BaseModuleController
 		$summaryResult = VoucherHelper::getMailingSummary($id);
 		return response()->json($summaryResult);
 	}
+
+	public function clearCodeAssignments(Request $request, $id)
+  {
+    $force = $request->get('force', false);
+    $voucher = $this->model->find($id);
+
+    $participantIds = $voucher->participants()->pluck('id')->toArray();
+    $count = count($participantIds);
+    VoucherCode::whereIn('participant_id', $participantIds)->update([
+      'participant_id' => 0
+    ]);
+    return response()->json([
+      'status' => true,
+      'result' => [
+        'message' => $count.' participants have codes removed.'
+      ]
+    ]);
+  }
+
+	public function assignCodes(Request $request, $id) {
+	  $force = $request->get('force', false);
+	  $voucher = $this->model->find($id);
+
+	  $participants = $voucher->participants()->whereDoesntHave('code')->get();
+	  $participantCount = $participants->count();
+
+	  $codes = $voucher->codes()->whereDoesntHave('participant')->get();
+	  $codeCount = $codes->count();
+
+	  $count = $participantCount > $codeCount ? $codeCount : $participantCount;
+
+	  if ($codeCount == 0) {
+	    if ($participantCount == 0) {
+	      $result = [
+	        'status' => true,
+          'result' => [
+            'message' => $count.'No assignment is necessary.',
+            'variant' => 'warning'
+          ]
+        ];
+      } else {
+        $result = [
+          'status' => false,
+          'result' => [
+            'message' => 'No available codes!',
+            'variant' => 'warning'
+          ]
+        ];
+      }
+    } else {
+      if ($force || ($participantCount == $codeCount)) {
+        $this->doAssignCodes($count, $participants, $codes);
+        $result = [
+          'status' => true,
+          'result' => [
+            'message' => $count . ' participant(s) is assigned codes successfully.'
+          ]
+        ];
+      } else {
+        $result = [
+          'status' => false,
+          'result' => [
+            'message' => 'No. of participant (' . $participantCount . ') and no. of code (' . $codeCount . ') not matched!',
+            'needConfirm' => true
+          ]
+        ];
+      }
+    }
+
+    return response()->json($result);
+  }
+
+  private function doAssignCodes($count, $participants, $codes) {
+	  $i = 0;
+    foreach($codes as $code) {
+      $code->participant_id = $participants[$i]->id;
+      $code->save();
+      $i++;
+      if ($i>=$count) break;
+    }
+  }
 }

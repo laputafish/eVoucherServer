@@ -29,24 +29,24 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
 	  $keyFromCode = $voucher->goal_type === 'codes';
     $this->codeFields = $this->getCodeFields($voucher->code_fields);
     
-    
 
-
-    
     $headingLabels = [];
     foreach($this->codeFields as $codeField) {
       $headingLabels[] = $codeField['fieldName'];
     }
     $headingLabels[] = '';
+    $headingLabels[] = 'Views';
     $headingLabels[] = 'Key';
     $headingLabels[] = 'Link';
     $headingLabels[] = 'Status';
-    $headingLabels[] = 'Remark';
     $headingLabels[] = 'Sent On';
-    
-    if ($isFormType && $haveKey && $keyFromCode) {
+    $headingLabels[] = 'Error Messages';
+    $headingLabels[] = 'Remark';
+
+//    if ($isFormType && $haveKey && $keyFromCode) {
     	$headingLabels[] = 'Participant';
-    }
+    	$headingLabels[] = 'Participant Email';
+//    }
     return $headingLabels;
   }
 
@@ -94,19 +94,23 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
         }
       }
       $excelCells[] = '';
+      $excelCells[] = $row->views;
       $excelCells[] = $row->key;
       $excelCells[] = \URL::to('/coupons/'.$row->key);
       $excelCells[] = $row->status;
-      $excelCells[] = $row->remark;
       $excelCells[] = $row->sent_on;
-      
-      if ($haveKey && $keyFromCode) {
+      $excelCells[] = $row->error_message;
+      $excelCells[] = $row->remark;
+
+//      if ($haveKey && $keyFromCode) {
       	if (isset($row->participant)) {
-		      $excelCells[] = $row->participant->name . ' (' . $row->participant->email . ')';
+		      $excelCells[] = $row->participant->name;
+		      $excelCells[] = $row->participant->email;
 	      } else {
       		$excelCells[] = '';
+      		$excelCells[] = '';
 	      }
-      }
+//      }
       
       $excelRows[] = $excelCells;
     }
