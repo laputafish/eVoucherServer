@@ -104,6 +104,30 @@ class MediaHelper {
 		}
 	}
 	
+	public static function getMediaDimension($param) {
+		$width = 0;
+		$height = 0;
+		$imagePath = '';
+		if ($param === 0) {
+			$imagePath = storage_path('images/blank.png');
+		} else {
+			$media = is_numeric($param) ? Media::find($param) : $param;
+			if (isset($media)) {
+				$imagePath = $media->filePath;
+			}
+		}
+		if (!empty($imagePath) && file_exists($imagePath)) {
+			$imageDetails = getimagesize($imagePath);
+			$width = $imageDetails[0];
+			$height = $imageDetails[1];
+		}
+		
+		return [
+			'width' => $width,
+			'height' => $height
+		];
+	}
+	
 	public static function changeImageResolution($param, $width=0, $height=0) {
     if ($width==0 && $height==0) {return;}
     

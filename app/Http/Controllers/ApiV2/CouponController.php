@@ -7,6 +7,7 @@ use App\Models\VoucherParticipant;
 use App\Helpers\TemplateHelper;
 use App\Helpers\VoucherTemplateHelper;
 use App\Helpers\TagGroupHelper;
+use App\Helpers\MediaHelper;
 
 use Illuminate\Http\Request;
 
@@ -68,19 +69,25 @@ class CouponController extends BaseController {
 			$appliedTemplate = '';
 		}
 		if (isset($voucher)) {
+			$mediaSize = MediaHelper::getMediaDimension($voucher->sharing_image_id);
 			$og = [
 				'title' => $voucher->sharing_title,
 				'description' => $voucher->sharing_description,
 				'imageSrc' => url('media/image/' .$voucher->sharing_image_id),
-				'url' => request()->fullUrl()
+				'url' => request()->fullUrl(),
+				'image:width' => $mediaSize['width'],
+				'image:height' => $mediaSize['height']
 			];
 			$script = $voucher->script;
 		} else {
+			$mediaSize = MediaHelper::getMediaDimension(0);
 			$og = [
 				'title' => 'Sample: Title',
 				'description' => 'Sample: Description',
 				'imageSrc' => url('media/image/0'),
-				'url' => request()->fullUrl()
+				'url' => request()->fullUrl(),
+				'image:width' => $mediaSize['width'],
+				'image:height' => $mediaSize['height']
 			];
 			$script = '';
 		}

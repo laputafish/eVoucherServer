@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     @if(isset($og))
-@include('templates.og', ['og'=>$og])
+        @include('templates.og', ['og'=>$og])
     @else
         <title>Yoov Ticket</title>
     @endif
