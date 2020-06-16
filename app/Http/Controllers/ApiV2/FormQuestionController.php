@@ -15,6 +15,7 @@ use App\Helpers\VoucherHelper;
 use App\Helpers\QuestionnaireHelper;
 use App\Helpers\InputObjHelper;
 use App\Helpers\VoucherTemplateHelper;
+use App\Helpers\MediaHelper;
 
 use App\Imports\AgentCodeImport;
 use Illuminate\Http\Request;
@@ -327,10 +328,13 @@ class FormQuestionController extends BaseController
 		$result = null;
 		if (!empty($voucher->form_sharing_title) &&
 			!empty($voucher->form_sharing_description)) {
+			$mediaSize = MediaHelper::getMediaDimension($voucher->form_sharing_image_id);
 			$result = [
 				'title' => $voucher->form_sharing_title,
 				'description' => $voucher->form_sharing_description,
 				'imageSrc' => url('media/image/' .$voucher->form_sharing_image_id),
+				'image:width' => $mediaSize['width'],
+				'image:height' => $mediaSize['height'],
 				'url' => request()->fullUrl()
 			];
 		}

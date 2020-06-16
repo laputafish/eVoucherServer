@@ -67,18 +67,55 @@ class EmailTemplateController extends BaseModuleController
 	
 	// end of testing
 	
+	private function getTagGroupNames($tagListGroups) {
+		$result = [];
+		if (!empty($tagListGroups)) {
+			for($i = 0; $i < count($tagListGroups); $i++) {
+				$result[] = $tagListGroups[$i]['name'];
+			}
+		}
+		return $result;
+	}
+	
+	private function getTagValues($voucherId, $tagGroupNames) {
+		$voucher = Voucher::find($voucherId);
+		$voucherCode = null;
+		$participant = null;
+		if (isset($voucher)) {
+			if ($voucher->codes()->count() > 0) {
+				$voucherCode = $voucher->codes()->first();
+			}
+			if ($voucher->participants()->count() > 0) {
+				$participant = $voucher->participants()->first();
+			}
+		}
+		$useDummyValues = true;
+		$result = TagGroupHelper::getTagValues( null, $voucherCode, $participant, $useDummyValues);
+		return $result;
+	}
+
 	public function sendTestEmail(Request $request) {
 		$template = $request->get('template');
+		$voucherId = $request->get('voucherId', 0);
+		
+		// Email configuration
 		$email = $request->get('email');
 		$smtpServer = $request->get('smtpServer');
 		$subject = $request->get('subject');
 		$cc = $request->get('cc');
 		$bcc = $request->get('bcc');
 
-    $tagGroups = $request->get('tagGroups');
-
-    // Apply tag values
-		$tagValues = TagGroupHelper::getTagValues($tagGroups);
+		$tagGroups = $request->get('tagGroups', []);
+//		print_r($tagGroups);
+//		return 'ok';
+//		$tagGroupNames = $this->getTagGroupNames($request->get('tagGroups', []));
+		$tagValues = TagGroupHelper::getTagValues( $tagGroups);
+		
+//		$tagGroups = $request->get('tagGroups');
+//    // Apply tag values
+//		$tagValues = TagGroupHelper::getTagValues($tagGroups);
+//		print_r($tagValues);
+//		return 'ok';
 		$appliedTemplate = TemplateHelper::applyTags($template, $tagValues);
 
 		// Send email

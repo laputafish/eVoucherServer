@@ -70,10 +70,10 @@ Route::get('/media/image/{id}/{size?}', 'ApiV2\MediaController@showImage');
 // sharing link testing
 // $id is 'key' if timestamp not exists
 Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
-// Route::get('forms/{id}/{timestamp?}', 'ApiV2\CouponController@showForm');
+Route::get('forms/{id}/{timestamp?}', 'ApiV2\CouponController@showForm');
 
 // Preview email
-Route::get('/t/preview/{key}/{timestamp?}', 'ApiV2\TemplateController@showPreview');
+Route::get('t/preview/{key}/{timestamp?}', 'ApiV2\TemplateController@showPreview');
 
 // Preview question form
 Route::get('q/{key}/{timestamp?}', 'ApiV2\FormQuestionController@showQuestionForm');

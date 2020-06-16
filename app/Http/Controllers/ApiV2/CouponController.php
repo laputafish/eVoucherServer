@@ -15,31 +15,67 @@ use App\Events\VoucherCodeViewsUpdatedEvent;
 
 class CouponController extends BaseController {
 	public function showForm($id, $timestamp=null) {
-		if (is_null($timestamp)) {
+		$voucher = null;
+		$isFormal = is_null($timestamp);
+		$processedTemplate = '';
+		
+		if ($isFormal) {
 			$key = $id;
 			$voucherCode = VoucherCode::where('key', $key)->first();
-			$voucher = $voucherCode->voucher;
-			$processedTemplate = '';
+			if (isset($voucherCode)) {
+				$voucher = $voucherCode->voucher;
+				$processedTemplate = '';
+			} else {
+				$processedTemplate = '';
+			}
 		} else {
 			$voucher = Voucher::find($id);
 			$processedTemplate = '';
 		}
-		if (isset($voucher)) {
-			$ogTitle = $voucher->form_sharing_title;
-			$ogDescription = $voucher->form_sharing_description;
-			$ogMediaId = $voucher->form_sharing_image_id;
+		if (!is_null($voucher)) {
+			$mediaSize = MediaHelper::getMediaDimension($voucher->form_sharing_image_id);
+			$og = [
+				'title' => $voucher->form_sharing_title,
+				'description' => $voucher->form_sharing_description,
+				'imageSrc' => url('media/image/'.$voucher->form_sharing_image_id),
+				'url' => request()->fullUrl(),
+				'image:width' => $mediaSize['width'],
+				'image:height' => $mediaSize['height']
+			];
+			$script = $voucher->script;
+//			$ogTitle = ;
+//			$ogDescription = ;
+//			$ogMediaId = $voucher->form_sharing_image_id;
+//			$ogImageWidth = $mediaSize['width'];
+//			$ogImageHeight = $mediaSize['height'];
 		} else {
-			$ogTitle = 'Sample: Title';
-			$ogDescription = 'Sample: Description';
-			$ogMediaId = 0;
+			$mediaSize = MediaHelper::getMediaDimension(0);
+			$og = [
+				'title' => 'Sample: Title',
+				'description' => 'Sample: Description',
+				'url' => request()->fullUrl(),
+				'image:width' => $mediaSize['width'],
+				'image:height' => $mediaSize['height']
+			];
+			$script = '';
+//			$ogTitle = 'Sample: Title';
+//			$ogDescription = 'Sample: Description';
+//			$ogMediaId = 0;
+//			$ogImageWidth = $mediaSize['width'];
+//			$ogImageHeight = $mediaSize['height'];
 		}
-		$ogUrl = request()->fullUrl();
+//		$ogUrl = request()->fullUrl();
 		return view('templates.coupon', [
-			'ogTitle' => $ogTitle,
-			'ogDescription' => $ogDescription,
-			'ogImageSrc' => url('media/image/' .$ogMediaId),
-			'ogUrl' => $ogUrl,
-			'template' => $processedTemplate
+			'og' => $og,
+			'template' => $processedTemplate,
+			'script' => $script
+//			'ogTitle' => $ogTitle,
+//			'ogDescription' => $ogDescription,
+//			'ogImageSrc' => url('media/image/' .$ogMediaId),
+//			'ogUrl' => $ogUrl,
+//			'ogImageWidth' => $ogImageWidth,
+//			'ogImageHeight' => $ogImageHeight,
+//			'template' => $processedTemplate
 		]);
 	}
 	

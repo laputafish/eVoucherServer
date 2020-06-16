@@ -196,13 +196,27 @@ class VoucherController extends BaseModuleController
 			$input['notes'] = '';
 		}
 		
+		// Sharing for coupon
 		$newSharingImageId = array_key_exists('sharing_image_id', $input) ?
 			$input['sharing_image_id'] : 0;
 		$this->updateSharingImage($row->sharing_image_id, $newSharingImageId);
+		if (strlen($input['sharing_title'])>191) {
+			$input['sharing_title'] = substr($input['sharing_title'],0,191);
+		}
+		if (strlen($input['sharing_description'])>191) {
+			$input['sharing_description'] = substr($input['sharing_description'],0,191);
+		}
 		
+		// Sharing for form
 		$newSharingImageId = array_key_exists('form_sharing_image_id', $input) ?
 			$input['form_sharing_image_id'] : 0;
 		$this->updateSharingImage($row->form_sharing_image_id, $newSharingImageId);
+		if (strlen($input['form_sharing_title'])>191) {
+			$input['form_sharing_title'] = substr($input['form_sharing_title'],0,191);
+		}
+		if (strlen($input['form_sharing_description'])>191) {
+			$input['form_sharing_description'] = substr($input['form_sharing_description'],0,191);
+		}
 		
 		if ($this->user->isNotA('supervisor')) {
 			$input['user_id'] = $this->user->id;
@@ -371,6 +385,7 @@ class VoucherController extends BaseModuleController
 				]);
 			}
 			$voucher->save();
+			$voucher->codes()->update(['participant_id'=>0]);
 			
 			return response()->json([
 				'status' => true,

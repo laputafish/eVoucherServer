@@ -75,7 +75,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 
   // voucher participants
   Route::get('vouchers/{id}/participants', 'VoucherController@getParticipants');
-  Route::delete('vouchers/{id}/participants/{participantIs}', 'VoucherController@deleteParticipant');
+  Route::delete('vouchers/{id}/participants/{participantId}', 'VoucherController@deleteParticipant');
   Route::post('vouchers/{id}/participants/export', 'VoucherController@exportParticipants');
   Route::post('vouchers/{id}/reset_failed_codes', 'VoucherController@resetFailedCodes');
   Route::post('vouchers/{id}/reset_all_codes_mailing_status', 'VoucherController@resetAllCodesMailingStatus');

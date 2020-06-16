@@ -1,14 +1,14 @@
 <?php namespace App\Helpers;
 
 class TagGroupHelper {
-	public static function getTagValues($tagGroups=null, $voucherCode=null) {
+	public static function getTagValues($tagGroups=null, $voucherCode=null, $participant=null, $useDummyValues=false) {
 		if (is_null($tagGroups)) {
 			$tagGroups = \Config::get('constants.tagGroups');
 		}
 		if (is_null($voucherCode)) {
 			$result = static::getDummyTagValues($tagGroups);
 		} else {
-			$result = static::getDataTagValues($tagGroups, $voucherCode);
+			$result = static::getDataTagValues($tagGroups, $voucherCode, $participant);
 //			echo 'ready to getDataTagValues result count = '.count($result)."<Br/>";
 //
 //			return [];
@@ -56,6 +56,8 @@ class TagGroupHelper {
 							$result[$tag] = '2020-01-01';
 						} else if (strpos($tag, 'deadline') !== false) {
 							$result[$tag] = '2099-12-31';
+						} else if (strpos($tag, 'key') !== false) {
+							$result[$tag] = '12345';
 						} else {
 							$result[$tag] = '{' . $tag . '}';
 						}
@@ -66,7 +68,7 @@ class TagGroupHelper {
 		return $result;
 	}
 	
-	public static function getDataTagValues($tagGroups, $voucherCode) {
+	public static function getDataTagValues($tagGroups, $voucherCode, $participant=null) {
 		$result = [];
 		$tagList = static::tagGroupToTagList($tagGroups);
 		foreach($tagList as $tag) {
@@ -134,7 +136,10 @@ class TagGroupHelper {
 		}
 
 		// participant
-		$participant = $voucherCode->participant;
+		if (is_null($participant)) {
+			$participant = $voucherCode->participant;
+		}
+		
 		if (isset($participant)) {
 			$participantConfigs = json_decode($voucher->participant_configs, true);
 			$fieldTagNames = InputObjHelper::getFieldTagNames($participantConfigs['inputObjs']);
