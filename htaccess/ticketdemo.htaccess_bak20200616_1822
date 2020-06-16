@@ -27,9 +27,7 @@ RewriteRule ^(coupons/(.*))$ public/$1 [L,NC]
 RewriteRule ^(questions/(.*))$ public/$1 [L,NC]
 RewriteRule ^(get_data/(.*))$ public/$1 [L,NC]
 RewriteRule ^(q/(.*))$ public/$1 [L,NC]
-RewriteRule ^(t/(.*))$ public/$1 [L,NC]
 RewriteRule ^(d/(.*))$ public/$1 [L,NC]
-RewriteRule ^(forms/(.*))$ public/$1 [L,NC]
 
 RewriteBase /
 RewriteRule ^index\.html$ - [L]
