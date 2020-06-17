@@ -41,6 +41,17 @@ class AgentCodeController extends BaseController
 			if (count($sheet0)>1) {
 				$voucherData = [];
 				$participantData = [];
+				
+				$hasVoucher = false;
+				$hasParticipant = false;
+
+				$fieldTypeList = array_map(function($fieldDef) {
+					return $fieldDef['fieldType'];
+				}, $fieldDefs);
+				
+				$hasVoucher = any_in_array(['code', 'code-other'], $fieldTypeList);
+				$hasParticipant = any_in_array(['name', 'email', 'phone', 'participant-other'], $fieldTypeList);
+
 				for ($rowNo = 1; $rowNo <count($sheet0); $rowNo++) {
 					// check first cell if empty
 					if (!empty($sheet0[$rowNo][0])) {
@@ -59,8 +70,6 @@ class AgentCodeController extends BaseController
 							'email' => '',
 							'all' => []
 						];
-						$hasVoucher = false;
-						$hasParticipant = false;
 						
 						// participantCells = [
 						//    ['name'] => '',
@@ -89,15 +98,12 @@ class AgentCodeController extends BaseController
 								switch($fieldDef['fieldType']) {
 									case 'code':
 										$fieldDefs[$cellIndex]['type'] = 'string';
-										$hasVoucher = true;
 										array_unshift($voucherCells, $value);
 										break;
 									case 'code-other':
-										$hasVoucher = true;
 										$voucherCells[] = $value;
 										break;
 									case 'name':
-										$hasParticipant = true;
 										$participantCells['name'] =  $value;
 										$participantCells['all'][] = [
 											'title' => $fieldDef['title'],
@@ -106,7 +112,6 @@ class AgentCodeController extends BaseController
 										];
 										break;
 									case 'email':
-										$hasParticipant = true;
 										$participantCells['email'] = $value;
 										$participantCells['all'][] = [
 											'title' => $fieldDef['title'],
@@ -115,7 +120,6 @@ class AgentCodeController extends BaseController
 										];
 										break;
 									case 'phone':
-										$hasParticipant = true;
 										$participantCells['phone'] = $value;
 										$participantCells['all'][] = [
 											'title' => $fieldDef['title'],
@@ -124,7 +128,6 @@ class AgentCodeController extends BaseController
 										];
 										break;
 									case 'participant-other':
-										$hasParticipant = true;
 										$participantCells['all'][] = [
 											'title' => $fieldDef['title'],
 											'dataType' => $fieldDef['type'],
@@ -169,23 +172,37 @@ class AgentCodeController extends BaseController
 
           $voucher = Voucher::find($voucherId);
   			  $result['participantConfigs'] = json_decode($voucher->participant_configs, true);
-//          $result['participantConfigs'] = $res2['result']['participantConfigs'];
         }
       }
-//			$arParticipantIds = [];
-//			$participantConfigs = [];
-//			if (isset($res2)) {
-//				$arParticipantIds = $res2['result']['participantIds'];
-//				$participantConfigs = $res2['result']['participantConfigs'];
-//			}
 
 			$voucherFieldInfos = array_filter($fieldDefs, function($info) {
 				return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
 			});
+			
+//			$codeFieldsStr = $this->createCodeFieldsStr($voucherFieldInfos);
+//			print_r($codeFieldsStr);
+//			return 'ok';
+			
+			
+			
+			
+//			echo 'count($voucherFieldInfos) = '.count($voucherFieldInfos);
+//			return 'ok';
+			
 			if (count($voucherFieldInfos) > 0) {
         $res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
+        
+        
+//        print_r($res1);
+//        return 'ok';
+//
+    
+				// embed field configs into result
         $result = array_merge($result, $res1['result']);
       }
+      
+//      print_r($res1);
+//			return 'ok';
 //			$voucher = Voucher::find($voucherId);
 //			$res1['result']['participantConfigs'] = json_decode($voucher->participant_configs, true);
 //			$res1['result']['participantCount'] = $voucher->participants()->count();
@@ -193,8 +210,8 @@ class AgentCodeController extends BaseController
       if (isset($res1)) {
 			  if (!$res1['status']) {
 			    $status = false;
-			    $result['messages'][] = $res1['message'];
-			    $result['messageTags'][] = $res1['messageTag'];
+			    $result['messages'][] = $res1['result']['message'];
+			    $result['messageTags'][] = $res1['result']['messageTag'];
         }
       }
       if (isset($res2)) {
@@ -629,6 +646,8 @@ class AgentCodeController extends BaseController
 	private function updateVoucherCodes($voucher, $data, $fieldInfos, $arParticipantIds=[]) {
 		$status = false;
 		$codeFieldsStr = $this->createCodeFieldsStr($fieldInfos);
+		
+		
 		if (isset($voucher)) {
 			if (empty($voucher->code_fields) || $voucher->code_fields == $codeFieldsStr) {
 				$saveResult = VoucherHelper::addNewCodes($voucher, $data, $arParticipantIds);
@@ -843,10 +862,16 @@ class AgentCodeController extends BaseController
   }
 
   private function createCodeFieldsStr($fields) {
+		$codeField = null;
     $ar = [];
     foreach($fields as $field) {
-      $ar[] = $field['title'].':'.$field['type'];
+    	if ($field['fieldType'] == 'code') {
+    		$codeField = $field['title'].':'.$field['type'];
+	    } else {
+		    $ar[] = $field['title'] . ':' . $field['type'];
+	    }
     }
+    array_unshift($ar, $codeField);
     return implode('|', $ar);
   }
 

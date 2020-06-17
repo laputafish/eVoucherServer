@@ -1084,14 +1084,25 @@ class VoucherController extends BaseModuleController
 	}
 	
 	public function getCodeSummary(Request $request, $id) {
+		$mailingSummary = VoucherHelper::getMailingSummary($id);
+		// $mailingSummary = [
+		//    'status' => true,
+		//    'result' => [
+		//      'summary' => [
+		//        'pending' => 0,
+		//        'ready' => 0,
+		
+		//      ]
+		//    ]
 		$voucher = $this->model->find($id);
 		$voucherCodes = $voucher->codes;
-		$summary = [
-			'pending' => $voucherCodes->where('status', 'pending')->count(),
-			'ready' => $voucherCodes->where('status', 'ready')->count(),
-			'completed' => $voucherCodes->where('status', 'completed')->count(),
-			'fails' => $voucherCodes->where('status', 'fails')->count(),
-		];
+		$summary = $mailingSummary['result']['summary'];
+//			[
+//			'pending' => $voucherCodes->where('status', 'pending')->where('participant_id', 0)->count(),
+//			'ready' => $voucherCodes->where('status', 'ready')->count(),
+//			'completed' => $voucherCodes->where('status', 'completed')->count(),
+//			'fails' => $voucherCodes->where('status', 'fails')->count(),
+//		];
 		return [
 			'status' => true,
 			'result' => [

@@ -114,3 +114,14 @@ function deleteDir($dirPath) {
 function nameToTag($str) {
 	return str_replace(' ', '_', strtolower($str));
 }
+
+function any_in_array($needles, $ar) {
+	$result = false;
+	foreach($needles as $needle) {
+		if (in_array($needle, $ar)) {
+			$result = true;
+			break;
+		}
+	}
+	return $result;
+}

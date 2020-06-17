@@ -176,6 +176,9 @@ class VoucherHelper {
 				  'processing' => $statusList->filter(function($item) {
             return $item->status == 'processing' && $item->participant_id != 0;
           })->count(),
+				  'hold' => $statusList->filter(function($item) {
+				  	return $item->status == 'hold' && $item->participant_id != 0;
+				  })->count()
 			  ]
 		  ];
 	  }
