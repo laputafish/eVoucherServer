@@ -8,7 +8,7 @@ class TagGroupHelper {
 		if (is_null($voucherCode)) {
 			$result = static::getDummyTagValues($tagGroups);
 		} else {
-			$result = static::getDataTagValues($tagGroups, $voucherCode, $participant);
+			$result = static::getDataTagValues($tagGroups, $voucherCode, $participant, $useDummyValues);
 //			echo 'ready to getDataTagValues result count = '.count($result)."<Br/>";
 //
 //			return [];
@@ -68,7 +68,7 @@ class TagGroupHelper {
 		return $result;
 	}
 	
-	public static function getDataTagValues($tagGroups, $voucherCode, $participant=null) {
+	public static function getDataTagValues($tagGroups, $voucherCode, $participant=null, $useDummyValues) {
 		$result = [];
 		$tagList = static::tagGroupToTagList($tagGroups);
 		foreach($tagList as $tag) {
@@ -97,14 +97,18 @@ class TagGroupHelper {
 //		return [];
 //		print_r($codeConfigs->toArray());
 
-		if (isset($codeConfigs)) {
-			$result['qrcode'] = static::getCodeConfigOfGroup($codeConfigs, 'qrcode');
-			$result['barcode'] = static::getCodeConfigOfGroup($codeConfigs, 'barcode');
+		if ($useDummyValues) {
+			$result['qrcode'] = 'preview_mode';
+			$result['barcode'] = '1234567890';
 		} else {
-			$result['qrcode'] = '';
-			$result['barcode'] = '';
+			if (isset($codeConfigs)) {
+				$result['qrcode'] = static::getCodeConfigOfGroup($codeConfigs, 'qrcode');
+				$result['barcode'] = static::getCodeConfigOfGroup($codeConfigs, 'barcode');
+			} else {
+				$result['qrcode'] = '';
+				$result['barcode'] = '';
+			}
 		}
-//		return $result;
 
 		// code
 //		$codeInfoValues = $voucherCode;

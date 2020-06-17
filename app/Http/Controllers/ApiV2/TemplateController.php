@@ -140,7 +140,8 @@ class TemplateController extends BaseController
   			$participant = $voucher->participants()->first();
 		  }
 	  }
-  	$result = TagGroupHelper::getTagValues( null, $voucherCode, $participant);
+	  $useDummyValues = true; // use dummy values, especially for qrcode/barcode, to avoid actual codes exposed.
+  	$result = TagGroupHelper::getTagValues( null, $voucherCode, $participant, $useDummyValues);
   	return $result;
   }
   
@@ -162,6 +163,8 @@ class TemplateController extends BaseController
 		fwrite($f, $appliedTemplate);
 		fclose($f);
 		
+		// clear old files
+		TempUploadFileHelper::removeUserTempFiles($this->user->id, 24);
 		$key = TempUploadFileHelper::newTempFile($this->user->id, $voucherId, $filePath, 'common');
 		return response()->json([
 			'status' => true,

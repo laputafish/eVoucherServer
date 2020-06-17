@@ -46,9 +46,13 @@ class TempUploadFileHelper {
 		return $result;
 	}
 	
-	public static function removeUserTempFiles ($userId) {
-		$tempUploadFiles = TempUploadFile::where('user_id', $userId)->get();
+	public static function removeUserTempFiles ($userId, $pastHours=24) {
+		$tempUploadFiles = TempUploadFile::where('user_id', $userId)
+			->where('created_at', '<', \Carbon\Carbon::now()->subHours(24))
+			->get();
+		
 		foreach($tempUploadFiles as $row) {
+			
 			switch ($row->type) {
 				case 'image':
 				case 'excel':
