@@ -106,16 +106,7 @@ class EmailTemplateController extends BaseModuleController
 		$bcc = $request->get('bcc');
 
 		$tagGroups = $request->get('tagGroups', []);
-//		print_r($tagGroups);
-//		return 'ok';
-//		$tagGroupNames = $this->getTagGroupNames($request->get('tagGroups', []));
 		$tagValues = TagGroupHelper::getTagValues( $tagGroups);
-		
-//		$tagGroups = $request->get('tagGroups');
-//    // Apply tag values
-//		$tagValues = TagGroupHelper::getTagValues($tagGroups);
-//		print_r($tagValues);
-//		return 'ok';
 		$appliedTemplate = TemplateHelper::applyTags($template, $tagValues);
 
 		// Send email
@@ -129,17 +120,6 @@ class EmailTemplateController extends BaseModuleController
 			'fromEmail' => $smtpConfig['from']['address'],
 			'fromName' => $smtpConfig['from']['name']
 		];
-
-		
-		
-//		return view('email.htmlEmail')->with(['content' => $appliedTemplate]);
-//		$path = storage_path('logs/template_by_test.html');
-//		if (file_exists($path)) {
-//			unlink($path);
-//		}
-//		file_put_contents($path, $appliedTemplate);
-		
-		
 		
 		$errorMsg = EmailTemplateHelper::sendHtml(
 			$smtpConfig,

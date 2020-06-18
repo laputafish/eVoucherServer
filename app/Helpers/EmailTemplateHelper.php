@@ -72,8 +72,20 @@ class EmailTemplateHelper {
 				}
 			);
 		} catch (\Exception $e) {
+//			echo '**********************';
 			$result = $e->getMessage();
 		}
+//		echo 'Mail::failures: '.PHP_EOL;
+//		if (count(\Mail::failures()) > 0) {
+//			foreach (\Mail::failures as $email_address) {
+//				echo 'email_address = ' . $email_address . PHP_EOL;
+//			}
+//		} else {
+//			echo 'Mail::failures() <= 0'.PHP_EOL;
+//		}
+//		echo PHP_EOL.PHP_EOL;
+//		echo 'EmailTemplateHelper :: sendHtml :: result = '.$result.PHP_EOL;
+//		return '';
 		return $result;
 	}
 	
