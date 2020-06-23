@@ -29,7 +29,8 @@ class TagGroupHelper {
 			'voucher_expiry_date' => '2099-12-31',
 			'voucher_description' => 'YOOV VOUCHER',
 			'code_code' => '1234567890',
-			'code_serial' => 'abcdefghij'
+			'code_serial' => 'abcdefghij',
+			'code_ticket_link' => \URL::to('/coupons/1')
 		];
 		
 		for ($i = 0; $i < count($tagGroups); $i++) {
@@ -40,7 +41,11 @@ class TagGroupHelper {
 				case 'code':
 					for($j = 0; $j < count($tagGroups[$i]['tags']); $j++) {
 						$tag = $tagGroups[$i]['tags'][$j];
-						$result[$tag] = $DEFAULT_MAPPING[$tag];
+						if (array_key_exists($tag, $DEFAULT_MAPPING)) {
+							$result[$tag] = $DEFAULT_MAPPING[$tag];
+						} else {
+							$result[$tag] = getRandomWord(10);
+						}
 					}
 					break;
 				case 'participant':
@@ -137,6 +142,7 @@ class TagGroupHelper {
 					$result['code_'.$fieldName] = '';
 				}
 			}
+			$result['code_ticket_link'] = \URL::to('/coupons/'.$voucherCode->key);
 		}
 
 		// participant

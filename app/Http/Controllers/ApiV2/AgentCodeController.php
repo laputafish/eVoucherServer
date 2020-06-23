@@ -18,6 +18,9 @@ class AgentCodeController extends BaseController
 	public function parse($key)
 	{
 		$fieldDefs = \Input::get('fieldInfos');
+		$includeCode = \Input::get('includeCode');
+		$includeParticipant = \Input::get('includeParticipant');
+		
 		$tempUploadFile = TempUploadFile::where('key', $key)->first();
 		if (!isset($tempUploadFile)) {
 			return response()->json([
@@ -159,62 +162,49 @@ class AgentCodeController extends BaseController
       $res2 = null;
       $res1 = null;
 
+      //********************
 			// add participants
+			//********************
+			//
       $arParticipantIds = [];
-			$participantFieldInfos = array_filter($fieldDefs, function($info) {
-				return $info['fieldType'] != 'code' && $info['fieldType'] != 'code-other';
-			});
-			if (count($participantFieldInfos)>0) {
-        $res2 = $this->updateParticipantCodes($voucher, $participantData, $participantFieldInfos);
-        if (isset($res2)) {
-          $arParticipantIds = $res2['result']['participantIds'];
-          $result['participantIds'] = $res2['result']['participantIds'];
-
-          $voucher = Voucher::find($voucherId);
-  			  $result['participantConfigs'] = json_decode($voucher->participant_configs, true);
-        }
+      if ($includeParticipant) {
+	      $participantFieldInfos = array_filter($fieldDefs, function ($info) {
+		      return $info['fieldType'] != 'code' && $info['fieldType'] != 'code-other';
+	      });
+	      if (count($participantFieldInfos) > 0) {
+		      $res2 = $this->updateParticipantCodes($voucher, $participantData, $participantFieldInfos);
+		      if (isset($res2)) {
+			      $arParticipantIds = $res2['result']['participantIds'];
+			      $result['participantIds'] = $res2['result']['participantIds'];
+			
+			      $voucher = Voucher::find($voucherId);
+			      $result['participantConfigs'] = json_decode($voucher->participant_configs, true);
+		      }
+	      }
       }
-
+			
+			//********************
+			// add codes
+			//********************
+			//
 			$voucherFieldInfos = array_filter($fieldDefs, function($info) {
 				return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
 			});
-			
-//			$codeFieldsStr = $this->createCodeFieldsStr($voucherFieldInfos);
-//			print_r($codeFieldsStr);
-//			return 'ok';
-			
-			
-			
-			
-//			echo 'count($voucherFieldInfos) = '.count($voucherFieldInfos);
-//			return 'ok';
-			
 			if (count($voucherFieldInfos) > 0) {
         $res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
-        
-        
-//        print_r($res1);
-//        return 'ok';
-//
-    
 				// embed field configs into result
         $result = array_merge($result, $res1['result']);
       }
       
-//      print_r($res1);
-//			return 'ok';
-//			$voucher = Voucher::find($voucherId);
-//			$res1['result']['participantConfigs'] = json_decode($voucher->participant_configs, true);
-//			$res1['result']['participantCount'] = $voucher->participants()->count();
       $status = true;
-      if (isset($res1)) {
+      if ($includeCode && isset($res1)) {
 			  if (!$res1['status']) {
 			    $status = false;
 			    $result['messages'][] = $res1['result']['message'];
 			    $result['messageTags'][] = $res1['result']['messageTag'];
         }
       }
-      if (isset($res2)) {
+      if ($includeParticipant && isset($res2)) {
 			  if (!$res2['status']) {
 			    $status = false;
 			    $result['messages'][] = $res2['message'];
@@ -233,37 +223,6 @@ class AgentCodeController extends BaseController
         ]
       ];
     }
-
-//		print_r($result);
-//		return 'ok';
-//		$res = [
-//			'status' => true,
-//			'result' => [
-//				'message' => '',
-//				'messageTag' => ''
-//			]
-//		];
-//
-//		if (isset($res1)) {
-//
-//    }
-//		if (!$res1['status']) {
-//			$res['status'] = false;
-//			if (!array_key_exists('message', $res1['result'])) {
-//			} else {
-//				$res['result']['message'] = $res1['result']['message'];
-//				$res['result']['messageTag'] = $res1['result']['messageTag'];
-//			}
-//		} else if(isset($res2) && !$res2['status']) {
-//			$res['status'] = false;
-//			if (!array_key_exists('message', $res2['result'])) {
-//			} else {
-//				$res['result']['message'] = $res2['result']['message'];
-//				$res['result']['messageTag'] = $res2['result']['messageTag'];
-//			}
-//		} else {
-//			$res = $res1;
-//		}
 		return response()->json($res);
 	}
 	

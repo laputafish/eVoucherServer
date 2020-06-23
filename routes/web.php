@@ -67,6 +67,7 @@ Route::get('/system/command/{command}/reset', 'ApiV2\SystemController@resetComma
 Route::get('/actions/migrate_templates', 'ApiV2\VoucherTemplateController@migrateTemplates');
 Route::get('/get_template_path', 'ApiV2\TestController@getTemplatePath');
 Route::get('/media/image/{id}/{size?}', 'ApiV2\MediaController@showImage');
+Route::get('download/image/{id}/{size?}', 'ApiV2\MediaController@downloadImage');
 // sharing link testing
 // $id is 'key' if timestamp not exists
 Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
@@ -83,6 +84,7 @@ Route::post('questions/submit', 'ApiV2\FormQuestionController@postQuestionForm')
 
 // Download question form configs
 Route::get('d/{key}/{timestamp?}', 'ApiV2\FormQuestionController@downloadFormConfigs');
+
 
 Route::get('create_roles', function() {
   $roles = [

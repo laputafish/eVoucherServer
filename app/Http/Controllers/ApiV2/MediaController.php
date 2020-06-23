@@ -275,42 +275,59 @@ class MediaController extends BaseController
     return $media;
   }
 
+  public function getImageFileInfo($id, $size=null) {
+	  $defaultImageFolder = 'images';
+	  $media = Media::find($id);
+	
+	  $defaultImagePath = storage_path('images/blank.png');
+	  $imageFileExt = 'png';
+	
+	  if (!is_null($media)) {
+		  $ext = pathinfo($media->filename, PATHINFO_EXTENSION);
+		  $pathPrefix = $media->type == 'temp' ? 'temp' : $defaultImageFolder;
+		  switch (strtolower($ext)) {
+			  case 'jpg':
+			  case 'png':
+			  case 'gif':
+			  case 'jpeg':
+				  if ($media->type == 'image') {
+					  if (!is_null($size) && is_file(storage_path('app/images_' . $size . '/' . $media->path . '/' . $media->filename))) {
+						  $pathPrefix = 'images_' . $size;
+					  }
+				  }
+				  $filePath = storage_path('app/' . $pathPrefix . '/' . $media->path . '/' . $media->filename);
+				
+				  if (file_exists($filePath)) {
+					  $fileContent = \Storage::get($pathPrefix . '/' . $media->path . '/' . $media->filename);
+					  $imageFileExt = $ext;
+				  } else {
+					  $fileContent = file_get_contents($defaultImagePath);
+				  }
+				  break;
+			  default:
+				  $fileContent = file_get_content($defaultImagePath);
+		  }
+	  } else {
+		  $fileContent = file_get_contents($defaultImagePath);
+	  }
+		return [
+			'fileContent' => $fileContent,
+			'fileExt' => $imageFileExt
+		];
+  }
+	
+	public function downloadImage($id, $size=null) {
+		$imageFileInfo = $this->getImageFileInfo($id, $size);
+		$headers = [
+			'Content-type' => 'image/'.$imageFileInfo['fileExt'],
+			'Content-Disposition' => 'attachment; filename="image.'.$imageFileInfo['fileExt'].'"',
+		];
+		return Response($imageFileInfo['fileContent'], 200, $headers);
+	}
+	
   public function showImage($id, $size=null) {
-    $defaultImageFolder = 'images';
-    $media = Media::find($id);
-    if (!is_null($media)) {
-      $ext = pathinfo($media->filename, PATHINFO_EXTENSION);
-      $pathPrefix = $media->type == 'temp' ? 'temp' : $defaultImageFolder;
-      switch (strtolower($ext)) {
-        case 'jpg':
-        case 'png':
-        case 'gif':
-        case 'jpeg':
-          if ($media->type == 'image') {
-            if (!is_null($size) && is_file(storage_path('app/images_' . $size . '/' . $media->path . '/' . $media->filename))) {
-              $pathPrefix = 'images_' . $size;
-            }
-          }
-          $filePath = storage_path('app/' . $pathPrefix . '/' . $media->path . '/' . $media->filename);
-          
-          if (file_exists($filePath)) {
-            $fileContent = \Storage::get($pathPrefix . '/' . $media->path . '/' . $media->filename);
-          } else {
-            $fileContent = file_get_contents(storage_path('images/blank.png'));
-          }
-          return Response($fileContent, 200)->header('Content-Type', 'image/' . $ext);
-      }
-    }
-	  $fileContent = file_get_contents(storage_path('images/blank.png'));
-		return Response($fileContent, 200)->header('Content-Type', 'image/png');
-//
-//    return response()->json([
-//      'status'=>false,
-//      'result'=>[
-//        'messageTag'=>'fileNotFound',
-//        'message' => 'File Not Found!'
-//      ]
-//    ]);
+  	$imageFileInfo = $this->getImageFileInfo($id, $size);
+		return Response($imageFileInfo['fileContent'], 200)->header('Content-Type', 'image/'.$imageFileInfo['fileExt']);
   }
   
   public function update($id) {

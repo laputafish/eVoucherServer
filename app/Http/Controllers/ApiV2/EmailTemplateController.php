@@ -106,7 +106,9 @@ class EmailTemplateController extends BaseModuleController
 		$bcc = $request->get('bcc');
 
 		$tagGroups = $request->get('tagGroups', []);
-		$tagValues = TagGroupHelper::getTagValues( $tagGroups);
+		
+		$voucherCode = VoucherCode::whereVoucherId($voucherId)->first();
+		$tagValues = TagGroupHelper::getTagValues( $tagGroups, $voucherCode);
 		$appliedTemplate = TemplateHelper::applyTags($template, $tagValues);
 
 		// Send email
