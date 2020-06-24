@@ -13,6 +13,8 @@ use App\Helpers\TempUploadFileHelper;
 
 use App\Imports\AgentCodeImport;
 
+use Illuminate\Http\Request;
+
 class AgentCodeController extends BaseController
 {
 	public function parse($key)
@@ -838,6 +840,31 @@ class AgentCodeController extends BaseController
   {
     $dateTimeObject = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($excelDateValue);
     return $dateTimeObject->format('Y-m-d');
+  }
+  
+  public function updateField(Request $request, $id) {
+		$fieldName = $request->get('fieldName', '');
+		$fieldValue = $request->get('fieldValue', '');
+		
+		$status = false;
+		$message = 'Update error!';
+		
+		if (!empty($fieldName)) {
+			$voucherCode = VoucherCode::find($id);
+			if (isset($voucherCode)) {
+				$voucherCode->{$fieldName} = $fieldValue;
+				$voucherCode->save();
+				$status = true;
+				$message = 'Successfully updated.';
+			}
+		}
+		
+		return response()->json([
+			'status' => $status,
+			'result' => [
+				'message' => $message
+			]
+		]);
   }
   
   public function changeStatus($id, $status) {
