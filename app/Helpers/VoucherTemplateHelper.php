@@ -13,7 +13,7 @@ class VoucherTemplateHelper {
     }
   }
 	
-	private static function getTemplateFullPath($folder, $subFolders, $id, $fileNamePrefix='', $fileNameSuffix='') {
+	public static function getTemplateFullPath($folder, $subFolders, $id, $fileNamePrefix='', $fileNameSuffix='') {
 		$result = null;
 		if (!is_null($subFolders) && !empty($subFolders)) {
 			$result = storage_path('app/'.$folder.'/'.
@@ -52,7 +52,6 @@ class VoucherTemplateHelper {
 	    $voucher->id,
 	    'v',
 	    $fileNameSuffix);
-
     if (!is_null($templateFullPath)) {
       if (file_exists($templateFullPath)) {
         $filesize = filesize($templateFullPath);

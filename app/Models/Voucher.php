@@ -16,6 +16,8 @@ class Voucher extends Model
 		'activation_date',
 		'expiry_date',
 		'voucher_type',
+		'has_one_code',
+		'one_code_quota',
 		
 		'template',
     'template_path',

@@ -68,6 +68,8 @@ class VoucherController extends BaseModuleController
 		'activation_date' => 'nullable|date',
 		'expiry_date' => 'nullable|date',
 		'voucher_type' => 'in:voucher,form',
+		'has_one_code' => 'boolean',
+		'one_code_quota' => 'integer',
 		
 //		'template' => 'nullable|string',
 		'has_template' => 'boolean',
@@ -127,6 +129,8 @@ class VoucherController extends BaseModuleController
 		'activation_date' => 'nullable|date',
 		'expiry_date' => 'nullable|date',
 		'voucher_type' => 'in:voucher,form',
+		'has_one_code' => 'boolean',
+		'one_code_quota' => 'integer',
 		
 //		'template' => 'nullable|string',
 		'has_template' => 'boolean',
