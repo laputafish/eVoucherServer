@@ -22,6 +22,7 @@ class AgentCodeController extends BaseController
 		$fieldDefs = \Input::get('fieldInfos');
 		$includeCode = \Input::get('includeCode');
 		$includeParticipant = \Input::get('includeParticipant');
+		$singleCodeMode = \Input::get('singleCodeMode');
 		
 		$tempUploadFile = TempUploadFile::where('key', $key)->first();
 		if (!isset($tempUploadFile)) {
@@ -147,6 +148,9 @@ class AgentCodeController extends BaseController
 						}
 						if ($hasVoucher) {
 							$voucherData[] = $voucherCells;
+							if($singleCodeMode) {
+								$hasVoucher = false;
+							}
 						}
 						if ($hasParticipant) {
 							$participantData[] = $participantCells;
@@ -181,6 +185,8 @@ class AgentCodeController extends BaseController
 			
 			      $voucher = Voucher::find($voucherId);
 			      $result['participantConfigs'] = json_decode($voucher->participant_configs, true);
+			      $result['participantCount'] = $voucher->participants()->count();
+			      
 		      }
 	      }
       }
@@ -189,15 +195,26 @@ class AgentCodeController extends BaseController
 			// add codes
 			//********************
 			//
-			$voucherFieldInfos = array_filter($fieldDefs, function($info) {
-				return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
-			});
-			if (count($voucherFieldInfos) > 0) {
-        $res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
-				// embed field configs into result
-        $result = array_merge($result, $res1['result']);
-      }
+			if ($includeCode) {
+				$voucherFieldInfos = array_filter($fieldDefs, function ($info) {
+					return $info['fieldType'] == 'code' || $info['fieldType'] == 'code-other';
+				});
+				if (count($voucherFieldInfos) > 0) {
+					if ($singleCodeMode) {
+						$voucher->codeInfos()->delete();
+						$res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, []);
+					} else {
+						$res1 = $this->updateVoucherCodes($voucher, $voucherData, $voucherFieldInfos, $arParticipantIds);
+					}
+					
+					// embed field configs into result
+					$result = array_merge($result, $res1['result']);
+				}
+			}
       
+      //*********************
+			// Prepare result
+			//*********************
       $status = true;
       if ($includeCode && isset($res1)) {
 			  if (!$res1['status']) {
@@ -345,14 +362,17 @@ class AgentCodeController extends BaseController
 			$formContent = implode('||', array_map(function($el) {
 				return $el['value'];
 			}, $item['all']));
-			$participant = new VoucherParticipant([
-				'name' => $item['name'],
-				'email' => $item['email'],
-				'phone' => $item['phone'],
-				'form_content' => $formContent
-			]);
-			$newRow = $voucher->participants()->save($participant);
-			$participantIds[] = $newRow->id;
+			
+			if (!$voucher->participants()->whereFormContent($formContent)->exists()) {
+				$participant = new VoucherParticipant([
+					'name' => $item['name'],
+					'email' => $item['email'],
+					'phone' => $item['phone'],
+					'form_content' => $formContent
+				]);
+				$newRow = $voucher->participants()->save($participant);
+				$participantIds[] = $newRow->id;
+			}
 		}
 		
 		$arInputObjs =[];
@@ -379,8 +399,7 @@ class AgentCodeController extends BaseController
 				default:
 					$newInputObj['inputType'] = 'simple-text';
 			}
-				
-				$arInputObjs[] = $newInputObj;
+			$arInputObjs[] = $newInputObj;
 		}
 		$participantConfigs = formConfigsToData([
 			'inputObjs' => $arInputObjs
@@ -598,7 +617,7 @@ class AgentCodeController extends BaseController
 				'message' => '',
 				'messageTag' => '',
 				'participantIds' => $participantIds,
-				'participantConfigs' => $participantConfigs
+				'participantConfigs' => $participantConfigs,
 			]
 		];
 	}

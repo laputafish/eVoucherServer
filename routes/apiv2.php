@@ -90,8 +90,8 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 	Route::post('vouchers/{id}/codes_with_participants/export', 'VoucherController@exportCodesWithParticipants');
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 	Route::get('vouchers/{id}/mailing_summary', 'VoucherController@getMailingSummary');
-	
 	Route::post('vouchers/{id}/send_emails', 'VoucherController@sendEmails');
+	Route::post('vouchers/{id}/use_one_code_mode', 'VoucherController@useOneCodeMode');
 	
   //*******************
   // Agents

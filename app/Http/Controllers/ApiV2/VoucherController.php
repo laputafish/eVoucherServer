@@ -1287,4 +1287,23 @@ class VoucherController extends BaseModuleController
       if ($i>=$count) break;
     }
   }
+  
+  public function useOneCodeMode($id) {
+		$voucher = $this->model->find($id);
+		if (isset($voucher)) {
+			$voucherCode = $voucher->codeInfos()->first();
+			if (isset($voucherCode)) {
+				$voucher->codeInfos()->where('id', '<>', $voucherCode->id)->delete();
+				$voucher->codeInfos()->update(['participant_id'=>0]);
+				$voucher->has_one_code = 1;
+				$voucher->save();
+			}
+		}
+		return response()->json([
+			'status' => true,
+			'result' => [
+				'message' => 'Code updated successfully.'
+	    ]
+		]);
+  }
 }
