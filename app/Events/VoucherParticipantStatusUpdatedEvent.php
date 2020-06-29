@@ -14,7 +14,7 @@ class VoucherParticipantStatusUpdatedEvent implements ShouldBroadcast
 {
 	use Dispatchable, InteractsWithSockets, SerializesModels;
 	
-	public $participant;
+	public $statusInfo;
 	
 	/**
 	 * Create a new event instance.
@@ -26,7 +26,7 @@ class VoucherParticipantStatusUpdatedEvent implements ShouldBroadcast
 		$voucher = $participant->voucher;
 		$code = $participant->code;
 		
-		$this->participant = [
+		$this->statusInfo = [
 			'participant_id' => $participant->id,
 			'code_id' => isset($code) ? $code->id : 0,
 			'voucher_id' => $voucher->id,
@@ -45,7 +45,7 @@ class VoucherParticipantStatusUpdatedEvent implements ShouldBroadcast
 	 */
 	public function broadcastOn()
 	{
-		return ['voucher'.$this->participant['voucher_id'].'.channel'];
+		return ['voucher'.$this->statusInfo['voucher_id'].'.channel'];
 	}
 	
 	public function broadcastAs() {

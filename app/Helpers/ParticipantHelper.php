@@ -34,7 +34,7 @@ class ParticipantHelper {
 			$voucherCode = $participant->code;
 		}
 
-		if (isset($vouncherCode)) {
+		if (isset($voucherCode)) {
 			//***************************************
 			// Apply tag values
 			//***************************************
@@ -45,20 +45,24 @@ class ParticipantHelper {
 			// Send email
 			LogHelper::log('Send email');
 			$smtpServer = $voucher->getSmtpServer();
-			$smtpConfig = SmtpServerHelper::getConfig($smtpServer);
-			$mailInfo = [
-				'subject' => $voucher->email_subject,
-				'toEmail' => $participant->email,
-				'toName' => $participant->name,
-				'cc' => $voucher->mail_cc,
-				'bcc' => $voucher->email_bcc,
-				'body' => $appliedTemplate,
-				'fromEmail' => $smtpConfig['from']['address'],
-				'fromName' => $smtpConfig['from']['name']
-			];
-			$errorMsg = EmailTemplateHelper::sendHtml(
-				$smtpConfig,
-				$mailInfo);
+			if (isset($smtpServer)) {
+				$smtpConfig = SmtpServerHelper::getConfig($smtpServer);
+				$mailInfo = [
+					'subject' => $voucher->email_subject,
+					'toEmail' => $participant->email,
+					'toName' => $participant->name,
+					'cc' => $voucher->mail_cc,
+					'bcc' => $voucher->email_bcc,
+					'body' => $appliedTemplate,
+					'fromEmail' => $smtpConfig['from']['address'],
+					'fromName' => $smtpConfig['from']['name']
+				];
+				$errorMsg = EmailTemplateHelper::sendHtml(
+					$smtpConfig,
+					$mailInfo);
+			} else {
+				$errorMsg = 'No SMTP server assigned!';
+			}
 		} else {
 			$errorMsg = 'No assigned code!';
 		}

@@ -91,7 +91,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::delete('vouchers/{id}/codes', 'VoucherController@clearCodes');
 	Route::get('vouchers/{id}/mailing_summary', 'VoucherController@getMailingSummary');
 	Route::post('vouchers/{id}/send_emails', 'VoucherController@sendEmails');
-	Route::post('vouchers/{id}/use_one_code_mode', 'VoucherController@useOneCodeMode');
+	Route::post('vouchers/{id}/update_field/{field_name}/{value}', 'VoucherController@updateField');
 	
   //*******************
   // Agents

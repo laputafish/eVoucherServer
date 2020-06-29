@@ -371,6 +371,7 @@ class VoucherController extends BaseModuleController
 			$barCodes = $codeConfigs->where('code_group', 'barcode')->pluck('composition');
 			$row->qrcode_comp = $qrCodes->count() > 0 && !is_null($qrCodes[0]) ? $qrCodes[0] : '';
 			$row->barcode_comp = $barCodes->count() > 0 && !is_null($barCodes[0]) ? $barCodes[0] : '';
+			$row->participant_assigned = $row->participants()->whereHas('code')->count();
 			unset($row->codeConfigs);
 		}
 		return $rows;
@@ -1133,8 +1134,25 @@ class VoucherController extends BaseModuleController
 				$offset = ($page - 1) * $limit;
 				$data = $query->skip($offset)->take($limit)->get();
 				$pagedData = new \Illuminate\Pagination\LengthAwarePaginator($data, $totalCount, $limit, $page);
-				$pagedData->getCollection()->transform(function($value) {
+				$pagedData->getCollection()->transform(function($value) use($voucher) {
 					$value->participant;
+					if ($voucher->has_one_code===1) {
+						$value->participant = null;
+						$value->status = '-';
+						$value->error_message = '';
+						$value->sent_at = null;
+					} else {
+						if (isset($value->participant)) {
+							$value->participant;
+							$value->status = $value->participant->status;
+							$value->sent_at = $value->participant->sent_at;
+							$value->error_message = $value->participant->error_message;
+						} else {
+							$value->status = 'unassigned';
+							$value->sent_at = null;
+							$value->error_message = '';
+						}
+					}
 					return $value;
 				});
 				$result = $pagedData;
@@ -1288,22 +1306,39 @@ class VoucherController extends BaseModuleController
     }
   }
   
-  public function useOneCodeMode($id) {
+  public function updateField($id, $fieldName, $fieldValue) {
+		$status = true;
+		$message = '';
+		
 		$voucher = $this->model->find($id);
 		if (isset($voucher)) {
-			$voucherCode = $voucher->codeInfos()->first();
-			if (isset($voucherCode)) {
-				$voucher->codeInfos()->where('id', '<>', $voucherCode->id)->delete();
-				$voucher->codeInfos()->update(['participant_id'=>0]);
-				$voucher->has_one_code = 1;
-				$voucher->save();
+			switch ($fieldName) {
+				case 'has_one_code':
+					if ($fieldValue=='1') {
+						$this->keepFirstCode($voucher);
+						break;
+					}
 			}
+			$voucher->{$fieldName} = $fieldValue;
+			$voucher->save();
+			$message = 'Voucher updated.';
+		} else {
+			$status = false;
+			$message = 'Non-existing voucher with id #'.$id;
 		}
 		return response()->json([
-			'status' => true,
+			'status' => $status,
 			'result' => [
-				'message' => 'Code updated successfully.'
+				'message' => $message
 	    ]
 		]);
+  }
+  
+  private function keepFirstCode($voucher) {
+	  $voucherCode = $voucher->codeInfos()->first();
+	  if (isset($voucherCode)) {
+		  $voucher->codeInfos()->where('id', '<>', $voucherCode->id)->delete();
+		  $voucher->codeInfos()->update(['participant_id'=>0]);
+	  }
   }
 }

@@ -37,15 +37,48 @@ class ParticipantController extends BaseController
 	public function sendEmail($id) {
 		LogHelper::$enabled = false;
 		$participant = $this->model->find($id);
-		$status = false;
+		
+		$res = false;
+		$status = '';
+		$sentAt = '';
+		$message = '';
+		
 		if (isset($participant)) {
-			$status = ParticipantHelper::sendEmail($participant);
+			$voucher = $participant->voucher;
+
+//			if (isset($voucher)) {
+//			$smtpServer = $voucher->getSmtpServer();
+//			echo 'isset: '.(isset($smtpServer) ? 'yes' : 'no');
+////			print_r($smtpServer);
+////			echo 'has one code: '.($voucher->has_one_code);
+////			$voucherCode = $voucher->codes()->first();
+////			print_r($voucherCode->toArray());
+//			return 'ok';
+			
+			if ($voucher->has_one_code || isset($participant->code)) {
+				$res = ParticipantHelper::sendEmail($participant, $voucher);
+				$message = $res ? 'Sending email ...' : 'Error: Fails to send.';
+			} else {
+				$res = false;
+				$message = 'No code assigned!';
+			}
+			
+			if (!$res) {
+				$status = $participant->status = 'fails';
+				$sentAt = $participant->sent_at = date('Y-m-d H:i:s');
+				$message = $participant->error_message = $message;
+				$participant->save();
+			}
+		} else {
+			$res = false;
+			$message = 'Invalid participant!';
 		}
 		
-		$message = $status ? 'Email has been successfully sent.' : 'Error: Fails to send.';
 		return response()->json([
-			'status' => $status,
+			'status' => $res,
 			'result' => [
+				'sent_at' => $sentAt,
+				'status' => $status,
 				'message' => $message
 			]
 		]);
