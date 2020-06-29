@@ -13,6 +13,9 @@ class VoucherParticipant extends Model
 		'phone',
 		'form_content',
 		'participant_key',
+		'status',
+		'error_message',
+		'sent_at',
 		'remark'
 	];
 	

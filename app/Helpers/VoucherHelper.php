@@ -137,17 +137,6 @@ class VoucherHelper {
 	  event(new VoucherCodeStatusUpdatedEvent($voucherCode));
 	  return $voucherCode;
   }
-//  private static function updateVoucherStatus($voucher, $status) {
-//	  $voucher->status = $status;
-//	  $voucher->save();
-//  }
-  private static function updateVoucherCodeStatus($voucherCode, $status, $dt='', $message='') {
-    $voucherCode->status = $status;
-    $voucherCode->sent_on = $dt;
-    $voucherCode->error_message = $message;
-    $voucherCode->save();
-    event(new VoucherCodeStatusUpdatedEvent($voucherCode));
-  }
 
   public static function getMailingSummary($id) {
 		$status = false;
@@ -193,22 +182,28 @@ class VoucherHelper {
 		if (is_null($voucher)) {
 			$voucher = $voucherCode->voucher;
 		}
-
-    // Update voucher code status
+		
+		//***************************************
+    // voucher code status => 'processing'
+		//***************************************
     $voucherCode->status = 'processing';
     $voucherCode->save();
     event(new VoucherCodeStatusUpdatedEvent($voucherCode));
 		$template = VoucherTemplateHelper::readVoucherTemplate($voucher, 'email');
 		$participant = $voucherCode->participant;
-
+		
+		//*************
 		// Apply tag values
-		//
+		//*************
 		// null as TagGroups to use actual tag values
+		//
 		$allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
 		LogHelper::log('Apply tag values');
 		$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
-		
+
+		//*************
 		// Send email
+		//*************
 		LogHelper::log('Send email');
 		$smtpServer = $voucher->getSmtpServer();
 		$smtpConfig = SmtpServerHelper::getConfig($smtpServer);
@@ -222,57 +217,44 @@ class VoucherHelper {
 			'fromEmail' => $smtpConfig['from']['address'],
 			'fromName' => $smtpConfig['from']['name']
 		];
-		
-		
-//		$path = storage_path('logs/template_sending_email.html');
-//		if (file_exists($path)) {
-//			unlink($path);
-//		}
-//		file_put_contents($path, $appliedTemplate);
-		
-		
-		
-		
 		$errorMsg = EmailTemplateHelper::sendHtml(
 			$smtpConfig,
 			$mailInfo);
 		
-		// Prepare message if err
-		$status = true;
+		//*************
+		// Update status
+		//*************
+		$res = true;
+		$status = 'completed';
 		$message = '';
 		if ($errorMsg) {
-			$status = false;
+			$status = 'fails';
+			$res = false;
 			if (strpos($errorMsg, 'exceeded') !== false) {
 				$message = 'Messaging limits exceeded!';
 			} else {
 				$message = $errorMsg;
 			}
-			$voucherCode->status = 'fails';
-			$voucherCode->error_message = $message;
-			$voucherCode->sent_on = date('Y-m-d H:i:s');
-			$voucherCode->save();
-		} else {
-			$voucherCode->status = 'completed';
-			$voucherCode->error_message = '';
-			$voucherCode->sent_on = date('Y-m-d H:i:s');
-			$voucherCode->save();
 		}
-		LogHelper::log('VoucherHelper::sendVoucherEmail :: message: '. $message);
-
-//		$res = [
-//			'status' => $status,
-//			'message' => $message
-//		];
-//
-//    $status = $res['status'];
-    if ($status) {
-      static::updateVoucherCodeStatus($voucherCode, 'completed', date('Y-m-d H:i:s'));
-    } else {
-      static::updateVoucherCodeStatus($voucherCode, 'fails', date('Y-m-d H:i:s'), $message);
-    }
+    static::updateCodeStatus(
+    	$voucherCode,
+	    $status,
+	    $message);
 
 		return true; //  $status; // $res['status'];
 	}
 	
-	
+	private static function updateCodeStatus(
+		$voucherCode,
+		$status,
+		$message='') {
+		
+		$voucherCode->status = $status;
+		$voucherCode->error_message = $message;
+		$voucherCode->sent_on = date('Y-m-d H:i:s');
+		$voucherCode->save();
+		
+		LogHelper::log('VoucherHelper::sendVoucherEmail :: message: '. $message);
+		event(new VoucherCodeStatusUpdatedEvent($voucherCode));
+	}
 }

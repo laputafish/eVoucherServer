@@ -107,6 +107,10 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 	Route::post('agent_codes/{id}/change_status/{status}', 'AgentCodeController@changeStatus');
 	Route::post('agent_codes/{id}/update_field', 'AgentCodeController@updateField');
 	
+	// Participants
+	Route::post('participants/{id}/change_status/{status}', 'ParticipantController@changeStatus');
+	Route::post('participants/{id}/send_email', 'ParticipantController@sendEmail');
+	
   // Form Questions
 	Route::post('form_questions/upload', 'FormQuestionController@upload');
 	Route::post('form_questions/temp/create', 'FormQuestionController@saveFormConfigs');
