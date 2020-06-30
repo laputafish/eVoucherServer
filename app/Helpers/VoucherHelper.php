@@ -141,6 +141,28 @@ class VoucherHelper {
       	event(new VoucherStatusUpdatedEvent($voucher));
       }
     }
+	
+	  $vouchers = Voucher::whereStatus('sending')->get();
+	  foreach($vouchers as $voucher) {
+	  	if ($voucher->has_one_code) {
+	  		if (!$voucher->participants()->where('status', 'pending')->exists()) {
+	  			if ($voucher->status != 'completed') {
+					  $voucher->status = 'completed';
+					  $voucher->save();
+					  event(new VoucherStatusUpdatedEvent($voucher));
+				  }
+			  }
+		  } else {
+	  		if (!$voucher->participants()->whereHas('code')->where('status', 'pending')->exists()) {
+	  			if ($voucher->status != 'completed') {
+	  				$voucher->status = 'completed';
+	  				$voucher->save();
+					  event(new VoucherStatusUpdatedEvent($voucher));
+				  }
+			  }
+		  }
+	  }
+    
     // return true to enable looping even there is error
     return $success;
   }
@@ -186,36 +208,20 @@ class VoucherHelper {
 	  return $voucherCode;
   }
 
-  public static function getMailingSummary($id) {
+  public static function getStatusSummary($id, $basedOnStatusOnly=true) {
 		$status = false;
 		$result = [
 			'message' => 'Unkknown internal error!'
 		];
 	  $voucher = Voucher::find($id);
-	  
-//	  echoln('getMailingSummary');
-//	  return [
-//	  	'status' => true,
-//		  'result' => 'getMailingSummary'
-//	  ];
-	  
 	  if (!isset($voucher)) {
-//	  	echoln('voucher not set');
 	  	$result['message'] = 'Voucher id "'.$id.'" is undefined.';
 	  } else {
-//	  	echoln('voucher id '.$voucher->id);
-//	  	if ($voucher->has_one_code) {
-	  		$statusList = $voucher->participants()->select('status')->get();
-//		  } else {
-//	  		$statusList = $voucher->participants()->whereHas('code')->select('status')->get();
-//		  }
-//		  print_r($participants->toArray());
-//		  $statusList = $voucher->codes()->select('status', 'participant_id')->get();
-//print_r($statusList);
-//	  	return [
-//	  		'status'=> true,
-//			  'result'=>['summary'=>[]]
-//		  ];
+	  	if ($basedOnStatusOnly || $voucher->has_one_code) {
+			  $statusList = $voucher->participants()->select('status')->get();
+		  } else {
+	  		$statusList = $voucher->participants()->whereHas('code')->select('status')->get();
+		  }
 		  $status = true;
 		  $result = [
 			  'summary' => [

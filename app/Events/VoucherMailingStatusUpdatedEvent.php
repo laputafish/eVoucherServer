@@ -27,7 +27,8 @@ class VoucherMailingStatusUpdatedEvent implements ShouldBroadcast
 	public function __construct($voucher)
 	{
 		$this->voucher = $voucher;
-		$summaryResult = VoucherHelper::getMailingSummary($voucher->id);
+		$basedOnOnlyStatus = false;
+		$summaryResult = VoucherHelper::getStatusSummary($voucher->id, $basedOnOnlyStatus);
 		$this->mailingSummary = $summaryResult['result'];
 	}
 

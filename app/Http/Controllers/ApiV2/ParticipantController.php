@@ -28,9 +28,14 @@ class ParticipantController extends BaseController
 			$row->sent_at = null;
 			$row->save();
 		}
+		
+		$voucher = $row->voucher;
+		$statusSummary = VoucherHelper::getStatusSummary($voucher->id);
 		return response()->json([
 			'status' => true,
-			'result' => []
+			'result' => [
+				'status_summary' => $statusSummary['result']['summary']
+			]
 		]);
 	}
 	

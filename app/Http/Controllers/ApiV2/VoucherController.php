@@ -1116,8 +1116,14 @@ class VoucherController extends BaseModuleController
 //		];
 //	}
 	
+	public function getMailingSummary($id) {
+		$basedOnStatusOnly = false;
+		$summaryResult = VoucherHelper::getStatusSummary($id, $basedOnStatusOnly);
+		return response()->json($summaryResult);
+	}
+	
 	public function getStatusSummary(Request $request, $id) {
-		$mailingSummary = VoucherHelper::getMailingSummary($id);
+		$statusSummary = VoucherHelper::getStatusSummary($id);
 		// $mailingSummary = [
 		//    'status' => true,
 		//    'result' => [
@@ -1127,8 +1133,8 @@ class VoucherController extends BaseModuleController
 		
 		//      ]
 		//    ]
-		$voucher = $this->model->find($id);
-		$summary = $mailingSummary['result']['summary'];
+//		$voucher = $this->model->find($id);
+//		$summary = $statusSummary['result']['summary'];
 //			[
 //			'pending' => $voucherCodes->where('status', 'pending')->where('participant_id', 0)->count(),
 //			'ready' => $voucherCodes->where('status', 'ready')->count(),
@@ -1138,7 +1144,7 @@ class VoucherController extends BaseModuleController
 		return [
 			'status' => true,
 			'result' => [
-				'status_summary' => $summary
+				'status_summary' => $statusSummary['result']['summary']
 			]
 		];
 	}
@@ -1194,11 +1200,6 @@ class VoucherController extends BaseModuleController
 			'status' => true,
 			'result' => []
 		]);
-	}
-	
-	public function getMailingSummary($id) {
-		$summaryResult = VoucherHelper::getMailingSummary($id);
-		return response()->json($summaryResult);
 	}
 	
 	public function sendEmails($id) {

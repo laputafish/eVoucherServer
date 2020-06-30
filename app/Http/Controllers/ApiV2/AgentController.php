@@ -1,11 +1,12 @@
 <?php namespace App\Http\Controllers\ApiV2;
 
 use App\Models\Menu;
+use App\Models\SmtpServer;
 
 use Illuminate\Http\Request;
-
 use Bouncer;
-use App\Models\SmtpServer;
+
+use App\Helpers\AgentHelper;
 
 class AgentController extends BaseModuleController
 {
@@ -78,6 +79,7 @@ class AgentController extends BaseModuleController
 	{
 		foreach ($rows as $row) {
 			$row->voucher_count = $row->vouchers()->count();
+			$row->smtp_server_count = $row->smtpServers()->count();
 		}
 		return $rows;
 	}
@@ -219,13 +221,28 @@ class AgentController extends BaseModuleController
   }
 
   protected function getSmtpServers($id) {
+		AgentHelper::checkCreateSystemAgent();
 	  $agent = $this->model->findOrFail($id);
 	  return response()->json([
 	    'status' => true,
       'result' => [
       	'tag' => empty($agent->alias) ? $agent->name : $agent->alias,
-      	'smtpServers' => $agent->smtpServers
+      	'smtpServers' => $agent->smtpServers,
+	      'systemSmtpServers' => AgentHelper::getSystemSmtpServers()
       ]
     ]);
+  }
+  
+  public function destroySmtpServer($id, $smtpServerId) {
+		$agent = $this->model->find($id);
+		if (isset($agent)) {
+			$agent->smtpServers()->whereId($smtpServerId)->delete();
+		}
+		return response()->json([
+			'status' => true,
+			'result' => [
+				'message' => 'SMTP server deleted successfully.'
+			]
+		]);
   }
 }

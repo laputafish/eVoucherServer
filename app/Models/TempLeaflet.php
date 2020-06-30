@@ -11,7 +11,7 @@ class TempLeaflet extends Model
     'key',
     'title',
     'code_configs',
-    'template',
+//    'template',
 	  'template_path',
     'params'
   ];

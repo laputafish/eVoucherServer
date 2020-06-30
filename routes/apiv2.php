@@ -101,6 +101,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   //*******************
   Route::resource('agents', 'AgentController');
   Route::get('agents/{id}/smtp_servers', 'AgentController@getSmtpServers');
+  Route::delete('agents/{id}/smtp_servers/{smtpServerId}', 'AgentController@destroySmtpServer');
 
   // Agent Codes
 //  Route::post('agent_codes/{id}/update_views', 'AgentCodeController@updateViews');
