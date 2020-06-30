@@ -1088,7 +1088,35 @@ class VoucherController extends BaseModuleController
 		return $result;
 	}
 	
-	public function getCodeSummary(Request $request, $id) {
+//	public function getCodeSummary(Request $request, $id) {
+//		$mailingSummary = VoucherHelper::getMailingSummary($id);
+//		// $mailingSummary = [
+//		//    'status' => true,
+//		//    'result' => [
+//		//      'summary' => [
+//		//        'pending' => 0,
+//		//        'ready' => 0,
+//
+//		//      ]
+//		//    ]
+//		$voucher = $this->model->find($id);
+//		$voucherCodes = $voucher->codes;
+//		$summary = $mailingSummary['result']['summary'];
+////			[
+////			'pending' => $voucherCodes->where('status', 'pending')->where('participant_id', 0)->count(),
+////			'ready' => $voucherCodes->where('status', 'ready')->count(),
+////			'completed' => $voucherCodes->where('status', 'completed')->count(),
+////			'fails' => $voucherCodes->where('status', 'fails')->count(),
+////		];
+//		return [
+//			'status' => true,
+//			'result' => [
+//				'code_summary' => $summary
+//			]
+//		];
+//	}
+	
+	public function getStatusSummary(Request $request, $id) {
 		$mailingSummary = VoucherHelper::getMailingSummary($id);
 		// $mailingSummary = [
 		//    'status' => true,
@@ -1100,7 +1128,6 @@ class VoucherController extends BaseModuleController
 		//      ]
 		//    ]
 		$voucher = $this->model->find($id);
-		$voucherCodes = $voucher->codes;
 		$summary = $mailingSummary['result']['summary'];
 //			[
 //			'pending' => $voucherCodes->where('status', 'pending')->where('participant_id', 0)->count(),
@@ -1111,10 +1138,11 @@ class VoucherController extends BaseModuleController
 		return [
 			'status' => true,
 			'result' => [
-				'code_summary' => $summary
+				'status_summary' => $summary
 			]
 		];
 	}
+	
 	public function getCodes(Request $request, $id)
 	{
 		$voucher = $this->model->find($id);
@@ -1193,37 +1221,68 @@ class VoucherController extends BaseModuleController
 		]);
 	}
 
-	public function resetFailedCodes($id)
+//	public function resetFailedCodes($id)
+//  {
+//    $voucher = $this->model->find($id);
+//    if (isset($voucher)) {
+//      $codes = $voucher->codes()->whereStatus('fails')->get();
+//      foreach ($codes as $code) {
+//        $code->status = 'pending';
+//        $code->error_message = '';
+//        $code->sent_on = null;
+//        $code->save();
+//      }
+//    }
+//    $summaryResult = VoucherHelper::getMailingSummary($id);
+//    return response()->json($summaryResult);
+//  }
+
+	public function resetFailedParticipants($id)
   {
     $voucher = $this->model->find($id);
     if (isset($voucher)) {
-      $codes = $voucher->codes()->whereStatus('fails')->get();
-      foreach ($codes as $code) {
-        $code->status = 'pending';
-        $code->error_message = '';
-        $code->sent_on = null;
-        $code->save();
+      $participants = $voucher->participants()->whereStatus('fails')->get();
+      foreach ($participants as $participant) {
+        $participant->status = 'pending';
+        $participant->error_message = '';
+        $participant->sent_at = null;
+        $participant->save();
       }
     }
     $summaryResult = VoucherHelper::getMailingSummary($id);
     return response()->json($summaryResult);
   }
 
-	public function resetAllCodesMailingStatus($id)
-	{
-		$voucher = $this->model->find($id);
-		if (isset($voucher)) {
-			$codes = $voucher->codes;
-			foreach ($codes as $code) {
-				$code->status = 'pending';
-				$code->error_message = '';
-				$code->sent_on = null;
-				$code->save();
-			}
-		}
-		$summaryResult = VoucherHelper::getMailingSummary($id);
-		return response()->json($summaryResult);
-	}
+  public function resetParticipantsMailingStatus($id) {
+	  $voucher = $this->model->find($id);
+	  if (isset($voucher)) {
+		  $participants = $voucher->participants;
+		  foreach ($participants as $participant) {
+			  $participant->status = 'pending';
+			  $participant->error_message = '';
+			  $participant->sent_at = null;
+			  $participant->save();
+		  }
+	  }
+	  $summaryResult = VoucherHelper::getMailingSummary($id);
+	  return response()->json($summaryResult);
+  }
+  
+//	public function resetAllCodesMailingStatus($id)
+//	{
+//		$voucher = $this->model->find($id);
+//		if (isset($voucher)) {
+//			$codes = $voucher->codes;
+//			foreach ($codes as $code) {
+//				$code->status = 'pending';
+//				$code->error_message = '';
+//				$code->sent_on = null;
+//				$code->save();
+//			}
+//		}
+//		$summaryResult = VoucherHelper::getMailingSummary($id);
+//		return response()->json($summaryResult);
+//	}
 
 	public function clearCodeAssignments(Request $request, $id)
   {
@@ -1234,6 +1293,11 @@ class VoucherController extends BaseModuleController
     $count = count($participantIds);
     VoucherCode::whereIn('participant_id', $participantIds)->update([
       'participant_id' => 0
+    ]);
+    $voucher->participants()->update([
+    	'sent_at' => null,
+	    'error_message' => '',
+	    'status' => 'pending'
     ]);
     return response()->json([
       'status' => true,

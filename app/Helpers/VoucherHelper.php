@@ -2,10 +2,12 @@
 
 use App\Models\VoucherCode;
 use App\Models\Voucher;
+use App\Models\VoucherParticipant;
 
 use App\Events\VoucherStatusUpdatedEvent;
 use App\Events\VoucherMailingStatusUpdatedEvent;
 use App\Events\VoucherCodeStatusUpdatedEvent;
+use App\Events\VoucherParticipantStatusUpdatedEvent;
 
 class VoucherHelper {
 	public static function addNewParticipant($voucher, $participant) {
@@ -92,34 +94,48 @@ class VoucherHelper {
 
   public static function handle($command)
   {
-	  $status = static::processVoucherCodes('processing');
-	  $status = static::processVoucherCodes('pending');
+	  $status = static::processParticipants('processing');
+	  $status = static::processParticipants('pending');
 	  return $status;
   }
   
-  public static function processVoucherCodes($voucherCodeStatus) {
-	  $processingVoucherIds = Voucher::whereStatus('sending')->pluck('id')->toArray();
-
-	  if ($voucherCodeStatus == 'pending') {
-      $voucherCodes = VoucherCode::where('status', $voucherCodeStatus)
-        ->whereHas('participant')
-        ->whereIn('voucher_id', $processingVoucherIds)
-        ->get();
-    } else {
-      $voucherCodes = VoucherCode::where('status', $voucherCodeStatus)
-        ->whereIn('voucher_id', $processingVoucherIds)
-        ->get();
-    }
+//  public static function handle($command)
+//  {
+//	  $status = static::processVoucherCodes('processing');
+//	  $status = static::processVoucherCodes('pending');
+//	  return $status;
+//  }
+  
+  public static function processParticipants($participantStatus) {
+	  $processingVouchers = Voucher::whereStatus('sending')->select('id', 'has_one_code')->get();
+		$processingVoucherIds = $processingVouchers->map(function($voucher) { return $voucher->id; });
+	  
+    $voucherParticipants = VoucherParticipant::where('status', $participantStatus)
+      ->whereIn('voucher_id', $processingVoucherIds)
+      ->get();
 		  
 	  $success = true;
-	  foreach($voucherCodes as $voucherCode) {
-      $voucher = Voucher::find($voucherCode->voucher_id);
-      if ($voucher->status != 'sending') {
-        break;
-      }
-      $success = static::sendVoucherEmail($voucherCode);
+	  foreach($voucherParticipants as $voucherParticipant) {
+			$voucher = Voucher::find($voucherParticipant->voucher_id);
+		
+		  // Exit if vouncher not in sending mode
+		  if ($voucher->status != 'sending') {
+			  break;
+		  }
+			
+			// if not single code mode and participant without code assigned, next
+		  if (!$voucher->has_one_code && is_null($voucherParticipant->code)) {
+				continue;
+			}
+      
+      // Send email
+      $success = static::sendVoucherEmail($voucherParticipant, $voucher);
+      
+      // Push emailing status
 		  event(new VoucherMailingStatusUpdatedEvent($voucher));
-		  if (VoucherCode::whereVoucherId($voucher->id)->whereStatus('pending')->count()==0) {
+		  
+		  // if no more email to send, set voucher status as completed
+		  if (VoucherParticipant::whereVoucherId($voucher->id)->whereStatus('pending')->count()==0) {
       	$voucher->status = 'completed';
       	$voucher->save();
       	event(new VoucherStatusUpdatedEvent($voucher));
@@ -128,6 +144,38 @@ class VoucherHelper {
     // return true to enable looping even there is error
     return $success;
   }
+  
+//  public static function processVoucherCodes($voucherCodeStatus) {
+//	  $processingVoucherIds = Voucher::whereStatus('sending')->pluck('id')->toArray();
+//
+//	  if ($voucherCodeStatus == 'pending') {
+//      $voucherCodes = VoucherCode::where('status', $voucherCodeStatus)
+//        ->whereHas('participant')
+//        ->whereIn('voucher_id', $processingVoucherIds)
+//        ->get();
+//    } else {
+//      $voucherCodes = VoucherCode::where('status', $voucherCodeStatus)
+//        ->whereIn('voucher_id', $processingVoucherIds)
+//        ->get();
+//    }
+//
+//	  $success = true;
+//	  foreach($voucherCodes as $voucherCode) {
+//      $voucher = Voucher::find($voucherCode->voucher_id);
+//      if ($voucher->status != 'sending') {
+//        break;
+//      }
+//      $success = static::sendVoucherEmail($voucherCode);
+//		  event(new VoucherMailingStatusUpdatedEvent($voucher));
+//		  if (VoucherCode::whereVoucherId($voucher->id)->whereStatus('pending')->count()==0) {
+//      	$voucher->status = 'completed';
+//      	$voucher->save();
+//      	event(new VoucherStatusUpdatedEvent($voucher));
+//      }
+//    }
+//    // return true to enable looping even there is error
+//    return $success;
+//  }
 
   public static function resetVoucherCodeStatus($voucherCode) {
 	  $voucherCode->status = 'ready';
@@ -145,52 +193,109 @@ class VoucherHelper {
 		];
 	  $voucher = Voucher::find($id);
 	  
+//	  echoln('getMailingSummary');
+//	  return [
+//	  	'status' => true,
+//		  'result' => 'getMailingSummary'
+//	  ];
+	  
 	  if (!isset($voucher)) {
+//	  	echoln('voucher not set');
 	  	$result['message'] = 'Voucher id "'.$id.'" is undefined.';
 	  } else {
-		  $statusList = $voucher->codes()->select('status', 'participant_id')->get();
-
+//	  	echoln('voucher id '.$voucher->id);
+//	  	if ($voucher->has_one_code) {
+	  		$statusList = $voucher->participants()->select('status')->get();
+//		  } else {
+//	  		$statusList = $voucher->participants()->whereHas('code')->select('status')->get();
+//		  }
+//		  print_r($participants->toArray());
+//		  $statusList = $voucher->codes()->select('status', 'participant_id')->get();
+//print_r($statusList);
+//	  	return [
+//	  		'status'=> true,
+//			  'result'=>['summary'=>[]]
+//		  ];
 		  $status = true;
 		  $result = [
 			  'summary' => [
 				  'pending' => $statusList->filter(function($item) {
-            return $item->status == 'pending' && $item->participant_id != 0;
+            return $item->status == 'pending';
           })->count(),
           'completed' => $statusList->filter(function($item) {
-            return $item->status == 'completed' && $item->participant_id != 0;
+            return $item->status == 'completed';
           })->count(),
 				  'fails' => $statusList->filter(function($item) {
-            return $item->status == 'fails' && $item->participant_id != 0;
+            return $item->status == 'fails';
           })->count(),
 				  'processing' => $statusList->filter(function($item) {
-            return $item->status == 'processing' && $item->participant_id != 0;
+            return $item->status == 'processing';
           })->count(),
 				  'hold' => $statusList->filter(function($item) {
-				  	return $item->status == 'hold' && $item->participant_id != 0;
+				  	return $item->status == 'hold';
 				  })->count()
 			  ]
 		  ];
 	  }
-	  
 	  return [
 		  'status' => $status,
 		  'result' => $result
 	  ];
   }
+  
+//  public static function getMailingSummary($id) {
+//		$status = false;
+//		$result = [
+//			'message' => 'Unkknown internal error!'
+//		];
+//	  $voucher = Voucher::find($id);
+//
+//	  if (!isset($voucher)) {
+//	  	$result['message'] = 'Voucher id "'.$id.'" is undefined.';
+//	  } else {
+//		  $statusList = $voucher->codes()->select('status', 'participant_id')->get();
+//
+//		  $status = true;
+//		  $result = [
+//			  'summary' => [
+//				  'pending' => $statusList->filter(function($item) {
+//            return $item->status == 'pending' && $item->participant_id != 0;
+//          })->count(),
+//          'completed' => $statusList->filter(function($item) {
+//            return $item->status == 'completed' && $item->participant_id != 0;
+//          })->count(),
+//				  'fails' => $statusList->filter(function($item) {
+//            return $item->status == 'fails' && $item->participant_id != 0;
+//          })->count(),
+//				  'processing' => $statusList->filter(function($item) {
+//            return $item->status == 'processing' && $item->participant_id != 0;
+//          })->count(),
+//				  'hold' => $statusList->filter(function($item) {
+//				  	return $item->status == 'hold' && $item->participant_id != 0;
+//				  })->count()
+//			  ]
+//		  ];
+//	  }
+//
+//	  return [
+//		  'status' => $status,
+//		  'result' => $result
+//	  ];
+//  }
 	
-	public static function sendVoucherEmail($voucherCode, $voucher=null) {
+	public static function sendVoucherEmail($participant, $voucher=null) {
 		if (is_null($voucher)) {
-			$voucher = $voucherCode->voucher;
+			$voucher = $participant->voucher;
 		}
 		
 		//***************************************
     // voucher code status => 'processing'
 		//***************************************
-    $voucherCode->status = 'processing';
-    $voucherCode->save();
-    event(new VoucherCodeStatusUpdatedEvent($voucherCode));
+    $participant->status = 'processing';
+    $participant->save();
+    event(new VoucherParticipantStatusUpdatedEvent($participant));
 		$template = VoucherTemplateHelper::readVoucherTemplate($voucher, 'email');
-		$participant = $voucherCode->participant;
+		$voucherCode = $voucher->has_one_code ? $voucher->codes()->first() : $participant->code;
 		
 		//*************
 		// Apply tag values
@@ -236,14 +341,97 @@ class VoucherHelper {
 				$message = $errorMsg;
 			}
 		}
-    static::updateCodeStatus(
-    	$voucherCode,
-	    $status,
-	    $message);
+		
+		static::updateParticipantStatus(
+			$participant,
+			$status,
+			$message
+		);
 
 		return true; //  $status; // $res['status'];
 	}
 	
+//	public static function sendVoucherEmail($voucherCode, $voucher=null) {
+//		if (is_null($voucher)) {
+//			$voucher = $voucherCode->voucher;
+//		}
+//
+//		//***************************************
+//    // voucher code status => 'processing'
+//		//***************************************
+//    $voucherCode->status = 'processing';
+//    $voucherCode->save();
+//    event(new VoucherCodeStatusUpdatedEvent($voucherCode));
+//		$template = VoucherTemplateHelper::readVoucherTemplate($voucher, 'email');
+//		$participant = $voucherCode->participant;
+//
+//		//*************
+//		// Apply tag values
+//		//*************
+//		// null as TagGroups to use actual tag values
+//		//
+//		$allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
+//		LogHelper::log('Apply tag values');
+//		$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
+//
+//		//*************
+//		// Send email
+//		//*************
+//		LogHelper::log('Send email');
+//		$smtpServer = $voucher->getSmtpServer();
+//		$smtpConfig = SmtpServerHelper::getConfig($smtpServer);
+//		$mailInfo = [
+//			'subject' => $voucher->email_subject,
+//			'toEmail' => $participant->email,
+//			'toName' => $participant->name,
+//			'cc' => $voucher->mail_cc,
+//			'bcc' => $voucher->email_bcc,
+//			'body' => $appliedTemplate,
+//			'fromEmail' => $smtpConfig['from']['address'],
+//			'fromName' => $smtpConfig['from']['name']
+//		];
+//		$errorMsg = EmailTemplateHelper::sendHtml(
+//			$smtpConfig,
+//			$mailInfo);
+//
+//		//*************
+//		// Update status
+//		//*************
+//		$res = true;
+//		$status = 'completed';
+//		$message = '';
+//		if ($errorMsg) {
+//			$status = 'fails';
+//			$res = false;
+//			if (strpos($errorMsg, 'exceeded') !== false) {
+//				$message = 'Messaging limits exceeded!';
+//			} else {
+//				$message = $errorMsg;
+//			}
+//		}
+//    static::updateCodeStatus(
+//    	$voucherCode,
+//	    $status,
+//	    $message);
+//
+//		return true; //  $status; // $res['status'];
+//	}
+//
+
+	private static function updateParticipantStatus(
+		$participant,
+		$status,
+		$message='')
+	{
+		$participant->status = $status;
+		$participant->error_message = $message;
+		$participant->sent_at = date('Y-m-d H:i:s');
+		$participant->save();
+		
+		LogHelper::log('VoucherHelper::sendVoucherEmail :: message: ' . $message);
+		event(new VoucherParticipantStatusUpdatedEvent($participant));
+	}
+
 	private static function updateCodeStatus(
 		$voucherCode,
 		$status,

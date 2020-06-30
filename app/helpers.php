@@ -131,3 +131,7 @@ function getRandomWord($len = 10) {
 	shuffle($word);
 	return substr(implode($word), 0, $len);
 }
+
+function echoln($msg) {
+	echo $msg."<br/>";
+}

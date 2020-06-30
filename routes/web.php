@@ -17,6 +17,8 @@ use App\User;
 //***************
 // test Pusher
 //***************
+Route::get('events/VoucherMailingStatusUpdated/{id}', 'ApiV2\EventTestController@sendVoucherMailingStatusUpdatedEvent');
+
 Route::get('/pusher_test', function() {
 //	$pusher = new Pusher\Pusher(
 //		'1fe6acadae70811a093e',

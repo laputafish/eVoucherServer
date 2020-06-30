@@ -38,14 +38,17 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
     $headingLabels[] = 'Views';
     $headingLabels[] = 'Key';
     $headingLabels[] = 'Link';
-    $headingLabels[] = 'Status';
-    $headingLabels[] = 'Sent On';
-    $headingLabels[] = 'Error Messages';
+//    $headingLabels[] = 'Status';
+//    $headingLabels[] = 'Sent On';
+//    $headingLabels[] = 'Error Messages';
     $headingLabels[] = 'Remark';
 
 //    if ($isFormType && $haveKey && $keyFromCode) {
     	$headingLabels[] = 'Participant';
     	$headingLabels[] = 'Participant Email';
+    	$headingLabels[] = 'Mailing Status';
+    	$headingLabels[] = 'Sent At';
+    	$headingLabels[] = 'Mailing Notes';
 //    }
     return $headingLabels;
   }
@@ -94,22 +97,36 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
         }
       }
       $excelCells[] = '';
-      $excelCells[] = $row->views;
+      $excelCells[] = $row->views ? $row->views : '0';
       $excelCells[] = $row->key;
       $excelCells[] = \URL::to('/coupons/'.$row->key);
-      $excelCells[] = $row->status;
-      $excelCells[] = $row->sent_on;
-      $excelCells[] = $row->error_message;
+//      $excelCells[] = $row->status;
+//      $excelCells[] = $row->sent_on;
+//      $excelCells[] = $row->error_message;
       $excelCells[] = $row->remark;
 
 //      if ($haveKey && $keyFromCode) {
-      	if (isset($row->participant)) {
-		      $excelCells[] = $row->participant->name;
-		      $excelCells[] = $row->participant->email;
-	      } else {
-      		$excelCells[] = '';
-      		$excelCells[] = '';
-	      }
+	    if ($voucher->has_one_code) {
+		    $excelCells[] = '[SINGLE CODE MODE]';
+		    $excelCells[] = '';
+		    $excelCells[] = '';
+		    $excelCells[] = '';
+		    $excelCells[] = '';
+	    } else {
+		    if (isset($row->participant)) {
+			    $excelCells[] = $row->participant->name;
+			    $excelCells[] = $row->participant->email;
+			    $excelCells[] = $row->participant->status;
+			    $excelCells[] = $row->participant->sent_at;
+			    $excelCells[] = $row->participant->error_message;
+		    } else {
+			    $excelCells[] = '';
+			    $excelCells[] = '';
+			    $excelCells[] = '';
+			    $excelCells[] = '';
+			    $excelCells[] = '';
+		    }
+	    }
 //      }
       
       $excelRows[] = $excelCells;

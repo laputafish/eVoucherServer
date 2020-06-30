@@ -38,7 +38,37 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 			$headingLabels[] = str_replace('|', ' '.chr(13), $columnHeader);
 		}
 		$headingLabels[] = 'Created At';
+		$headingLabels[] = 'Mailing Status';
+		$headingLabels[] = 'Sent At';
+		$headingLabels[] = 'Mailing Notes';
 		return $headingLabels;
+	}
+
+	private function getKey($participant, $voucher, $haveKey, $keyFromCode) {
+		// $haveKey, $keyFromCode used for voucher_type=='form'
+		
+		$result = '';
+		if ($voucher->voucher_type === 'voucher') {
+			if ($voucher->has_one_code) {
+				$firstCode = $voucher->codes()->first();
+				$result = isset($firstCode) ? $firstCode->key : '';
+			} else {
+				$result = $participant->code->key;
+			}
+		} else {
+			if ($haveKey) {
+				if ($keyFromCode) {
+					if ($voucher->has_one_code) {
+						$result = isset($voucherFirstCode) ? $voucherFirstCode->key : '';
+					} else {
+						$result = $participant->code->key;
+					}
+				} else {
+					$result = $participant->participant_key;
+				}
+			}
+		}
+		return $result;
 	}
 	
 	public function collection() {
@@ -55,13 +85,7 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 //			echo 'count = '.$participants->count();
 			foreach($participants as $i=>$participant) {
 				$excelCells = [$i + 1];
-				if ($haveKey) {
-					if ($keyFromCode) {
-						$excelCells[] = $participant->code->key;
-					} else {
-						$excelCells[] = $participant->participant_key;
-					}
-				}
+				$excelCells[] = $this->getKey($participant, $voucher, $haveKey, $keyFromCode);
 				$formContent = $participant->form_content;
 				
 				if (!empty($formContent)) {
@@ -102,11 +126,14 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 									}
 									break;
 								case 'name':
-//								case 'phone':
 									$fieldValueSegs = explode('|', $fieldValue);
 									$fieldValueSegsCount = count($fieldValueSegs);
-									$excelCells[] = $fieldValueSegsCount > 0 ? $fieldValueSegs[0] : '';
-									$excelCells[] = $fieldValueSegsCount > 1 ? $fieldValueSegs[1] : '';
+									if ($voucher->voucher_type === 'voucher') {
+										$excelCells[] = $fieldValue;
+									} else {
+										$excelCells[] = $fieldValueSegsCount > 0 ? $fieldValueSegs[0] : '';
+										$excelCells[] = $fieldValueSegsCount > 1 ? $fieldValueSegs[1] : '';
+									}
 									break;
 							}
 						}
@@ -115,6 +142,9 @@ class VoucherParticipantExport implements FromCollection, ShouldAutoSize, WithHe
 					echo 'form_content is empty';
 				}
 				$excelCells[] = $participant->created_at;
+				$excelCells[] = ucFirst($participant->status);
+				$excelCells[] = $participant->sent_at;
+				$excelCells[] = $participant->error_message;
 				$excelRows[] = $excelCells;
 			}
 			

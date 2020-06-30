@@ -178,15 +178,19 @@ class Voucher extends Model
 							break;
 							
 						case 'name':
-							$name = $inputObj['name'];
-							$segs = explode(',', $name);
-							$hasTwoParts = count($segs)>1;
-							if ($hasTwoParts) {
-								$result[] = trim($segs[0]); //empty($ inputObj['note1']) ? $inputObj['name'].' (cell #1)' : $inputObj['note1'];
-								$result[] = trim($segs[1]); // empty($inputObj['note2']) ? $inputObj['name'].' (cell #2)' : $inputObj['note2'];
+							if ($this->voucher_type === 'voucher') {
+								$result[] = $inputObj['name'];
 							} else {
-								$result[] = $name.'[0]';
-								$result[] = $name.'[1]';
+								$name = $inputObj['name'];
+								$segs = explode(',', $name);
+								$hasTwoParts = count($segs) > 1;
+								if ($hasTwoParts) {
+									$result[] = trim($segs[0]); //empty($ inputObj['note1']) ? $inputObj['name'].' (cell #1)' : $inputObj['note1'];
+									$result[] = trim($segs[1]); // empty($inputObj['note2']) ? $inputObj['name'].' (cell #2)' : $inputObj['note2'];
+								} else {
+									$result[] = $name . '[0]';
+									$result[] = $name . '[1]';
+								}
 							}
 							break;
 					}

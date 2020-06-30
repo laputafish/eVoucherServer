@@ -77,12 +77,15 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::get('vouchers/{id}/participants', 'VoucherController@getParticipants');
   Route::delete('vouchers/{id}/participants/{participantId}', 'VoucherController@deleteParticipant');
   Route::post('vouchers/{id}/participants/export', 'VoucherController@exportParticipants');
-  Route::post('vouchers/{id}/reset_failed_codes', 'VoucherController@resetFailedCodes');
-  Route::post('vouchers/{id}/reset_all_codes_mailing_status', 'VoucherController@resetAllCodesMailingStatus');
+//  Route::post('vouchers/{id}/reset_failed_codes', 'VoucherController@resetFailedCodes');
+  Route::post('vouchers/{id}/reset_failed_participants', 'VoucherController@resetFailedParticipants');
+//  Route::post('vouchers/{id}/reset_all_codes_mailing_status', 'VoucherController@resetAllCodesMailingStatus');
+  Route::post('vouchers/{id}/reset_participants_mailing_status', 'VoucherController@resetParticipantsMailingStatus');
 	Route::delete('vouchers/{id}/participants', 'VoucherController@clearParticipants');
 	
 	Route::get('vouchers/{id}/codes', 'VoucherController@getCodes');
-	Route::get('vouchers/{id}/code_summary', 'VoucherController@getCodeSummary');
+//	Route::get('vouchers/{id}/code_summary', 'VoucherController@getCodeSummary');
+	Route::get('vouchers/{id}/status_summary', 'VoucherController@getStatusSummary');
   Route::put('vouchers/{voucherId}/codes/{codeId}', 'VoucherController@updateCode');
   
   Route::post('vouchers/{voucherId}/codes/{codeId}/set_status', 'VoucherController@setCodeStatus');
