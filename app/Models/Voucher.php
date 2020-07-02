@@ -19,7 +19,7 @@ class Voucher extends Model
 		'has_one_code',
 		'one_code_quota',
 		
-		'template',
+//		'template',
     'template_path',
 		'has_template',
 		
