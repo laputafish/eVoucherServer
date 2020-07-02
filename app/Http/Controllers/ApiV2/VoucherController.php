@@ -1250,7 +1250,7 @@ class VoucherController extends BaseModuleController
         $participant->save();
       }
     }
-    $summaryResult = VoucherHelper::getMailingSummary($id);
+    $summaryResult = VoucherHelper::getStatusSummary($id);
     return response()->json($summaryResult);
   }
 
@@ -1265,7 +1265,7 @@ class VoucherController extends BaseModuleController
 			  $participant->save();
 		  }
 	  }
-	  $summaryResult = VoucherHelper::getMailingSummary($id);
+	  $summaryResult = VoucherHelper::getStatusSummary($id);
 	  return response()->json($summaryResult);
   }
   

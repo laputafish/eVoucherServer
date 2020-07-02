@@ -9,6 +9,7 @@ use Silber\Bouncer\Database\HasRolesAndAbilities;
 
 use App\Models\Media;
 use App\Models\TempQuestionForm;
+use App\Models\UserSetting;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -47,4 +48,7 @@ class User extends Authenticatable implements JWTSubject
     	return $this->hasMany(TempQuestionForm::class);
     }
 
+    public function settings() {
+    	return $this->hasMany(UserSetting::class);
+    }
 }

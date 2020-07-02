@@ -17,6 +17,6 @@ class AgentHelper {
 	
 	public static function getSystemSmtpServers() {
 		$systemAgent = Agent::whereId(0)->first();
-		return $systemAgent->smtpServers;
+		return $systemAgent->smtpServers()->where('enabled', 1)->get();
 	}
 }

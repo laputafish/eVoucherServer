@@ -134,6 +134,10 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   // Email Template
 	Route::post('email_templates/send_test_email', 'EmailTemplateController@sendTestEmail');
 	
+	// User Setting
+	Route::get('users/settings', 'UserController@getSettings');
+	Route::post('users/settings', 'UserController@setSettings');
+	
   // Media
   Route::post('media/upload_image', 'MediaController@uploadImage');
   Route::post('media/upload', 'MediaController@upload');
