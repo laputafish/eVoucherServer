@@ -50,16 +50,6 @@ class ParticipantController extends BaseController
 		
 		if (isset($participant)) {
 			$voucher = $participant->voucher;
-
-//			if (isset($voucher)) {
-//			$smtpServer = $voucher->getSmtpServer();
-//			echo 'isset: '.(isset($smtpServer) ? 'yes' : 'no');
-////			print_r($smtpServer);
-////			echo 'has one code: '.($voucher->has_one_code);
-////			$voucherCode = $voucher->codes()->first();
-////			print_r($voucherCode->toArray());
-//			return 'ok';
-			
 			if ($voucher->has_one_code || isset($participant->code)) {
 				$res = ParticipantHelper::sendEmail($participant, $voucher);
 				$message = $res ? 'Sending email ...' : 'Error: Fails to send.';

@@ -94,7 +94,7 @@ class ParticipantHelper {
 		$message = '') {
 		
 		$participant->status = $status;
-		$participant->error_message = $message;
+		$participant->error_message = substr($message, 0, 190);
 		$participant->sent_at = date('Y-m-d H:i:s');
 		$participant->save();
 		
