@@ -39,6 +39,10 @@ class ParticipantHelper {
 			// Apply tag values
 			//***************************************
 			$allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
+			
+//			print_r($allTagValues);
+//			return false;
+			
 			LogHelper::log('Apply tag values');
 			$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
 			

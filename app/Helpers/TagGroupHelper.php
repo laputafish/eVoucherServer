@@ -97,10 +97,6 @@ class TagGroupHelper {
 
 		// image_code
 		$codeConfigs = $voucher->codeConfigs;
-//		echo 'isset(codeConfigs): '.(isset($codeConfigs) ? 'yes' : 'no');
-//		echo 'codeConfigs.count  = ' .$codeConfigs->count();
-//		return [];
-//		print_r($codeConfigs->toArray());
 
 		if ($useDummyValues) {
 			$result['qrcode'] = 'preview_mode';
@@ -122,10 +118,11 @@ class TagGroupHelper {
 			$codeFields = explode('|', $voucher->code_fields);
 			$hasCode = false;
 			$nonCodeFields = [];
-			foreach ($codeFields as $keyValueStr) {
+			foreach ($codeFields as $i=>$keyValueStr) {
 				$keyValue = explode(':', $keyValueStr);
 				$key = nameToTag($keyValue[0]);
-				if ($key != 'code') {
+//				if ($key != 'code') {
+				if ($i > 0) {
 					$nonCodeFields[] = $key;
 				} else {
 					$hasCode = true;
