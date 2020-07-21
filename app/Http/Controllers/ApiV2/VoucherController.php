@@ -70,10 +70,12 @@ class VoucherController extends BaseModuleController
 		'voucher_type' => 'in:voucher,form',
 		'has_one_code' => 'boolean',
 		'one_code_quota' => 'integer',
-		
+
+		'redemption_method' => 'string',
+		'redemption_password' => 'string',
 //		'template' => 'nullable|string',
 		'has_template' => 'boolean',
-		
+	
 		'has_custom_link' => 'boolean',
 		// 'custom_link_key' => 'string',
 		
@@ -131,6 +133,9 @@ class VoucherController extends BaseModuleController
 		'voucher_type' => 'in:voucher,form',
 		'has_one_code' => 'boolean',
 		'one_code_quota' => 'integer',
+		
+		'redemption_method' => 'string',
+		'redemption_password' => 'string',
 		
 //		'template' => 'nullable|string',
 		'has_template' => 'boolean',

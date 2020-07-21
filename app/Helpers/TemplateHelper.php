@@ -151,7 +151,11 @@ class TemplateHelper {
 	  }
     
     foreach($codeFields as $i=>$field) {
-		  $codeParams['code_' . $field] = empty($codeValues) ? '' : $codeValues[$i];
+	  	if ($i < count($codeValues)) {
+			  $codeParams['code_' . $field] = empty($codeValues) ? '' : $codeValues[$i];
+		  } else {
+	  		$codeParams['code_' . $field] = '';
+		  }
     }
     
     return $codeParams;

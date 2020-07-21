@@ -13,6 +13,7 @@ class VoucherCode extends Model
     'extra_fields',
     'key',
     'sent_on',
+	  'redempted_on',
     'error_message',
     'status',
 	  'participant_id',

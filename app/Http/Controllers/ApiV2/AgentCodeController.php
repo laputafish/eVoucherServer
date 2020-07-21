@@ -899,4 +899,16 @@ class AgentCodeController extends BaseController
 			'result' => []
 		]);
   }
+  
+  public function resetRedemptionStatus($id) {
+	  $code = VoucherCode::find($id);
+	  if (isset($code)) {
+	  	$code->redempted_on = null;
+	  	$code->save();
+	  }
+	  return response()->json([
+		  'status' => true,
+		  'result' => []
+	  ]);
+  }
 }
