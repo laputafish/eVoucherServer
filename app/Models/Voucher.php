@@ -20,7 +20,7 @@ class Voucher extends Model
 		'one_code_quota',
 		
 //		'template',
-		'redemption_password',
+		'redemption_code',
 		'redemption_method',
     'template_path',
 		'has_template',

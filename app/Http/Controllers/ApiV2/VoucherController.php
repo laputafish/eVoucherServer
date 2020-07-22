@@ -72,7 +72,7 @@ class VoucherController extends BaseModuleController
 		'one_code_quota' => 'integer',
 
 		'redemption_method' => 'string',
-		'redemption_password' => 'string',
+		'redemption_code' => 'nullable|string',
 //		'template' => 'nullable|string',
 		'has_template' => 'boolean',
 	
@@ -135,7 +135,7 @@ class VoucherController extends BaseModuleController
 		'one_code_quota' => 'integer',
 		
 		'redemption_method' => 'string',
-		'redemption_password' => 'string',
+		'redemption_code' => 'nullable|string',
 		
 //		'template' => 'nullable|string',
 		'has_template' => 'boolean',

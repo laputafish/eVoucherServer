@@ -57,6 +57,11 @@ class TemplateHelper {
     foreach($params as $key=>$value) {
       $template = str_replace( '{'.$key.'}', $value, $template);
     }
+    
+    // remove empty div
+	  // e.g. <div>&nbsp;</div>
+	  $template = str_replace('<div>&nbsp;</div>', '<div></div>', $template);
+	  
 //echo '444'.PHP_EOL;
     //return 'ok';
     return $template;

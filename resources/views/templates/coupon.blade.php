@@ -1,93 +1,211 @@
-<!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" class="h-100">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" class="h-100">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:v="urn:schemas-microsoft-com:vml">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--[if gte mso 9]>
+	<xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+	<![endif]-->
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    @if(isset($og))
-        @include('templates.og', ['og'=>$og])
-    @else
-        <title>Yoov Ticket</title>
-    @endif
+	@if(isset($og))
+		@include('templates.og', ['og'=>$og])
+	@else
+		<title>Yoov Ticket</title>
+	@endif
 
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <style>
-        body {
-            height: 100%;
-        }
-        body img.yoov-logo {
-            width: 480px;
-            max-width: 90%;
-        }
-        body p {
-            margin: 15px 0;
-        }
-    </style>
-    <!-- Styles -->
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+	        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+	        crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+          integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+          crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+	<style>
+    body {
+	    height: 100%;
+	    margin: 0;
+	    padding: 0;
+	    -webkit-text-size-adjust: 100%;
+	    background-color: #FFFFFF;
+    "
+    }
+
+    body p {
+	    margin: 15px 0;
+    }
+  </style>
+
+	<!--[if !mso]><!-->
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+	<!--<![endif]-->
+
+	<!--[if !mso]><!-->
+	<!--<![endif]-->
+	<style id="media-query" type="text/css">
+		@media (max-width: 520px) {
+
+			.block-grid,
+			.col {
+				min-width: 320px !important;
+				max-width: 100% !important;
+				display: block !important;
+			}
+
+			.block-grid {
+				width: 100% !important;
+			}
+
+			.col {
+				width: 100% !important;
+			}
+
+			.col > div {
+				margin: 0 auto;
+			}
+
+			img.fullwidth,
+			img.fullwidthOnMobile {
+				max-width: 100% !important;
+			}
+
+			.no-stack .col {
+				min-width: 0 !important;
+				display: table-cell !important;
+			}
+
+			.no-stack.two-up .col {
+				width: 50% !important;
+			}
+
+			.no-stack .col.num4 {
+				width: 33% !important;
+			}
+
+			.no-stack .col.num8 {
+				width: 66% !important;
+			}
+
+			.no-stack .col.num4 {
+				width: 33% !important;
+			}
+
+			.no-stack .col.num3 {
+				width: 25% !important;
+			}
+
+			.no-stack .col.num6 {
+				width: 50% !important;
+			}
+
+			.no-stack .col.num9 {
+				width: 75% !important;
+			}
+
+			.video-block {
+				max-width: none !important;
+			}
+
+			.mobile_hide {
+				min-height: 0px;
+				max-height: 0px;
+				max-width: 0px;
+				display: none;
+				overflow: hidden;
+				font-size: 0px;
+			}
+
+			.desktop_hide {
+				display: block !important;
+				max-height: none !important;
+			}
+		}
+
+	</style>
+
+	<style>
+	.redeem-row {
+		bottom: 0;
+		background-color: rgba(0, 0, 0, .2);
+		padding-top: 0.5rem;
+		padding-bottom: 0.5rem;
+		position: fixed;
+		width: 100%;
+	}
+
+	.redeem-row .redeem-block {
+		max-width: 95%;
+		width: 480px;
+		border-radius: 1rem;
+		border: lightgray 5px solid;
+		background-color: rgba(0, 176, 240, .7);
+	}
+
+	.redeemed-message {
+		text-shadow: 1px 1px black;
+		margin: 0;
+		color: white;
+	}
+
+	.redeemed-message .redeemed-date {
+		margin-left: 0.5rem;
+		margin-right: 0.5rem;
+		display: inline-block;
+		white-space: nowrap;
+	}
+
+	.redeem-input {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	</style>
 </head>
-<body class="{{ empty($template) ? 'h-100 d-flex flex-column justify-content-center align-items-center' : '' }}">
-    @if(empty($template))
-        <img class="yoov-logo" src="{!! URL::asset('/images/yoov_ticket_logo.png') !!}"/>
-        <h3>Voucher leaflet not defined!</h3>
-    @else
-
-        @if(!is_null($redemptionMethod) && !empty($redemptionMethod) && $redemptionMethod!=='none')
-            <div style="margin-bottom: 120px;">
-                {!! $template !!}
-            </div>
-            <div class="py-2 position-fixed w-100" style="bottom:0;background-color:rgba(0,0,0,.2);">
-                <div style="max-width:90%;width:480px;border-radius:1rem;border:lightgray 5px solid;background-color:rgba(0,176,240,.7);"
-                     class="p-4 mx-auto">
-                    @if(empty($redeemedOn))
-                        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}">
-                            {{ csrf_field() }}
-                            @if (Session::has('message'))
-                                <h3 class="m-0 text-center">{{ Session::get('message') }}</h3>
-                            @endif
-                            <div class="d-flex flex-row align-items-center">
-                                <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
-                                <button type="submit" class="ml-1 input-group-append btn btn-primary">Redeem</button>
-                            </div>
-                        </form>
-                    @else
-                        <div class="text-center">
-                          <h4 class="text-white m-0"
-                            style="text-shadow:2px 2px black;">
-                            Redeemed {{ $redeemedOn }}
-                          </h4>
-                        </div>
-                    @endif
+<body class="clean-body">
+@if(empty($template))
+	<img class="yoov-logo" src="{!! URL::asset('/images/yoov_ticket_logo.png') !!}"/>
+	<h3>Voucher leaflet not defined!</h3>
+@else
+	@if(!is_null($redemptionMethod) && !empty($redemptionMethod) && $redemptionMethod!=='none')
+		<div style="margin-bottom: 120px;">
+        {!! $template !!}
+    </div>
+		<div class="redeem-row">
+        <div class="p-4 mx-auto redeem-block">
+            @if(empty($redeemedOn))
+		        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}">
+                    {{ csrf_field() }}
+			        @if (Session::has('message'))
+				        <h3 class="m-0 text-center">{{ Session::get('message') }}</h3>
+			        @endif
+			        <div class="redeem-input">
+                        <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
+                        <button type="submit" class="ml-1 input-group-append btn btn-primary">Redeem</button>
+                    </div>
+                </form>
+	        @else
+		        <div class="text-center">
+                  <h4 class="redeemed-message">
+	                  <span class="text-danger">Redeemed</span>
+	                  <div class="redeemed-date">{{ $redeemedOn }}</div>
+                  </h4>
                 </div>
-            </div>
-        @else
-            {!! $template !!}
-        @endif
-    @endif
-    @if(!empty($script))
-    <div class="text-center">
+	        @endif
+        </div>
+    </div>
+	@else
+		{!! $template !!}
+	@endif
+@endif
+@if(!empty($script))
+	<div class="text-center">
         <div style="width:90%;max-width:640px;margin:0 auto;">
             {!! $script !!}
         </div>
     </div>
-    @endif
-    <script>
-        function toggleRedemptionPassword() {
-          var objPassword = document.getElementById('redemptionCode');
-          var inputType = objPassword.getAttribute('type')
-          if (inputType==='text') {
-            objPassword.setAttribute('type', 'password')
-            document.getElementById('hidingPassword').style.display = 'block';
-            document.getElementById('showingPassword').style.display = 'none';
-          } else {
-            objPassword.setAttribute('type', 'text')
-            document.getElementById('hidingPassword').style.display = 'none';
-            document.getElementById('showingPassword').style.display = 'block';
-          }
-        }
-    </script>
-</body>
+@endif
 </html>

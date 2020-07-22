@@ -157,7 +157,7 @@ class CouponController extends BaseController {
 		return view('templates.coupon', [
 			'og' => $og,
 			'key' => $id,
-			'redemptionMethod' => 'password',
+			'redemptionMethod' => $redemptionMethod,
 			'redeemedOn' => $redeemedOn,
 			'template' => $appliedTemplate,
 			'script' => $script
@@ -223,13 +223,10 @@ class CouponController extends BaseController {
 	private function processLeafletWithCode($voucherCode) {
 		$voucher = $voucherCode->voucher;
 		$voucher->codeConfigs;
-//echo '111'.PHP_EOL;
     $template = VoucherTemplateHelper::readVoucherTemplate($voucher);
-//echo '222'.PHP_EOL;
     $allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
-//echo '333'.PHP_EOL;
 		$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
-//return 'ok';
+
 //		$params = TemplateHelper::createParams(
 //			$voucher->toArray(),
 //			$voucherCode
