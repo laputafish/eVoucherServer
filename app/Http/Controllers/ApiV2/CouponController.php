@@ -12,6 +12,7 @@ use App\Helpers\MediaHelper;
 use Illuminate\Http\Request;
 
 use App\Events\VoucherCodeViewsUpdatedEvent;
+use App\Events\VoucherCodeRedeemedEvent;
 
 class CouponController extends BaseController {
 	public function showForm($id, $timestamp=null) {
@@ -79,10 +80,31 @@ class CouponController extends BaseController {
 		]);
 	}
 	
+	public function redeem($id) {
+		$key = $id;
+		$password = \Input::get('redemptionCode');
+		if (empty($password)) {
+			\Session::flash('message', 'Redemption code required!');
+			return redirect()->back();
+		}
+		$voucherCode = VoucherCode::where('key', $key)->first();
+		$voucher = $voucherCode->voucher;
+		
+		if ($voucher->redemption_code != $password) {
+			\Session::flash('message', 'Incorrect redemption code!');
+			return redirect()->back();
+		}
+		$voucherCode->redeemed_on = date('Y-m-d H:i:s');
+		$voucherCode->save();
+		event(new VoucherCodeRedeemedEvent($voucherCode));
+		return redirect()->back();
+	}
+	
 	public function showCoupon($id, $timestamp=null) {
 		$voucher = null;
 		$isFormal = is_null($timestamp);
     $appliedTemplate = '';
+    $redeemedOn = null;
     
 		if ($isFormal) {
 			$key = $id;
@@ -92,6 +114,7 @@ class CouponController extends BaseController {
 				$appliedTemplate = $this->processLeafletWithCode($voucherCode);
 				$voucherCode->views++;
 				$voucherCode->save();
+				$redeemedOn = $voucherCode->redeemed_on;
 				event(new VoucherCodeViewsUpdatedEvent($voucherCode));
 			} else {
 				$participant = VoucherParticipant::where('participant_key', $key)->first();
@@ -104,6 +127,7 @@ class CouponController extends BaseController {
 			$voucher = Voucher::find($id);
 			$appliedTemplate = '';
 		}
+		
 		if (isset($voucher)) {
 			$mediaSize = MediaHelper::getMediaDimension($voucher->sharing_image_id);
 			$og = [
@@ -115,6 +139,7 @@ class CouponController extends BaseController {
 				'image:height' => $mediaSize['height']
 			];
 			$script = $voucher->script;
+			$redemptionMethod = $voucher->redemption_method;
 		} else {
 			$mediaSize = MediaHelper::getMediaDimension(0);
 			$og = [
@@ -126,10 +151,14 @@ class CouponController extends BaseController {
 				'image:height' => $mediaSize['height']
 			];
 			$script = '';
+			$redemptionMethod = 'none';
 		}
 		
 		return view('templates.coupon', [
 			'og' => $og,
+			'key' => $id,
+			'redemptionMethod' => 'password',
+			'redeemedOn' => $redeemedOn,
 			'template' => $appliedTemplate,
 			'script' => $script
 		]);

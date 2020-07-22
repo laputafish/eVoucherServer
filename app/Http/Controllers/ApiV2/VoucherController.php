@@ -298,6 +298,8 @@ class VoucherController extends BaseModuleController
 		$row->participant_configs = json_decode($row->participant_configs, true);
 		
 		$row->total_views = $row->codes()->sum('views');
+		$row->total_redeemed = $row->codes()->whereNotNull('redeemed_on')->count();
+		
 		// unset($row->questionnaire_configs);
 		return $row;
 	}

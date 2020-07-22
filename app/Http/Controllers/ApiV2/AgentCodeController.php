@@ -14,6 +14,7 @@ use App\Helpers\TempUploadFileHelper;
 use App\Imports\AgentCodeImport;
 
 use Illuminate\Http\Request;
+use App\Events\VoucherCodeRedeemedEvent;
 
 class AgentCodeController extends BaseController
 {
@@ -901,11 +902,12 @@ class AgentCodeController extends BaseController
   }
   
   public function resetRedemptionStatus($id) {
-	  $code = VoucherCode::find($id);
-	  if (isset($code)) {
-	  	$code->redempted_on = null;
-	  	$code->save();
+	  $voucherCode = VoucherCode::find($id);
+	  if (isset($voucherCode)) {
+	  	$voucherCode->redeemed_on = null;
+	  	$voucherCode->save();
 	  }
+	  event(new VoucherCodeRedeemedEvent($voucherCode));
 	  return response()->json([
 		  'status' => true,
 		  'result' => []
