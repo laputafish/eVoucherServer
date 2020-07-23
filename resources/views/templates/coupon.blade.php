@@ -134,6 +134,7 @@
 		padding-bottom: 0.5rem;
 		position: fixed;
 		width: 100%;
+		height: 110px;
 	}
 
 	.redeem-row .redeem-block {
@@ -142,12 +143,24 @@
 		border-radius: 1rem;
 		border: lightgray 5px solid;
 		background-color: rgba(0, 176, 240, .7);
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto;
+	}
+
+	.redeemed-error-message {
+		margin: 0;
+		color: red;
+		text-align: center;
 	}
 
 	.redeemed-message {
-		text-shadow: 1px 1px black;
-		margin: 0;
-		color: white;
+		text-shadow: 1px 1px white;
+		margin: 0 0 2px 0;
+		color: red;
 	}
 
 	.redeemed-message .redeemed-date {
@@ -161,6 +174,7 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
+		width: 80%;
 	}
 
 	</style>
@@ -175,27 +189,27 @@
         {!! $template !!}
     </div>
 		<div class="redeem-row">
-        <div class="p-4 mx-auto redeem-block">
-            @if(empty($redeemedOn))
-		        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}">
-                    {{ csrf_field() }}
-			        @if (Session::has('message'))
-				        <h3 class="m-0 text-center">{{ Session::get('message') }}</h3>
-			        @endif
-			        <div class="redeem-input">
-                        <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
-                        <button type="submit" class="ml-1 input-group-append btn btn-primary">Redeem</button>
-                    </div>
-                </form>
-	        @else
-		        <div class="text-center">
-                  <h4 class="redeemed-message">
-	                  <span class="text-danger">Redeemed</span>
-	                  <div class="redeemed-date">{{ $redeemedOn }}</div>
-                  </h4>
-                </div>
-	        @endif
-        </div>
+        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}" class="w-100 h-100">
+                {{ csrf_field() }}
+	        <div class="redeem-block">
+	            @if(empty($redeemedOn))
+				        @if (Session::has('message'))
+					        <h4 class="redeemed-error-message">{{ Session::get('message') }}</h4>
+				        @endif
+				        <div class="redeem-input">
+	                        <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
+	                        <button type="submit" class="ml-1 input-group-append btn btn-primary">Redeem</button>
+	                    </div>
+		        @else
+			        <div class="text-center">
+	                  <h4 class="redeemed-message">
+		                  <span class="text-danger">Redeemed</span>
+		                  <div class="redeemed-date">{{ $redeemedOn }}</div>
+	                  </h4>
+	                </div>
+		        @endif
+	        </div>
+        </form>
     </div>
 	@else
 		{!! $template !!}
