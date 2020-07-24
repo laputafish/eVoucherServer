@@ -8,6 +8,7 @@ use App\Helpers\TemplateHelper;
 use App\Helpers\VoucherTemplateHelper;
 use App\Helpers\TagGroupHelper;
 use App\Helpers\MediaHelper;
+use App\Helpers\VoucherHelper;
 
 use Illuminate\Http\Request;
 
@@ -80,11 +81,36 @@ class CouponController extends BaseController {
 		]);
 	}
 	
+	public function redeemByQrcode($id) {
+		$key = $id;
+		$qrcode = \Input::get('redemptionQrcode');
+		if (empty($qrcode)) {
+			\Session::flash('message', 'Invalid Redemption QR');
+			\Session::flash('message_cht', '無效的兌換QR碼');
+			return redirect()->back();
+		}
+		$voucherCode = VoucherCode::where('key', $key)->first();
+		$voucher = $voucherCode->voucher;
+		
+		$location = VoucherHelper::getLocationByQrcode($voucher, $qrcode);
+		if (is_null($location)) {
+			\Session::flash('message', 'Invalid Redemption QR');
+			\Session::flash('message_cht', '無效的兌換QR碼');
+			return redirect()->back();
+		}
+		$voucherCode->redeemed_on = date('Y-m-d H:i:s');
+		$voucherCode->redemption_location_id = $location->id;
+		$voucherCode->save();
+		event(new VoucherCodeRedeemedEvent($voucherCode));
+		return redirect()->back();
+	}
+	
 	public function redeem($id) {
 		$key = $id;
 		$password = \Input::get('redemptionCode');
 		if (empty($password)) {
 			\Session::flash('message', 'Redemption code required!');
+			\Session::flash('message_cht', '需要兌換輸入碼!');
 			return redirect()->back();
 		}
 		$voucherCode = VoucherCode::where('key', $key)->first();
@@ -141,6 +167,9 @@ class CouponController extends BaseController {
 			];
 			$script = $voucher->script;
 			$redemptionMethod = $voucher->redemption_method;
+			$redemptionQrcodes = $redemptionMethod == 'qrcode' ?
+				VoucherHelper::getRedemptionCodes($voucher) :
+				[];
 		} else {
 			$mediaSize = MediaHelper::getMediaDimension(0);
 			$og = [
@@ -153,12 +182,14 @@ class CouponController extends BaseController {
 			];
 			$script = '';
 			$redemptionMethod = 'none';
+			$redemptionQrcodes = [];
 		}
 		
 		return view('templates.coupon', [
 			'og' => $og,
 			'key' => $id,
 			'redemptionMethod' => $redemptionMethod,
+			'redemptionQrcodes' => empty($redemptionQrcodes) ? '' : implode('||', $redemptionQrcodes),
 			'redeemedOn' => $redeemedOn,
 			'template' => $appliedTemplate,
 			'script' => $script

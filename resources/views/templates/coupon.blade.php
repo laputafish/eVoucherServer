@@ -186,6 +186,48 @@
 		width: 80%;
 	}
 
+
+	/* using qr code */
+
+		#redeemButton {
+			border-top-left-radius: 1rem;
+			border-bottom-left-radius: 1rem;
+			background-color: rgba(0, 176, 240, .7);
+			padding: 0.5rem 1rem;
+			line-height: 1.2;
+			border: 1px solid rgba(0, 176, 240, .7);
+			position: fixed;
+			right: 0;
+			bottom: 10px;
+			cursor: pointer;
+		}
+
+		#mainbody {
+			position: fixed;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			top: 0;
+			background-color:rgba(0,0,0,.6);
+		}
+
+		#outdiv {
+			background-color: black;
+		}
+
+		#result {
+			color: white;
+			width: 100%;
+			padding: 0.5rem;
+			line-height: 1;
+			text-align: center;
+			border: white 2px solid;
+			border-radius: 0.5rem;
+		}
+
+		#qr-canvas {
+			display: none;
+		}
 	</style>
 </head>
 <body class="clean-body">
@@ -197,32 +239,98 @@
 		<div style="margin-bottom: 120px;">
         {!! $template !!}
     </div>
-		<div class="redeem-row">
-        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}" class="w-100 h-100">
-                {{ csrf_field() }}
-	        <div class="redeem-block">
-	            @if(empty($redeemedOn))
-				        @if (Session::has('message'))
-					        <div class="redeemed-error-message">{{ Session::get('message') }}</div>
-					        <div class="redeemed-error-message">{{ Session::get('message_cht') }}</div>
-				        @endif
-				        <div class="redeem-input">
-	                        <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
-	                        <button type="submit" style="line-height:1;"
-	                                class="ml-1 py-1 input-group-append btn btn-primary">兌換<br/>Redeem</button>
-	                    </div>
-		        @else
-			        <div class="text-center">
-	                  <h4 class="redeemed-message">
-		                  <span class="text-danger flex flex-row align-items-center">
-			                  <span class="font-weight-bold">已兌換</span> Redeemed</span>
-		                  <div class="redeemed-date text-white">{{ $redeemedOn }}</div>
-	                  </h4>
-	                </div>
-		        @endif
-	        </div>
-        </form>
-    </div>
+		@if($redemptionMethod==='password')
+			<div class="redeem-row">
+	        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}" class="w-100 h-100">
+	                {{ csrf_field() }}
+		        <div class="redeem-block">
+		            @if(empty($redeemedOn))
+					        @if (Session::has('message'))
+						        <div class="redeemed-error-message">{{ Session::get('message') }}</div>
+						        <div class="redeemed-error-message">{{ Session::get('message_cht') }}</div>
+					        @endif
+					        <div class="redeem-input">
+		                        <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
+		                        <button type="submit" style="line-height:1;"
+		                                class="ml-1 py-1 input-group-append btn btn-primary">兌換<br/>Redeem</button>
+		                    </div>
+			        @else
+				        <div class="text-center">
+		                  <h4 class="redeemed-message">
+			                  <span class="text-danger flex flex-row align-items-center">
+				                  <span class="font-weight-bold">已兌換</span> Redeemed</span>
+			                  <div class="redeemed-date text-white">{{ $redeemedOn }}</div>
+		                  </h4>
+		                </div>
+			        @endif
+		        </div>
+	        </form>
+	    </div>
+		@else
+			<div id="redemptionQrcodes" data="{{$redemptionQrcodes}}" class="d-none"></div>
+			<button type="button" id="redeemButton" class="redeem-button text-center">
+				兌換<br/>
+				Redeem
+			</button>
+			<form method="POST" action="{!! url('coupons/'.$key.'/qr_redeem') !!}" class="w-100 h-100">
+				{{ csrf_field() }}
+				<input type="hidden" id="redemptionQrcode" name="redemptionQrcode" value=""/>
+			</form>
+			<div id="mainbody" class="d-none flex-column align-items-center py-5 px-3">
+				<div class="d-flex flex-grow-1 flex-column justify-content-between align-items-center w-100"
+				     style="max-width:99%;margin:0 auto;">
+					<div id="outdiv" class="flex-grow-1 mb-2 w-100"></div>
+					<h3 id="result">&nbsp;</h3>
+					<canvas id="qr-canvas" width="800" height="600" style="width: 800px; height: 600px;"></canvas>
+					<button id="cancelButton"
+					        class="btn btn-danger btn-lg w-100">
+						取消 Cancel
+					</button>
+				</div>
+			</div>
+			<div id="canvasErrorMessage"
+			     class="position-absolute w-100 px-3"
+			     style="top:30%;"></div>
+			<script type="text/javascript" src="{{ url('/webqr/llqrcode.js') }}"></script>
+			<script type="text/javascript" src="{{ url('/webqr/webqr.js') }}"></script>
+			<script>
+			  function isValid(code) {
+          var codesStr = document.getElementById('redemptionQrcodes').getAttribute('data');
+          var result = false;
+          if (codesStr.length > 0) {
+            var codes = codesStr.split('|');
+            for (var i = 0; i < codes.length; i++) {
+              if (codes[i].trim() === code.trim()) {
+                document.getElementById('redemptionQrcode').value = code.trim();
+                result = true;
+                break;
+              }
+            }
+          }
+          else {
+            document.getElementById('result').innerHtml('No redemption code!');
+          }
+          return result;
+        }
+
+				function go() {
+          document.getElementById('mainbody').classList.remove('d-none');
+          document.getElementById('mainbody').classList.add('d-flex');
+				  if (typeof startScan === 'function') {
+				    startScan()
+				  } else {
+				    console.log('startScan is not function')
+				  }
+				}
+
+				function closeCamera() {
+				  document.getElementById('mainbody').classList.remove('d-flex')
+				  document.getElementById('mainbody').classList.add('d-none')
+				}
+				document.getElementById('redeemButton').onclick = go;
+				document.getElementById('cancelButton').onclick = closeCamera
+			</script>
+		@endif
 	@else
 		{!! $template !!}
 	@endif

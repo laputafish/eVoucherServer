@@ -14,6 +14,7 @@ class VoucherCode extends Model
     'key',
     'sent_on',
 	  'redeemed_on',
+	  'redemption_location_id',
     'error_message',
     'status',
 	  'participant_id',

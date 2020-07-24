@@ -85,6 +85,14 @@ class VoucherHelper {
     ];
   }
 
+  public static function getLocationByQrcode($voucher, $qrcode) {
+		
+  }
+  
+  public static function getRedemptionCodes() {
+		return ['Hello, World'];
+  }
+  
   public static function checkAndSendEmails()
   {
     CommandHelper::start('sendVoucherEmails', function ($command) {

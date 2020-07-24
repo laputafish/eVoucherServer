@@ -298,4 +298,8 @@ class Voucher extends Model
   public function getSmtpServer() {
 		return SmtpServer::find($this->smtp_server_id);
   }
+  
+  public function redemptionLocations() {
+		return $this->hasMany(VoucherRedemptionLocation, 'voucher_id');
+  }
 }

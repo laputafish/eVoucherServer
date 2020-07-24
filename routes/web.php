@@ -73,6 +73,7 @@ Route::get('download/image/{id}/{size?}', 'ApiV2\MediaController@downloadImage')
 // sharing link testing
 // $id is 'key' if timestamp not exists
 Route::post('coupons/{id}/redeem', 'ApiV2\CouponController@redeem');
+Route::post('coupons/{id}/qr_redeem', 'ApiV2\CouponController@redeemByQrcode');
 Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
 Route::get('forms/{id}/{timestamp?}', 'ApiV2\CouponController@showForm');
 
