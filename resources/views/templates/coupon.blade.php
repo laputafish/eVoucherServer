@@ -152,13 +152,22 @@
 	}
 
 	.redeemed-error-message {
-		margin: 0;
+		margin: 0 0 2px 0;
 		color: red;
 		text-align: center;
+		font-size:16px;
+		line-height: 1;
 	}
 
+	/*.redeemed-error-message_cht {*/
+		/*margin: 0;*/
+		/*color: red;*/
+		/*text-align: center;*/
+		/*font-size: 14px;*/
+	/*}*/
+
 	.redeemed-message {
-		text-shadow: 1px 1px white;
+		text-shadow: 1px 1px darkgray;
 		margin: 0 0 2px 0;
 		color: red;
 	}
@@ -194,17 +203,20 @@
 	        <div class="redeem-block">
 	            @if(empty($redeemedOn))
 				        @if (Session::has('message'))
-					        <h4 class="redeemed-error-message">{{ Session::get('message') }}</h4>
+					        <div class="redeemed-error-message">{{ Session::get('message') }}</div>
+					        <div class="redeemed-error-message">{{ Session::get('message_cht') }}</div>
 				        @endif
 				        <div class="redeem-input">
 	                        <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
-	                        <button type="submit" class="ml-1 input-group-append btn btn-primary">Redeem</button>
+	                        <button type="submit" style="line-height:1;"
+	                                class="ml-1 py-1 input-group-append btn btn-primary">兌換<br/>Redeem</button>
 	                    </div>
 		        @else
 			        <div class="text-center">
 	                  <h4 class="redeemed-message">
-		                  <span class="text-danger">Redeemed</span>
-		                  <div class="redeemed-date">{{ $redeemedOn }}</div>
+		                  <span class="text-danger flex flex-row align-items-center">
+			                  <span class="font-weight-bold">已兌換</span> Redeemed</span>
+		                  <div class="redeemed-date text-white">{{ $redeemedOn }}</div>
 	                  </h4>
 	                </div>
 		        @endif

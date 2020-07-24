@@ -92,6 +92,7 @@ class CouponController extends BaseController {
 		
 		if ($voucher->redemption_code != $password) {
 			\Session::flash('message', 'Incorrect redemption code!');
+			\Session::flash('message_cht', '兌換碼錯誤!');
 			return redirect()->back();
 		}
 		$voucherCode->redeemed_on = date('Y-m-d H:i:s');
