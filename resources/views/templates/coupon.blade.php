@@ -198,7 +198,8 @@
 			border: 1px solid rgba(0, 176, 240, .7);
 			position: fixed;
 			right: 0;
-			bottom: 10px;
+			top: 2rem;
+			/*bottom: 2rem;*/
 			cursor: pointer;
 		}
 
@@ -208,7 +209,7 @@
 			right: 0;
 			bottom: 0;
 			top: 0;
-			background-color:rgba(0,0,0,.6);
+			background-color:rgba(0,0,0,.8);
 		}
 
 		#outdiv {
@@ -225,8 +226,27 @@
 			border-radius: 0.5rem;
 		}
 
+		#v {
+			width: 100%;
+			height: 100%;
+		}
 		#qr-canvas {
 			display: none;
+		}
+
+		#switchCamera {
+			position: absolute;
+			top: 5px;
+			margin: 0 auto;
+			display: inline-block;
+			padding: 2px 10px;
+			height: 40px;
+			border: 1px solid white;
+			background-color: rgba(0,0,0,.5);
+			color: white;
+			outline: 0;
+			border-radius: 0.5rem;
+			line-height: 1;
 		}
 	</style>
 </head>
@@ -279,8 +299,29 @@
 			<div id="mainbody" class="d-none flex-column align-items-center py-5 px-3">
 				<div class="d-flex flex-grow-1 flex-column justify-content-between align-items-center w-100"
 				     style="max-width:99%;margin:0 auto;">
-					<div id="outdiv" class="flex-grow-1 mb-2 w-100"></div>
-					<h3 id="result">&nbsp;</h3>
+					<div class="flex-grow-1 w-100 position-relative d-flex flex-column">
+						<div id="outdiv" class="flex-grow-1 w-100"></div>
+						<!-- square -->
+						<div class="position-absolute d-flex flex-column justify-content-center align-items-center"
+						     style="left:0;top:0;width:100%;height:100%;background-color:transparent">
+							<div style="width:200px;height:200px;border:2px solid rgba(255,255,255,.5);background-color:transparent;">
+
+							</div>
+						</div>
+
+						<button id="switchCamera" type="button">
+							Switch Camera<br/>
+							轉換鏡頭</button>
+
+						{{--<div class="d-none position-absolute text-white" style="left:5px;top:60px;">--}}
+							{{--<div>Device Count: <span id="deviceCount"></span></div>--}}
+							{{--<div>Device ID: <span id="deviceId"></span></div>--}}
+							{{--<div>Device Label: <span id="deviceLabel"></span></div>--}}
+							{{--<div>Device Kind: <span id="deviceKind"></span></div>--}}
+						{{--</div>--}}
+					</div>
+
+					<h3 class="mt-2" id="result">&nbsp;</h3>
 					<canvas id="qr-canvas" width="800" height="600" style="width: 800px; height: 600px;"></canvas>
 					<button id="cancelButton"
 					        class="btn btn-danger btn-lg w-100">
@@ -327,8 +368,20 @@
 				  document.getElementById('mainbody').classList.remove('d-flex')
 				  document.getElementById('mainbody').classList.add('d-none')
 				}
+
+				function switchCamera() {
+			    console.log('switchCamera')
+			    if (typeof switchCam === 'function') {
+			      console.log('switchCameria => switchCam')
+			      switchCam()
+			    }
+				}
+
 				document.getElementById('redeemButton').onclick = go;
 				document.getElementById('cancelButton').onclick = closeCamera
+			  if (document.getElementById('switchCamera')) {
+          document.getElementById('switchCamera').onclick = switchCamera
+        }
 			</script>
 		@endif
 	@else
