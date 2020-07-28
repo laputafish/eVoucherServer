@@ -1413,4 +1413,21 @@ class VoucherController extends BaseModuleController
 		  $voucher->codeInfos()->update(['participant_id'=>0]);
 	  }
   }
+  
+  public function getRedemptionLocations($id) {
+		$voucher = $this->model->find($id);
+		$result = [];
+		$total = 0;
+		if (isset($voucher)) {
+			$result = $voucher->redemptionLocations;
+			$total = $result->count();
+		}
+		return response()->json([
+			'status' => true,
+			'result' => [
+				'data' => $result,
+				'total' => $total
+			]
+		]);
+  }
 }

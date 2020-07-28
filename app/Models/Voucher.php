@@ -300,6 +300,6 @@ class Voucher extends Model
   }
   
   public function redemptionLocations() {
-		return $this->hasMany(VoucherRedemptionLocation, 'voucher_id');
+		return $this->hasMany(VoucherRedemptionLocation::class, 'voucher_id');
   }
 }

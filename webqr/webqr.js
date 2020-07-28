@@ -14,6 +14,9 @@ var selectedVideoDeviceId = '';
 var workingVideoDeviceId = '';
 var switching = false;
 
+const NO_VIDEO_DEVICE = 1;
+const BROWSER_NOT_SUPPORTED = 2;
+
 var imghtml='<div id="qrfile"><canvas id="out-canvas" width="320" height="240"></canvas>'+
   '<div id="imghelp">drag and drop a QRCode here'+
   '<br>or select a file'+
@@ -126,11 +129,7 @@ function error(error)
 
 function startScan()
 {
-  load();
-}
-
-function load()
-{
+  var errorCode = 0;
   if(isCanvasSupported()) // && window.File && window.FileReader)
   {
     const objOutdiv = document.getElementById('outdiv')
@@ -144,15 +143,17 @@ function load()
     initCanvas(w, h);
     qrcode.callback = read;
     document.getElementById("mainbody").style.display="inline";
-    setwebcam();
+    errorCode = setwebcam();
   }
   else
   {
-    document.getElementById("mainbody").style.display="inline";
-    document.getElementById("mainbody").innerHTML='<p id="mp1">QR code scanner for HTML5 capable browsers</p><br>'+
-      '<br><p id="mp2">sorry your browser is not supported</p><br><br>'+
-      '<p id="mp1">try <a href="http://www.mozilla.com/firefox"><img src="firefox.png"/></a> or <a href="http://chrome.google.com"><img src="chrome_logo.gif"/></a> or <a href="http://www.opera.com"><img src="Opera-logo.png"/></a></p>';
+    errorCode = BROWSER_NOT_SUPPORTED;
+    // document.getElementById("mainbody").style.display="inline";
+    // document.getElementById("mainbody").innerHTML='<p id="mp1">QR code scanner for HTML5 capable browsers</p><br>'+
+    //   '<br><p id="mp2">sorry your browser is not supported</p><br><br>'+
+    //   '<p id="mp1">try <a href="http://www.mozilla.com/firefox"><img src="firefox.png"/></a> or <a href="http://chrome.google.com"><img src="chrome_logo.gif"/></a> or <a href="http://www.opera.com"><img src="Opera-logo.png"/></a></p>';
   }
+  return errorCode;
 }
 
 function switchCam() {
@@ -177,21 +178,23 @@ function switchCam() {
 
 function setwebcam()
 {
+  var errorCode = 0;
   var options = true;
 
+  console.log('setwebcam()')
   if(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices)
   {
-    try{
+    try {
       videoDevices = [];
       selectedVideoDeviceId = '';
       selectedDevice = null;
       navigator.mediaDevices.enumerateDevices()
         .then(function(devices) {
-          // console.log('setwebcam:device count = ' + devices.length)
+          console.log('setwebcam:device count = ' + devices.length)
           for (var i = 0; i < devices.length; i++) {
             var device = devices[i]
-            // console.log('setwebcam: device #' + (i+1) + ': ', device);
-            // console.log('setwebcam: device #' + (i+1) + ' kind: ' + device.kind);
+            console.log('setwebcam: device #' + (i+1) + ': ', device);
+            console.log('setwebcam: device #' + (i+1) + ' kind: ' + device.kind);
 
             if (device.kind === 'videoinput') {
               videoDevices.push(device)
@@ -210,35 +213,59 @@ function setwebcam()
             selectedVideoDeviceId = selectedDevice.deviceId;
             options={'deviceId': {'exact':selectedVideoDeviceId}}; // , 'facingMode':'environment'} ;
           }
-          // console.log('setwebcam: after loop: selectedVideoDeviceId = ' + selectedVideoDeviceId)
-          // console.log('setwebcam: after loop: videoDevices.length = ' + videoDevices.length)
+          console.log('setwebcam: after loop: selectedVideoDeviceId = ' + selectedVideoDeviceId)
+          console.log('setwebcam: after loop: videoDevices.length = ' + videoDevices.length)
+
           if (selectedDevice === null) {
-            // console.log('setwebcam: selectedVideoDeviceId === ""')
+            console.log('setwebcam: selectedVideoDeviceId === ""')
             if (videoDevices.length > 0) {
-              // selectedDevice = videoDevices[0];
-              selectedDevice = videoDevices[videoDevices.length - 1];
-              // console.log('setwebcam: videoDevices.length > 0')
-              selectedVideoDeviceId = selectedDevice.deviceId;
-              // console.log('setwebcam: selectedVideoDeviceId = ' + selectedVideoDeviceId)
-              options={'deviceId': {'exact':selectedVideoDeviceId}}; // , 'facingMode':'environment'};
-              // console.log('setwebcam: options: ', options)
-            } else {
-              console.log('No video device!')
+              var allNoLabel = true;
+              for (var j = 0; j < videoDevices.length; j++) {
+                if (videoDevices[j].label !== '') {
+                  allNoLabel = false;
+                  break;
+                }
+              }
+
+              if (!allNoLabel) {
+                selectedDevice = videoDevices[videoDevices.length - 1];
+                selectedVideoDeviceId = selectedDevice.deviceId;
+                options = {'deviceId': {'exact': selectedVideoDeviceId}}; // , 'facingMode':'environment'};
+              }
             }
           }
-          setwebcam2(options);
+
+          console.log('setwebcam: after loop: selectedVideoDeviceId = ' + selectedVideoDeviceId)
+          console.log('setwebcam: after loop: videoDevices.length = ' + videoDevices.length)
+
+
+          if (selectedDevice !== null) {
+            console.log('setwebcam :: selectedDevice !== null')
+            setwebcam2(options);
+          } else {
+            console.log('setwebcam :: selectedDevice === null')
+            if (typeof showDeviceError === 'function') {
+              console.log('setwebcam :: showDeviceErorr is function')
+              showDeviceError(true)
+            }
+            // errorCode = BROWSER_NOT_SUPPORTED;
+          }
         });
+
     }
     catch(e)
     {
-      console.log('No video device detected!')
-      console.log(e);
+      errorCode = BROWSER_NOT_SUPPORTED;
+      // console.log('No video device detected!')
+      // console.log(e);
     }
   }
   else{
     console.log("Browser: no navigator.mediaDevices.enumerateDevices" );
-    setwebcam2(options);
+    errorCode = BROWSER_NOT_SUPPORTED;
+    // setwebcam2(options);
   }
+  return errorCode;
 }
 
 function setwebcam2(options)
@@ -248,17 +275,6 @@ function setwebcam2(options)
     v.srcObject.getTracks().forEach(track => track.stop());
     v.srcObject = null;
   }
-
-  // console.log('setwebcam2: stype = ' + stype)
-  // console.log('setwebcam2: options: ', options)
-  // console.log('setwebcam2: selectedDevice: ', selectedDevice)
-
-  // if (selectedDevice) {
-  //   document.getElementById('deviceCount').innerText = videoDevices.length;
-  //   document.getElementById('deviceId').innerText = selectedDevice.deviceId;
-  //   document.getElementById('deviceKind').innerText = selectedDevice.kind;
-  //   document.getElementById('deviceLabel').innerText = selectedDevice.label;
-  // }
 
   document.getElementById("result").innerHTML="- 檢測中 scanning3 -";
   if(stype==1)
