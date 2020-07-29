@@ -12,6 +12,7 @@ class VoucherRedemptionLocation extends Model
 		'name',
 		'location_code',
 		'qrcode',
+		'password',
 		'redemption_count'
 	];
 	

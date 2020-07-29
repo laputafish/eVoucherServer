@@ -96,6 +96,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
 	Route::post('vouchers/{id}/send_emails', 'VoucherController@sendEmails');
 	Route::post('vouchers/{id}/update_field/{field_name}/{value}', 'VoucherController@updateField');
 	Route::get('vouchers/{id}/redemption_locations', 'VoucherController@getRedemptionLocations');
+	Route::put('vouchers/{id}/redemption_locations/{redemptionLocationId}', 'VoucherController@updateRedemptionLocations');
 	
   //*******************
   // Agents

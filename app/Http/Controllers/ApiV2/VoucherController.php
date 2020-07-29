@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\VoucherCode;
 use App\Models\VoucherCodeConfig;
 use App\Models\VoucherCustomForm;
+use App\Models\VoucherRedemptionLocation;
 use App\Models\SmtpServer;
 
 use App\Helpers\AccessKeyHelper;
@@ -1430,4 +1431,31 @@ class VoucherController extends BaseModuleController
 			]
 		]);
   }
+
+	public function updateRedemptionLocations($id, $redemptionLocationId) {
+		$voucher = $this->model->find($id);
+		$status = false;
+		if (isset($voucher)) {
+			$status = true;
+			$rules = [
+				'order' => 'integer',
+				'name' => 'string',
+				'location_code' => 'string',
+				'qrcode' => 'string',
+				'password' => 'string'
+			];
+			$input = parent::getInput($rules);
+			if ($redemptionLocationId == 0) {
+				$redemptionLocation = new VoucherRedemptionLocation($input);
+				$voucher->redemptionLocations()->save($redemptionLocation);
+			} else {
+				$redemptionLocation = $voucher->redemptionLocations()->whereId($redemptionLocationId)->update($input);
+			}
+			
+		}
+		return response()->json([
+			'status' => $status,
+			'result' => $redemptionLocation
+		]);
+	}
 }

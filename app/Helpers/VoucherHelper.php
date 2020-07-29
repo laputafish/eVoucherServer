@@ -89,10 +89,16 @@ class VoucherHelper {
 		
   }
   
-  public static function getRedemptionCodes() {
-		return ['Hello, World'];
+  public static function getRedemptionCodes($voucher) {
+		$result = $voucher->redemptionLocations()->pluck('qrcode')->toArray();
+		return $result;
   }
-  
+
+  public static function getRedemptionPasswords($voucher) {
+		$result = $voucher->redemptionLocations()->pluck('password')->toArray();
+		return $result;
+  }
+
   public static function checkAndSendEmails()
   {
     CommandHelper::start('sendVoucherEmails', function ($command) {

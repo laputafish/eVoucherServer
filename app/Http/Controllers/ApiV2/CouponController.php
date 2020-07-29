@@ -155,6 +155,9 @@ class CouponController extends BaseController {
 			$appliedTemplate = '';
 		}
 		
+		$redemptionQrcodes = [];
+		$redemptionPasswords = [];
+		
 		if (isset($voucher)) {
 			$mediaSize = MediaHelper::getMediaDimension($voucher->sharing_image_id);
 			$og = [
@@ -167,9 +170,13 @@ class CouponController extends BaseController {
 			];
 			$script = $voucher->script;
 			$redemptionMethod = $voucher->redemption_method;
-			$redemptionQrcodes = $redemptionMethod == 'qrcode' ?
-				VoucherHelper::getRedemptionCodes($voucher) :
-				[];
+			switch ($redemptionMethod) {
+				case 'qrcode':
+				case 'qrcode_password':
+					$redemptionQrcodes = VoucherHelper::getRedemptionCodes($voucher);
+					$redemptionPasswords = VoucherHelper::getRedemptionPasswords($voucher);
+					break;
+			}
 		} else {
 			$mediaSize = MediaHelper::getMediaDimension(0);
 			$og = [
@@ -182,7 +189,6 @@ class CouponController extends BaseController {
 			];
 			$script = '';
 			$redemptionMethod = 'none';
-			$redemptionQrcodes = [];
 		}
 		
 		return view('templates.coupon', [
@@ -190,6 +196,7 @@ class CouponController extends BaseController {
 			'key' => $id,
 			'redemptionMethod' => $redemptionMethod,
 			'redemptionQrcodes' => empty($redemptionQrcodes) ? '' : implode('||', $redemptionQrcodes),
+			'redemptionPasswords' => empty($redemptionPasswords) ? '' : implode('||', $redemptionPasswords),
 			'redeemedOn' => $redeemedOn,
 			'template' => $appliedTemplate,
 			'script' => $script

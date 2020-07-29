@@ -77,6 +77,8 @@ Route::post('coupons/{id}/qr_redeem', 'ApiV2\CouponController@redeemByQrcode');
 Route::get('coupons/{id}/{timestamp?}', 'ApiV2\CouponController@showCoupon');
 Route::get('forms/{id}/{timestamp?}', 'ApiV2\CouponController@showForm');
 
+Route::get('redeem/{code}', 'ApiV2\RedeemController@showRedeemPage');
+
 // Preview email
 Route::get('t/preview/{key}/{timestamp?}', 'ApiV2\TemplateController@showPreview');
 

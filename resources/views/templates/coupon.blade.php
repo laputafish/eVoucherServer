@@ -257,9 +257,6 @@
 	</style>
 </head>
 <body class="clean-body">
-{{--<div id="clickme" style="width:200px;height:200px;position:relative;background-color:lightskyblue;">--}}
-{{--<hr id="scanningLine" class="position-absolute w-100" style="top:100%;margin:0;border:2px solid lightgray;"/>--}}
-{{--</div>--}}
 <script>
 	var scanning = false
   var intervalVar = null;
@@ -267,34 +264,12 @@
   function startJob () {
     startDrawingScanningLine();
     intervalVar = setInterval(startDrawingScanningLine, 2000);
-    // scanning = !scanning;
-    // console.log('scanning: ' + (scanning ? 'yes' : 'no'));
-    // if (scanning) {
-    //   startDrawingScanningLine()
-    //   intervalVar = setInterval(startDrawingScanningLine, 2000);
-    // } else {
-    //   clearInterval(intervalVar)
-    // }
   }
 
   function stopJob () {
     clearInterval(intervalVar);
     intervalVar = null;
   }
-
-  // $(document).ready(function() {
-  //   $('#clickme').click(function () {
-  //     console.log('clickme');
-  //     scanning = !scanning;
-  //     console.log('scanning: ' + (scanning ? 'yes' : 'no'));
-  //     if (scanning) {
-  //       startDrawingScanningLine()
-  //       intervalVar = setInterval(startDrawingScanningLine, 2000);
-  //     } else {
-  //       clearInterval(intervalVar)
-  //     }
-  //   });
-  // });
 
   function startDrawingScanningLine () {
     console.log('startScan :: scanning = ' + (scanning ? 'yes' : 'no'));
@@ -311,10 +286,50 @@
 		<div style="margin-bottom: 120px;">
         {!! $template !!}
     </div>
+
+		<div id="redeemCodeInvalid"
+		     class="mb-2 position-absolute d-flex flex-column justify-content-center w-100"
+		     style="display:none;line-height:1.2;padding:5px;z-index:2001;background-color:lightskyblue;">
+			<div style="width:400px;max-width:98%;" class="mx-auto">
+				兌換確認碼無效！<br/>
+				Invalid edemption Confirmation Code!
+			</div>
+			<div class="mx-auto">
+				<button id="closeButton" type="button" class="ml-1 btn btn-primary min-width-80">Close</button>
+			</div>
+		</div>
+
+		<div id="redeemCodeExpired"
+		     class="mb-2 position-absolute d-flex flex-column justify-content-center w-100"
+		     style="display:none;line-height:1.2;padding:5px;z-index:2001;background-color:lightskyblue;">
+			<div style="width:400px;max-width:98%;" class="mx-auto">
+				兌換確認碼已逾時，請重新掃描。<br/>
+				Redemption Confirmation Code expired. Please scan again.
+			</div>
+			<div class="mx-auto">
+				<button id="closeButton" type="button" class="ml-1 btn btn-primary min-width-80">Close</button>
+			</div>
+		</div>
+
+		<div id="confirmRedemption"
+		     class="mb-2 position-absolute d-flex flex-column justify-content-center w-100"
+		     style="display:none;line-height:1.2;padding:5px;z-index:2001;background-color:lightskyblue;">
+			<div style="width:400px;max-width:98%;" class="mx-auto">
+				你的電子優惠券已被核對.
+				Your voucher has been verified.
+			</div>
+			<div class="mx-auto">
+				<button id="confirmButton" type="button" class="mr-1 btn btn-primary min-width-80">Confirm</button>
+				<button id="cancelButton" type="button" class="ml-1 btn btn-primary min-width-80">Cancel</button>
+			</div>
+		</div>
+
 		@if($redemptionMethod==='password')
 			<div class="redeem-row">
 	        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}" class="w-100 h-100">
 	                {{ csrf_field() }}
+		        <input type="hidden" name="redemptionMethod" value="{{$redemptionMethod}}"/>
+
 		        <div class="redeem-block">
 		            @if(empty($redeemedOn))
 				        @if (Session::has('message'))
@@ -340,12 +355,18 @@
 	    </div>
 		@else
 			<div id="redemptionQrcodes" data="{{$redemptionQrcodes}}" class="d-none"></div>
+			<div id="redemptionPasswords" data="{{$redemptionPasswords}}" class="d-none"></div>
 			<button type="button" id="redeemButton" class="redeem-button text-center">
 				兌換<br/>
 				Redeem
 			</button>
-			<form method="POST" action="{!! url('coupons/'.$key.'/qr_redeem') !!}" class="w-100 h-100">
+			<form id="qrcodeRedemptionForm"
+			      method="POST"
+			      action="{!! url('coupons/'.$key.'/qr_redeem') !!}"
+			      class="w-100 h-100">
+
 				{{ csrf_field() }}
+				<input type="hidden" name="redemptionMethod" value="{{$redemptionMethod}}"/>
 				<input type="hidden" id="redemptionQrcode" name="redemptionQrcode" value=""/>
 			</form>
 			<div id="mainbody" class="d-none flex-column align-items-center py-4 px-3">
@@ -369,12 +390,12 @@
 							轉換鏡頭</button>
 
 						<div id="messageBoard"
-						     class="mb-2 position-absolute"
-						     style="display:none;line-height:1.2;padding:5px;width:100%;height:100%;z-index:2000;background-color:lightskyblue">
+						     class="mb-2 position-absolute d-flex flex-column justify-content-start w-100 h-100"
+						     style="display:none;line-height:1.2;padding:5px;z-index:2000;background-color:lightskyblue">
 							<h5 class="text-center">
 								未能接駁手機鏡頭<br/>
 								Cannot connect camera</h5>
-							<ol style="padding-left:1em;">
+							<ol style="padding-left:1em;margin:0;">
 
 								<li class="pb-2 px-0">沒有鏡頭, 或<br/>
 									no camera, or
@@ -415,12 +436,13 @@
 										</a>
 
 								</li>
-								<li>用手機apps掃描QR code打開確認碼網頁，1分鐘內打開你的優惠券，進行兌換.<br/>
-									Use Scanner Apps to scan QR Code, open acknowlegement page. Then open your voucher to redeem.
+								<li>用手機apps掃描QR code打開確認碼網頁進行兌換.<br/>
+									Use Scanner Apps to scan QR Code, open acknowlegement page to redeem.
 								</li>
 							</ol>
-
-							<p></p>
+							{{--<div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center">--}}
+							{{--<h3 class="m-0" id="remainingTime"></h3>--}}
+							{{--</div>--}}
 						</div>
 						{{--<div class="d-none position-absolute text-white" style="left:5px;top:60px;">--}}
 						{{--<div>Device Count: <span id="deviceCount"></span></div>--}}
@@ -428,6 +450,7 @@
 						{{--<div>Device Label: <span id="deviceLabel"></span></div>--}}
 						{{--<div>Device Kind: <span id="deviceKind"></span></div>--}}
 						{{--</div>--}}
+
 					</div>
 
 					<h3 class="mt-2" id="result">&nbsp;</h3>
@@ -444,12 +467,32 @@
 			<script type="text/javascript" src="{{ url('/webqr/llqrcode.js') }}"></script>
 			<script type="text/javascript" src="{{ url('/webqr/webqr.js') }}"></script>
 			<script>
-			  function isValid (code) {
+				var value = 120;
+        var timer = null;
+
+        function showTimer () {
+          // timer = setInterval(() => {
+          //  console.log('timer running ...');
+          //  var valueStr = '';
+          //  if (value === 0) {
+          //    valueStr = '請重新刷新網頁. Please refresh this page.';
+          //  } else {
+          //    valueStr = value + ' 秒 sec.';
+          //  }
+          //  document.getElementById('remainingTime').innerText = valueStr
+          // if (value === 0) {
+          //    clearInterval(timer)
+          // }
+          //   value--;
+          // }, 1000);
+        }
+
+        function isValid (code) {
           let codesStr = document.getElementById('redemptionQrcodes').getAttribute('data');
           let result = false;
           let i = 0;
           if (codesStr.length > 0) {
-            let codes = codesStr.split('|');
+            let codes = codesStr.split('||');
             for (i = 0; i < codes.length; i++) {
               if (codes[i].trim() === code.trim()) {
                 document.getElementById('redemptionQrcode').value = code.trim();
@@ -476,6 +519,7 @@
             document.getElementById('result').style.display = 'block';
             document.getElementById('messageBoard').style.display = 'none';
           }
+          showTimer();
         }
 
         function go () {
@@ -522,5 +566,91 @@
         </div>
     </div>
 @endif
+<script>
+	function toDateTime (d) {
+    const result =
+      d.getFullYear() + '-' +
+      ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
+      ('0' + d.getDate()).slice(-2) + ' ' +
+      ('0' + d.getHours()).slice(-2) + ':' +
+      ('0' + d.getMinutes()).slice(-2) + ':' +
+      ('0' + d.getSeconds()).slice(-2);
+    return result;
+  }
+
+  function showDialog(dialogId) {
+
+		const objDialog = document.getElementById(dialogId);
+		objDialog.style.display = 'block';
+  }
+
+  function getCodeArray(objId) {
+	  const obj = document.getElementById(objId);
+	  const codeStr = obj.getAttribute('data');
+	  return codeStr === '' ? [] : codeStr.split('||');
+  }
+
+  function submitForm(formId) {
+	  const objForm = document.getElementById(formId);
+	  objForm.submit();
+  }
+  function isCorrectRedeemCode(redeemCode) {
+		// redeemCode in base64 format
+		const decoded = atob(redeemCode);
+		const redemptionCodes = getCodeArray('redemptionQrcodes');
+		const result = redemptionCodes.indexOf(decoded) >= 0
+	  return result
+  }
+
+  $(document).ready(function () {
+    const redeemCode = localStorage.getItem('redeem_code')
+
+	  $('body').on('click', '#closeButton', () => {
+	    document.getElementById('redeemCodeExpired').style.display = 'none';
+	  });
+
+    $('body').on('click', '#cancelButton', () => {
+      document.getElementById('confirmRedemption').style.display = 'none';
+    });
+
+	  $('body').on('click', '#confirmButton', () => {
+	    document.getElementById('qrcodeRedemptionForm').submit();
+	  });
+
+    if (redeemCode) {
+      var now = new Date();
+      var nowStr = toDateTime(now);
+      const redeemCodeExpiryStr = localStorage.getItem('redeem_code_expiry');
+
+      // if correct redeem code
+	   if (isCorrectRedeemCode(redeemCode)) {
+       if (nowStr < redeemCodeExpiryStr) {
+         showDialog('confirmRedemption');
+       } else {
+         showDialog('redeemCodeExpired');
+       }
+     } else {
+	     showDialog('redeemCodeInvalid');
+	   }
+
+    } else {
+      var d = new Date();
+      var expiry = new Date();
+      const VALID_PERIOD_IN_MIN = 2;
+      const datetimeString = toDateTime(d);
+      expiry.setTime(expiry.getTime() + VALID_PERIOD_IN_MIN * 60000);
+
+      const redemptionQrcodes = document.getElementById('redemptionQrcodes').getAttribute('data');
+      const redemptionPasswords = document.getElementById('redemptionPasswords').getAttribute('data');
+
+      localStorage.clear();
+      localStorage.setItem('voucher_code', '{{ $key }}');
+      localStorage.setItem('voucher_code_time', datetimeString);
+      localStorage.setItem('voucher_code_expiry', toDateTime(expiry));
+      localStorage.setItem('voucher_redemption_qrcodes', redemptionQrcodes);
+      localStorage.setItem('voucher_redemption_passwords', redemptionPasswords);
+    }
+  })
+</script>
 </body>
 </html>
