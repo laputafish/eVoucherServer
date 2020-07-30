@@ -86,7 +86,7 @@ class VoucherHelper {
   }
 
   public static function getLocationByQrcode($voucher, $qrcode) {
-		
+		return $voucher->redemptionLocations()->whereQrcode($qrcode)->first();
   }
   
   public static function getRedemptionCodes($voucher) {

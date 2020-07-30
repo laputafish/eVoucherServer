@@ -37,6 +37,11 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
     $headingLabels[] = '';
     $headingLabels[] = 'Views';
     $headingLabels[] = 'Key';
+    
+    // Check if redemption concerned:
+	  if ($voucher->redemption_method !== 'none') {
+	  	$headingLabels[] = 'Redeemed On';
+	  }
     $headingLabels[] = 'Link';
 //    $headingLabels[] = 'Status';
 //    $headingLabels[] = 'Sent On';
@@ -75,6 +80,8 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
 	  $haveKey = $voucher->action_type_before_goal === 'form_voucher';
 	  $keyFromCode = $voucher->goal_type === 'codes';
 	  
+	  $hasRedemption = $voucher->redemption_method !== 'none';
+	  
     foreach($rows as $row) {
       $excelCells = [$row->code];
       if (!empty(trim($row->extra_fields))) {
@@ -99,6 +106,10 @@ class VoucherCodeExport implements FromCollection, ShouldAutoSize, WithHeadings,
       $excelCells[] = '';
       $excelCells[] = $row->views ? $row->views : '0';
       $excelCells[] = $row->key;
+    
+      if ($hasRedemption) {
+      	$excelCells[] = $row->redeemed_on;
+      }
       $excelCells[] = \URL::to('/coupons/'.$row->key);
 //      $excelCells[] = $row->status;
 //      $excelCells[] = $row->sent_on;

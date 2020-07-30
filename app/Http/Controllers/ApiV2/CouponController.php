@@ -91,8 +91,8 @@ class CouponController extends BaseController {
 		}
 		$voucherCode = VoucherCode::where('key', $key)->first();
 		$voucher = $voucherCode->voucher;
-		
 		$location = VoucherHelper::getLocationByQrcode($voucher, $qrcode);
+		
 		if (is_null($location)) {
 			\Session::flash('message', 'Invalid Redemption QR');
 			\Session::flash('message_cht', '無效的兌換QR碼');

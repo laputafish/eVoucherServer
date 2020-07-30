@@ -292,7 +292,7 @@
 
       $(document).ready(function () {
         const voucherCode = localStorage.getItem('voucher_code');
-        const VALID_PERIOD_IN_MIN = 2;
+        const VALID_PERIOD_IN_MIN = 20;
 
         var d = new Date();
         var expiry = new Date();

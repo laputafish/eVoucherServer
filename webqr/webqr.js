@@ -87,8 +87,8 @@ function read(a)
 {
   document.getElementById("result").innerHTML = '- verifying -';
   // console.log('read: a: ', a)
-  if (typeof isValid === 'function') {
-    if (isValid(a)) {
+  if (typeof isCorrectRedeemCode === 'function') {
+    if (isCorrectRedeemCode(a)) {
       closeCamera()
       // console.log('read => check : valid')
     } else {
