@@ -326,6 +326,10 @@ class MediaController extends BaseController
 	}
 	
   public function showImage($id, $size=null) {
+  	$pos = strpos($id, '.');
+  	if ($pos !== false) {
+  		$id = substr($id, 0, $pos);
+	  }
   	$imageFileInfo = $this->getImageFileInfo($id, $size);
 		return Response($imageFileInfo['fileContent'], 200)->header('Content-Type', 'image/'.$imageFileInfo['fileExt']);
   }

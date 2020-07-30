@@ -128,6 +128,7 @@ class CouponController extends BaseController {
 	}
 	
 	public function showCoupon($id, $timestamp=null) {
+
 		$voucher = null;
 		$isFormal = is_null($timestamp);
     $appliedTemplate = '';
@@ -136,6 +137,7 @@ class CouponController extends BaseController {
 		if ($isFormal) {
 			$key = $id;
 			$voucherCode = VoucherCode::where('key', $key)->first();
+			
 			if (isset($voucherCode)) {
 				$voucher = $voucherCode->voucher;
 				$appliedTemplate = $this->processLeafletWithCode($voucherCode);
@@ -157,13 +159,17 @@ class CouponController extends BaseController {
 		
 		$redemptionQrcodes = [];
 		$redemptionPasswords = [];
+		$expiryDate = '';
+		$expired = true;
+		
+		$today = \Carbon\Carbon::today()->format('Y-m-d');
 		
 		if (isset($voucher)) {
 			$mediaSize = MediaHelper::getMediaDimension($voucher->sharing_image_id);
 			$og = [
 				'title' => $voucher->sharing_title,
 				'description' => $voucher->sharing_description,
-				'imageSrc' => url('media/image/' .$voucher->sharing_image_id),
+				'imageSrc' => str_replace('https:', 'http:', url('media/image/' .$voucher->sharing_image_id)),
 				'url' => request()->fullUrl(),
 				'image:width' => $mediaSize['width'],
 				'image:height' => $mediaSize['height']
@@ -176,6 +182,12 @@ class CouponController extends BaseController {
 					$redemptionQrcodes = VoucherHelper::getRedemptionCodes($voucher);
 					$redemptionPasswords = VoucherHelper::getRedemptionPasswords($voucher);
 					break;
+			}
+			if (!is_null($voucher->expiry_date) && !empty($voucher->expiry_date)) {
+				$expiryDate = $voucher->expiry_date;
+				$expired = $today > $expiryDate;
+			} else {
+				$expired = false;
 			}
 		} else {
 			$mediaSize = MediaHelper::getMediaDimension(0);
@@ -199,9 +211,87 @@ class CouponController extends BaseController {
 			'redemptionPasswords' => empty($redemptionPasswords) ? '' : implode('||', $redemptionPasswords),
 			'redeemedOn' => $redeemedOn,
 			'template' => $appliedTemplate,
-			'script' => $script
+			'script' => $script,
+			'expired' => $expired,
+			'expiryDate' => $expiryDate
 		]);
 	}
+//	public function showCoupon2($id, $timestamp=null) {
+//
+//		$voucher = null;
+//		$isFormal = is_null($timestamp);
+//    $appliedTemplate = '';
+//    $redeemedOn = null;
+//
+//		if ($isFormal) {
+//			$key = $id;
+//			$voucherCode = VoucherCode::where('key', $key)->first();
+//			if (isset($voucherCode)) {
+//				$voucher = $voucherCode->voucher;
+//				$appliedTemplate = $this->processLeafletWithCode($voucherCode);
+//				$voucherCode->views++;
+//				$voucherCode->save();
+//				$redeemedOn = $voucherCode->redeemed_on;
+//				event(new VoucherCodeViewsUpdatedEvent($voucherCode));
+//			} else {
+//				$participant = VoucherParticipant::where('participant_key', $key)->first();
+//				if (isset($participant)) {
+//					$voucher = $participant->voucher;
+//					$appliedTemplate = $this->processLeafletNoCode($voucher);
+//				}
+//			}
+//		} else {
+//			$voucher = Voucher::find($id);
+//			$appliedTemplate = '';
+//		}
+//
+//		$redemptionQrcodes = [];
+//		$redemptionPasswords = [];
+//
+//		if (isset($voucher)) {
+//			$mediaSize = MediaHelper::getMediaDimension($voucher->sharing_image_id);
+//			$og = [
+//				'title' => $voucher->sharing_title,
+//				'description' => $voucher->sharing_description,
+//				'imageSrc' => url('media/image/' .$voucher->sharing_image_id),
+//				'url' => request()->fullUrl(),
+//				'image:width' => $mediaSize['width'],
+//				'image:height' => $mediaSize['height']
+//			];
+//			$script = $voucher->script;
+//			$redemptionMethod = $voucher->redemption_method;
+//			switch ($redemptionMethod) {
+//				case 'qrcode':
+//				case 'qrcode_password':
+//					$redemptionQrcodes = VoucherHelper::getRedemptionCodes($voucher);
+//					$redemptionPasswords = VoucherHelper::getRedemptionPasswords($voucher);
+//					break;
+//			}
+//		} else {
+//			$mediaSize = MediaHelper::getMediaDimension(0);
+//			$og = [
+//				'title' => 'Sample: Title',
+//				'description' => 'Sample: Description',
+//				'imageSrc' => url('media/image/0'),
+//				'url' => request()->fullUrl(),
+//				'image:width' => $mediaSize['width'],
+//				'image:height' => $mediaSize['height']
+//			];
+//			$script = '';
+//			$redemptionMethod = 'none';
+//		}
+//
+//		return view('templates.coupon', [
+//			'og' => $og,
+//			'key' => $id,
+//			'redemptionMethod' => $redemptionMethod,
+//			'redemptionQrcodes' => empty($redemptionQrcodes) ? '' : implode('||', $redemptionQrcodes),
+//			'redemptionPasswords' => empty($redemptionPasswords) ? '' : implode('||', $redemptionPasswords),
+//			'redeemedOn' => $redeemedOn,
+//			'template' => $appliedTemplate,
+//			'script' => $script
+//		]);
+//	}
 	
 	public function getTemplateHtml(Request $request)
 	{
@@ -264,8 +354,8 @@ class CouponController extends BaseController {
 		$voucher->codeConfigs;
     $template = VoucherTemplateHelper::readVoucherTemplate($voucher);
     $allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
-		$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
 
+		$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
 //		$params = TemplateHelper::createParams(
 //			$voucher->toArray(),
 //			$voucherCode

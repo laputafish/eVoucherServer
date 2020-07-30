@@ -9,10 +9,6 @@ class TagGroupHelper {
 			$result = static::getDummyTagValues($tagGroups);
 		} else {
 			$result = static::getDataTagValues($tagGroups, $voucherCode, $participant, $useDummyValues);
-//			echo 'ready to getDataTagValues result count = '.count($result)."<Br/>";
-//
-//			return [];
-
 		}
 		return $result;
 	}
@@ -117,6 +113,7 @@ class TagGroupHelper {
 
 			$codeFields = explode('|', $voucher->code_fields);
 			$hasCode = false;
+			$codeFieldName = '';
 			$nonCodeFields = [];
 			foreach ($codeFields as $i=>$keyValueStr) {
 				$keyValue = explode(':', $keyValueStr);
@@ -126,10 +123,12 @@ class TagGroupHelper {
 					$nonCodeFields[] = $key;
 				} else {
 					$hasCode = true;
+					$codeFieldName = $key;
 				}
 			}
+			
 			if ($hasCode) {
-				$result['code_code'] = $voucherCode->code;
+				$result['code_'.$codeFieldName] = $voucherCode->code;
 			}
 			$extraFieldValues = explode('|', $voucherCode->extra_fields);
 			foreach ($nonCodeFields as $i => $fieldName) {

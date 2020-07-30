@@ -148,6 +148,10 @@
 		height: 110px;
 	}
 
+	.redeem-row .redeem-block.expired {
+		background-color: rgba(255, 0, 0, .7);
+	}
+
 	.redeem-row .redeem-block {
 		max-width: 95%;
 		width: 480px;
@@ -323,31 +327,45 @@
     </div>
 
 		@if($redemptionMethod==='password')
+			<?php
+				$showExpired = isset($expired) && $expired;
+			?>
 			<div class="redeem-row">
 	        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}" class="w-100 h-100">
 	                {{ csrf_field() }}
 		        <input type="hidden" name="redemptionMethod" value="{{$redemptionMethod}}"/>
 
-		        <div class="redeem-block">
+		        <div class="redeem-block {{ $showExpired ? 'expired' : '' }}">
 		            @if(empty($redeemedOn))
-				        @if (Session::has('message'))
-					        <div class="redeemed-error-message">{{ Session::get('message') }}</div>
-					        <div class="redeemed-error-message">{{ Session::get('message_cht') }}</div>
-				        @endif
-				        <div class="redeem-input">
-		                        <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
-		                        <button type="submit" style="line-height:1;"
-		                                class="ml-1 py-1 input-group-append btn btn-primary">兌換<br/>Redeem</button>
-		                    </div>
-			        @else
-				        <div class="text-center">
+									<!-- Not yet redeemed -->
+									@if($showExpired)
+										<div class="text-center">
 		                  <h4 class="redeemed-message">
-			                  <span class="text-danger flex flex-row align-items-center">
-				                  <span class="font-weight-bold">已兌換</span> Redeemed</span>
-			                  <div class="redeemed-date text-white">{{ $redeemedOn }}</div>
+			                  <span class="text-white flex flex-row align-items-center">
+				                  <span class="font-weight-bold">已逾期</span> Expired</span>
+			                  <div class="redeemed-date text-white">{{ $expiryDate }}</div>
 		                  </h4>
 		                </div>
-			        @endif
+									@else
+						        @if (Session::has('message'))
+							        <div class="redeemed-error-message">{{ Session::get('message') }}</div>
+							        <div class="redeemed-error-message">{{ Session::get('message_cht') }}</div>
+						        @endif
+						        <div class="redeem-input">
+                      <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
+                      <button type="submit" style="line-height:1.2;"
+                              class="ml-1 py-1 input-group-append btn btn-primary">兌換<br/>Redeem</button>
+				            </div>
+					        @endif
+				        @else
+					        <div class="text-center">
+			                  <h4 class="redeemed-message">
+				                  <span class="text-danger flex flex-row align-items-center">
+					                  <span class="font-weight-bold">已兌換</span> Redeemed</span>
+				                  <div class="redeemed-date text-white">{{ $redeemedOn }}</div>
+			                  </h4>
+			                </div>
+				        @endif
 		        </div>
 	        </form>
 	    </div>
@@ -377,6 +395,18 @@
 					</div>
 					<div class="d-block mt-4 text-center line-height-1-2">
 						<button id="closeButton" type="button" class="ml-1 btn btn-primary min-width-100">Close</button>
+					</div>
+				</div>
+
+				<div id="successfullyRedeemed" class="message-bkgd bkgd-succeed">
+					<div class="message-dialog">
+						<div class="message-block text-center">
+							你的電子優惠券已成功兌換.<br/>
+							Your voucher has been successfully redeemed.
+						</div>
+						<div class="d-block mt-4 text-center line-height-1-2">
+							<button type="button" class="ml-1 btn-cancel btn btn-primary min-width-100">Close</button>
+						</div>
 					</div>
 				</div>
 
