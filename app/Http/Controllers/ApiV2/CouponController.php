@@ -121,14 +121,19 @@ class CouponController extends BaseController {
 			\Session::flash('message_cht', '兌換碼錯誤!');
 			return redirect()->back();
 		}
-		$voucherCode->redeemed_on = date('Y-m-d H:i:s');
-		$voucherCode->save();
-		event(new VoucherCodeRedeemedEvent($voucherCode));
+		
+		if (!$voucher->expired) {
+			$voucherCode->redeemed_on = date('Y-m-d H:i:s');
+			$voucherCode->save();
+			event(new VoucherCodeRedeemedEvent($voucherCode));
+		} else {
+			\Session::flash('message', 'Redemption Fails: Expired!');
+			\Session::flash('message_cht', '未能兌換: 已逾期!');
+		}
 		return redirect()->back();
 	}
 	
 	public function showCoupon($id, $timestamp=null) {
-
 		$voucher = null;
 		$isFormal = is_null($timestamp);
     $appliedTemplate = '';
@@ -183,12 +188,14 @@ class CouponController extends BaseController {
 					$redemptionPasswords = VoucherHelper::getRedemptionPasswords($voucher);
 					break;
 			}
-			if (!is_null($voucher->expiry_date) && !empty($voucher->expiry_date)) {
-				$expiryDate = $voucher->expiry_date;
-				$expired = $today > $expiryDate;
-			} else {
-				$expired = false;
-			}
+//			if (!is_null($voucher->expiry_date) && !empty($voucher->expiry_date)) {
+//				$expiryDate = $voucher->expiry_date;
+//				$expired = $today > $expiryDate;
+//			} else {
+//				$expired = false;
+//			}
+			$expired = $voucher->expired;
+			$expiryDate = $voucher->expiry_date;
 		} else {
 			$mediaSize = MediaHelper::getMediaDimension(0);
 			$og = [

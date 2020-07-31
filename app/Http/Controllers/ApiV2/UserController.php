@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 
+use App\Models\Agent;
+
 class UserController extends BaseModuleController
 {
 	
@@ -44,6 +46,19 @@ class UserController extends BaseModuleController
 				'newCount' => $newCount,
 				'updateCount' => $updateCount
 			]
+		]);
+	}
+	
+	public function getVoucherAgents() {
+		$agentIds = $this->user->vouchers()->pluck('agent_id')->toArray();
+		$assignedIds = $this->user->assignedVouchers()->pluck('agent_id')->toArray();
+		
+		$mergedIds = array_values(array_unique(array_merge($agentIds, $assignedIds)));
+		sort($mergedIds);
+		$rows = Agent::whereIn('id', $mergedIds)->get();
+		return response()->json([
+			'status' => true,
+			'result' => $rows
 		]);
 	}
 }

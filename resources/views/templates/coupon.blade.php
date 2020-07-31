@@ -328,7 +328,7 @@
 
 		@if($redemptionMethod==='password')
 			<?php
-				$showExpired = isset($expired) && $expired;
+				$showExpired = isset($expired) && $expired && empty($redeemedOn);
 			?>
 			<div class="redeem-row">
 	        <form method="POST" action="{!! url('/coupons/'.$key.'/redeem') !!}" class="w-100 h-100">
@@ -347,14 +347,15 @@
 		                  </h4>
 		                </div>
 									@else
-						        @if (Session::has('message'))
-							        <div class="redeemed-error-message">{{ Session::get('message') }}</div>
-							        <div class="redeemed-error-message">{{ Session::get('message_cht') }}</div>
-						        @endif
+						        {{--@if (Session::has('message'))--}}
+							        {{--<div class="redeemed-error-message">{{ Session::get('message') }}</div>--}}
+							        {{--<div class="redeemed-error-message">{{ Session::get('message_cht') }}</div>--}}
+						        {{--@endif--}}
 						        <div class="redeem-input">
                       <input class="form-control" type="password" name="redemptionCode" id="redemptionCode"/>
-                      <button type="submit" style="line-height:1.2;"
-                              class="ml-1 py-1 input-group-append btn btn-primary">兌換<br/>Redeem</button>
+                      <button type="submit" style="line-height:1;white-space:nowrap;1.2;"
+                              class="ml-1 d-flex flex-column justify-content-center align-items-center form-control input-group-append btn btn-primary">
+	                      兌換 Redeem</button>
 				            </div>
 					        @endif
 				        @else
@@ -383,8 +384,19 @@
 	          </div>
 	        </div>
 		    </div>
+			@elseif(isset($expired) && $expired)
+				<div class="redeem-row">
+	        <div class="redeem-block expired">
+						<div class="text-center">
+              <h4 class="redeemed-message">
+                <span class="text-white flex flex-row align-items-center">
+                  <span class="font-weight-bold">已逾期</span> Expired</span>
+                <div class="redeemed-date text-white">{{ $expiryDate }}</div>
+              </h4>
+            </div>
+	        </div>
+		    </div>
 			@else
-
 				<!-- Not yet redeemed -->
 				<div id="redeemCodeInvalid" class="message-bkgd">
 					<div class="message-dialog">
@@ -749,6 +761,25 @@
 	        {!! $script !!}
 	    </div>
     </div>
+	@endif
+	@if(Session::has('message'))
+	<div class="system-message-block position-absolute w-100 h-100 flex-column justify-content-center align-items-center"
+		style="z-index:9999;top:0;left:0;background-color:rgba(0,0,0,.8);display:flex;">
+		<div class="p-3 text-light system-message bg-danger rounded text-center"
+		     style="width:480px;max-width:98%;">
+			{{ Session::get('message') }}<br/>
+			{{ Session::get('message_cht') }}
+		</div>
+	</div>
+	<script>
+		$(document).ready(function() {
+		  $('body').on('click', '.system-message-block', function(event) {
+		    console.log('event: ', event);
+		    console.log('event.currentTarget: ', event.currentTarget);
+		    event.currentTarget.style.display = 'none';
+		  })
+		});
+	</script>
 	@endif
 </body>
 </html>

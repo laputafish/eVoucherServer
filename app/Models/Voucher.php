@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Helpers\VoucherTemplateHelper;
 
+use App\User;
+
 class Voucher extends Model
 {
 	protected $fillable = [
@@ -202,6 +204,15 @@ class Voucher extends Model
 		return $result;
 	}
 	
+	public function getExpiredAttribute() {
+		$expired = false;
+		if (!is_null($this->expiry_date) && !empty($this->expiry_date)) {
+			$today = \Carbon\Carbon::today()->format('Y-m-d');
+			$expired = $today > $this->expiry_date;
+		}
+		return $expired;
+	}
+	
 	public function getInputObjsAttribute() {
 		$result = [];
 		$formConfigs = [];
@@ -301,5 +312,11 @@ class Voucher extends Model
   
   public function redemptionLocations() {
 		return $this->hasMany(VoucherRedemptionLocation::class, 'voucher_id');
+  }
+  
+  public function assignedUsers() {
+		return $this->belongsToMany(User::class, 'voucher_authorization', 'voucher_id', 'user_id')
+			->withPivot(['rights']);
+		
   }
 }

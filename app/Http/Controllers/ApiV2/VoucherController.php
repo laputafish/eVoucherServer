@@ -8,6 +8,7 @@ use App\Models\VoucherCodeConfig;
 use App\Models\VoucherCustomForm;
 use App\Models\VoucherRedemptionLocation;
 use App\Models\SmtpServer;
+use App\User;
 
 use App\Helpers\AccessKeyHelper;
 use App\Helpers\MediaHelper;
@@ -33,7 +34,7 @@ class VoucherController extends BaseModuleController
 	
 	protected $orderBy = 'vouchers.created_at';
 	protected $orderDirection = 'desc';
-	protected $indexWith = 'agent';
+	protected $indexWith = ['agent'];
 	
 	protected $filterFields = [
 		'description',
@@ -196,7 +197,7 @@ class VoucherController extends BaseModuleController
 		'status' => 'in:pending,ready,completed',
 		'remark' => 'nullable|string'
 	];
-	
+
 	protected function onUpdating($input, $row = null)
 	{
 		if (is_null($input['description'])) {
@@ -305,15 +306,45 @@ class VoucherController extends BaseModuleController
 		return $row;
 	}
 	
+	protected function onIndexPaging($request, $data) {
+		$filters = $this->getFilters($request);
+		$assignedVouchers = null;
+		
+		if (array_key_exists('agent_id', $filters)) {
+			$assignedVouchers = $this->user->assignedVouchers()->where('agent_id', $filters['agent_id'])->get();
+			if ($assignedVouchers->count() > 0) {
+				$data = $data->merge($assignedVouchers);
+			}
+		} else {
+			$assignedVouchers = $this->user->assignedVouchers;
+			if ($assignedVouchers->count() > 0) {
+				$data = $data->merge($assignedVouchers);
+			}
+		}
+		return $data;
+	}
+	
 	protected function onIndexFilter($request, $query, $filterFields=[])
 	{
 		$query = parent::onIndexFilter($request, $query);
-		if ($request->has('agentId')) {
-			$query = $query->where('agent_id', $request->get('agentId'));
+//		if ($request->has('agentId')) {
+//			$query = $query->where('agent_id', $request->get('agentId'));
+//		}
+		return $query;
+	}
+	
+	protected function onIndexFilterField($query, $fieldName, $fieldValue, $filterFields=[])
+	{
+		if ($fieldName == '*') {
+			$query = $this->onIndexFilterWildcard($query, $fieldValue, $filterFields);
+		} else if ($fieldName == 'agent_id') {
+			$query = $query->where($fieldName, $fieldValue);
+		} else {
+			$query = $query->where($fieldName, 'like', '%' . $fieldValue . '%');
 		}
 		return $query;
 	}
-
+	
 	public function exportParticipants($id) {
 		$accessKey = AccessKeyHelper::create(
 			$this->user,
@@ -1456,6 +1487,61 @@ class VoucherController extends BaseModuleController
 		return response()->json([
 			'status' => $status,
 			'result' => $redemptionLocation
+		]);
+	}
+	
+	public function getAuthorizations($id) {
+		$voucher = $this->model->find($id);
+		$result = [];
+		if (isset($voucher)) {
+			$result = $voucher->assignedUsers;
+		}
+		return response()->json([
+			'status' => true,
+			'result' => $result
+		]);
+	}
+	
+	public function addAuthorizedUser(Request $request, $id) {
+		$status = true;
+		$result = '';
+		$email = $request->get('email', '');
+		
+		if (empty($email)) {
+			$status = false;
+			$result = [
+				'message' => 'No email specified!'
+			];
+		} else {
+			$user = User::whereEmail($email)->first();
+			if (is_null($user)) {
+				$status = false;
+				$result = [
+					'message' => 'Invalid email!'
+				];
+			} else {
+				$voucher = $this->model->find($id);
+				if (isset($voucher)) {
+					$voucher->assignedUsers()->attach($user->id);
+				}
+			}
+		}
+		
+		return response()->json([
+			'status' => $status,
+			'result' => $result
+		]);
+	}
+	
+	public function removeAuthorizedUser($id, $userId)
+	{
+		$voucher = $this->model->find($id);
+		if (isset($voucher)) {
+			$voucher->assignedUsers()->detach($userId);
+		}
+		return response()->json([
+			'status' => true,
+			'result' => ''
 		]);
 	}
 }

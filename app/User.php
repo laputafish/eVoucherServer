@@ -10,6 +10,7 @@ use Silber\Bouncer\Database\HasRolesAndAbilities;
 use App\Models\Media;
 use App\Models\TempQuestionForm;
 use App\Models\UserSetting;
+use App\Models\Voucher;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -50,5 +51,15 @@ class User extends Authenticatable implements JWTSubject
 
     public function settings() {
     	return $this->hasMany(UserSetting::class);
+    }
+    
+    public function assignedVouchers() {
+    	return $this->belongsToMany(Voucher::class, 'voucher_authorization', 'user_id', 'voucher_id')
+		    ->with('agent')
+		    ->withPivot(['rights']);
+    }
+    
+    public function vouchers() {
+    	return $this->hasMany(Voucher::class);
     }
 }

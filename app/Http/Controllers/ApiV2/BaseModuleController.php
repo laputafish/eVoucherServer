@@ -20,10 +20,6 @@ class BaseModuleController extends BaseController
   public function index(Request $request)
   {
   	Bouncer::refreshFor($this->user);
-  	
-//  	echo 'user name = '.$this->user->name.PHP_EOL;
-//  	echo 'supervisor = '.($this->user->isNotA('supervisor') ? 'yes' : 'no').PHP_EOL;
-//  	return 'ok';
     $query = $this->model;
     if ($this->user->isNotA('supervisor')) {
     	$query = $query->whereUserId($this->user->id);
@@ -46,6 +42,7 @@ class BaseModuleController extends BaseController
       // $data = $query->get();
       $offset = ($page - 1) * $limit;
       $data = $query->skip($offset)->take($limit)->get();
+      $data = $this->onIndexPaging($request, $data);
 
       $pagedData = new \Illuminate\Pagination\LengthAwarePaginator($data, $totalCount, $limit, $page);
       $pagedData->setCollection($this->onIndexDataReady($request, $pagedData->getCollection()));
@@ -61,6 +58,10 @@ class BaseModuleController extends BaseController
     ]);
   }
 
+  protected function onIndexPaging($request, $data) {
+    return $data;
+  }
+  
   protected function onIndexSelect($request, $query) {
     if ($request->has('select')) {
       $fields = explode(',', $request->get('select'));
@@ -83,19 +84,49 @@ class BaseModuleController extends BaseController
     }
     return $query;
   }
+  
+  protected function getFilters($request) {
+  	$result = [];
+    $filter = $request->get('filter', '');
+    if (!empty($filter)) {
+	    $filterItems = explode('|', $filter);
+	    
+	    foreach ($filterItems as $filterItem) {
+		    $keyValue = explode(':', $filterItem);
+//		    echo 'keyValue[0] = '.$keyValue[0].PHP_EOL;
+//		    echo 'keyValue[1] = '.$keyValue[1].PHP_EOL;
+		    if (!empty($keyValue[1])) {
+//		    	echo 'keyValue[1] not empty'.PHP_EOL;
+		      $result[$keyValue[0]] = $keyValue[1];
+		    }
+	    }
+    }
+//    echo 'result: ';
+//    print_r($result);
+    return $result;
+	}
 
   protected function onIndexFilter($request, $query, $filterFields=[])
   {
-    $filter = $request->get('filter', '');
-    if (!empty($filter)) {
-      $filterItems = explode('|', $filter);
-      foreach ($filterItems as $filterItem) {
-        $keyValue = explode(':', $filterItem);
-        $query = $this->onIndexFilterField($query, $keyValue[0], $keyValue[1], $filterFields);
-      }
+    $filters = $this->getFilters($request);
+    foreach($filters as $filterName=>$filterValue) {
+    	$query = $this->onIndexFilterField($query, $filterName, $filterValue, $filterFields);
     }
     return $query;
   }
+  
+//  protected function onIndexFilter($request, $query, $filterFields=[])
+//  {
+//    $filter = $request->get('filter', '');
+//    if (!empty($filter)) {
+//      $filterItems = explode('|', $filter);
+//      foreach ($filterItems as $filterItem) {
+//        $keyValue = explode(':', $filterItem);
+//        $query = $this->onIndexFilterField($query, $keyValue[0], $keyValue[1], $filterFields);
+//      }
+//    }
+//    return $query;
+//  }
 
   protected function onIndexFilterField($query, $fieldName, $fieldValue, $filterFields=[])
   {
@@ -104,6 +135,7 @@ class BaseModuleController extends BaseController
     } else {
       $query = $query->where($fieldName, 'like', '%' . $fieldValue . '%');
     }
+    echo 'sql: '.$query->toSql().PHP_EOL;
     return $query;
   }
 
