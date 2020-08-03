@@ -56,6 +56,7 @@ class User extends Authenticatable implements JWTSubject
     public function assignedVouchers() {
     	return $this->belongsToMany(Voucher::class, 'voucher_authorization', 'user_id', 'voucher_id')
 		    ->with('agent')
+		    ->with('creator')
 		    ->withPivot(['rights']);
     }
     

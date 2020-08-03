@@ -103,6 +103,9 @@ class Voucher extends Model
 		return $this->hasMany('App\Models\VoucherEmail');
 	}
 	
+	public function creator() {
+		return $this->belongsTo(User::class, 'user_id');
+	}
 	public function agent()
 	{
 		return $this->belongsTo('App\Models\Agent');

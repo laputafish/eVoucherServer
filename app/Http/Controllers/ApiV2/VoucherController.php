@@ -34,7 +34,7 @@ class VoucherController extends BaseModuleController
 	
 	protected $orderBy = 'vouchers.created_at';
 	protected $orderDirection = 'desc';
-	protected $indexWith = ['agent'];
+	protected $indexWith = ['agent','creator'];
 	
 	protected $filterFields = [
 		'description',
@@ -833,7 +833,7 @@ class VoucherController extends BaseModuleController
 	
 	protected function onShowWith($query)
 	{
-		$query = $query->with('codeConfigs');
+		$query = $query->with('codeConfigs')->with('agent')->with('creator')->with('assignedUsers');
 		return $query;
 	}
 //  public function getRow($id) {
