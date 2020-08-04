@@ -135,3 +135,11 @@ function getRandomWord($len = 10) {
 function echoln($msg) {
 	echo $msg."<br/>";
 }
+
+function toHttp($url) {
+	return str_replace('https://', 'http://', $url);
+}
+
+function toHttps($url) {
+	return str_replace('http://', 'https://', $url);
+}

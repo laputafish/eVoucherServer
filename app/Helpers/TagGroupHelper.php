@@ -148,11 +148,15 @@ class TagGroupHelper {
 		
 		if (isset($participant)) {
 			$participantConfigs = json_decode($voucher->participant_configs, true);
-			$fieldTagNames = InputObjHelper::getFieldTagNames($participantConfigs['inputObjs']);
-			$fieldValues = ParticipantHelper::getFieldValues($participant->form_content);
-			foreach($fieldTagNames as $i=>$fieldTagName) {
-				if ($i < count($fieldValues)) {
-					$result[$fieldTagName] = $fieldValues[$i];
+			if (!empty($participantConfigs)) {
+//			print_r($participantConfigs['inputObjs']);
+//			return '';
+				$fieldTagNames = InputObjHelper::getFieldTagNames($participantConfigs['inputObjs']);
+				$fieldValues = ParticipantHelper::getFieldValues($participant->form_content);
+				foreach ($fieldTagNames as $i => $fieldTagName) {
+					if ($i < count($fieldValues)) {
+						$result[$fieldTagName] = $fieldValues[$i];
+					}
 				}
 			}
 		}

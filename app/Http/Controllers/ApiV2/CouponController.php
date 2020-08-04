@@ -175,6 +175,7 @@ class CouponController extends BaseController {
 				'title' => $voucher->sharing_title,
 				'description' => $voucher->sharing_description,
 				'imageSrc' => str_replace('https:', 'http:', url('media/image/' .$voucher->sharing_image_id)),
+				'image:type' => 'image/'.MediaHelper::getMediaExt($voucher->sharing_image_id),
 				'url' => request()->fullUrl(),
 				'image:width' => $mediaSize['width'],
 				'image:height' => $mediaSize['height']
@@ -360,6 +361,13 @@ class CouponController extends BaseController {
 		$voucher = $voucherCode->voucher;
 		$voucher->codeConfigs;
     $template = VoucherTemplateHelper::readVoucherTemplate($voucher);
+		
+//		$participantConfigs = json_decode($voucher->participant_configs, true);
+//		echo '(';
+//		print_r($participantConfigs);
+//		echo ')';
+//		return 'ok';
+    
     $allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
 
 		$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);

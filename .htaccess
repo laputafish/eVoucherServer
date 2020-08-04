@@ -2,8 +2,15 @@
 RewriteEngine on
 
 # Force SSL
-RewriteCond %{HTTPS} !=on
-RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# RewriteCond %{HTTPS} on
+# RewriteCond %{REQUEST_URI} ^/coupons
+# RewriteCond %{REQUEST_URI} ^/media
+# RewriteRule (.*) http://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# RewriteCond %{HTTPS} !=on
+# RewriteCond %{REQUEST_URI} !^/coupons
+# RewriteCond %{REQUEST_URI} !^/media
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # ----------------------------------------------------------------------
 # Cross-domain AJAX requests
@@ -16,10 +23,21 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     Header set Access-Control-Allow-Headers "x-requested-with, Content-Type, origin, authorization, accept, client-security-token"
 </IfModule>
 
-RewriteRule ^(apiv2/(.*))$ public/$1 [L,NC]
 RewriteRule ^(api/(.*))$ public/$1 [L,NC]
-RewriteRule ^(oauth/(.*))$ public/$1 [L,NC]
+RewriteRule ^(apiv2/(.*))$ public/$1 [L,NC]
+RewriteRule ^(assets/(.*))$ public/$1 [L,NC]
+RewriteRule ^(coupons/(.*))$ public/$1 [L,NC]
+RewriteRule ^(redeem/(.*))$ public/$1 [L,NC]
+RewriteRule ^(d/(.*))$ public/$1 [L,NC]
+RewriteRule ^(forms/(.*))$ public/$1 [L,NC]
+RewriteRule ^(get_data/(.*))$ public/$1 [L,NC]
+RewriteRule ^(images/(.*))$ public/$1 [L,NC]
 RewriteRule ^(media/(.*))$ public/$1 [L,NC]
+RewriteRule ^(oauth/(.*))$ public/$1 [L,NC]
+RewriteRule ^(q/(.*))$ public/$1 [L,NC]
+RewriteRule ^(questions/(.*))$ public/$1 [L,NC]
+RewriteRule ^(system/(.*))$ public/$1 [L,NC]
+RewriteRule ^(t/(.*))$ public/$1 [L,NC]
 
 RewriteBase /
 RewriteRule ^index\.html$ - [L]
