@@ -116,6 +116,7 @@ Route::middleware(['auth:api'])->namespace('ApiV2')->group(function() {
   Route::put('agent_codes/upload', 'AgentCodeController@update');
   Route::post('agent_codes/parse/{key}', 'AgentCodeController@parse');
 	Route::post('agent_codes/{id}/change_status/{status}', 'AgentCodeController@changeStatus');
+	Route::post('agent_codes/{id}/reset_view_count', 'AgentCodeController@resetViewCount');
 	Route::post('agent_codes/{id}/update_field', 'AgentCodeController@updateField');
 	Route::post('agent_codes/{id}/reset_redemption_status', 'AgentCodeController@resetRedemptionStatus');
 	

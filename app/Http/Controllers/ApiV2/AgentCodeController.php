@@ -887,6 +887,20 @@ class AgentCodeController extends BaseController
 		]);
   }
   
+  public function resetViewCount($id) {
+	  $code = VoucherCode::find($id);
+	  if (isset($code)) {
+	  	$code->views = 0;
+		  $code->save();
+	  }
+	  return response()->json([
+		  'status' => true,
+		  'result' => [
+		  	'voucherCode' => $code
+      ]
+	  ]);
+		
+  }
   public function changeStatus($id, $status) {
 		$code = VoucherCode::find($id);
 		if (isset($code)) {

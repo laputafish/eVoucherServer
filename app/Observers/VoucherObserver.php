@@ -2,6 +2,7 @@
 
 use App\Models\Voucher;
 use App\Helpers\MediaHelper;
+use App\Helpers\VoucherTemplateHelper;
 
 class VoucherObserver {
 	public function deleting(Voucher $voucher) {
@@ -36,5 +37,4 @@ class VoucherObserver {
 			MediaHelper::deleteMedia($voucher->form_sharing_image_id);
 		}
 	}
-	
 }
