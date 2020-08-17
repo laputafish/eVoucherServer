@@ -361,20 +361,10 @@ class CouponController extends BaseController {
 		$voucher = $voucherCode->voucher;
 		$voucher->codeConfigs;
     $template = VoucherTemplateHelper::readVoucherTemplate($voucher);
-		
-//		$participantConfigs = json_decode($voucher->participant_configs, true);
-//		echo '(';
-//		print_r($participantConfigs);
-//		echo ')';
-//		return 'ok';
+
     
     $allTagValues = TagGroupHelper::getTagValues(null, $voucherCode);
-
 		$appliedTemplate = TemplateHelper::applyTags($template, $allTagValues, $voucher->codeConfigs);
-//		$params = TemplateHelper::createParams(
-//			$voucher->toArray(),
-//			$voucherCode
-//		);
 		return $appliedTemplate;
 //		return TemplateHelper::processTemplate(
 //			$template,

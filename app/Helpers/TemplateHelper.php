@@ -17,8 +17,6 @@ class TemplateHelper {
 
   private static function getCodeImage($codeConfigs, $params, $codeGroup) {
     $result = '';
-//    print_r($codeConfigs);
-//    return '';
     $codeConfig = static::findCodeConfig($codeConfigs, $codeGroup);
     $codeColor = '0,0,0';
 //    if (!empty(trim($codeConfig['code_color']))) {
@@ -37,8 +35,28 @@ class TemplateHelper {
     return $result;
   }
 
+  public static function parseCodeComposition($codeComposition, $tagValues) {
+  	$matches = null;
+  	if (!empty($codeComposition)) {
+		  if (preg_match_all('/{([^}]*)}/', $codeComposition, $matches, PREG_SET_ORDER) !== false) {
+//		  	print_r($matches);
+			  for ($i = 0; $i < count($matches); $i++) {
+				  $tagWithBraces = $matches[$i][0];
+				  $tag = $matches[$i][1];
+				  if (array_key_exists($tag, $tagValues)) {
+					  $codeComposition = str_replace($tagWithBraces, $tagValues[$tag], $codeComposition);
+				  }
+			  }
+		  }
+	  }
+//    echo 'codeComposition = '.$codeComposition.PHP_EOL;
+    return $codeComposition;
+  }
+  
   public static function processTemplate($template, $codeConfigs, $params) {
 
+  	//   return static::processTemplate($template, $codeConfigs, $tagValues);
+	  
     // Fill QR Code
 //    if (!empty($params['qr_code'])) {
 //      $qrCode = QrCode::margin(0)->size($qrCodeSize)->generate($params['qr_code']);
@@ -46,24 +64,26 @@ class TemplateHelper {
 //    $template = str_replace('{qr_code}', $qrCode, $template);
 //echo '111'.PHP_EOL;
     // Fill Barcode
+	  
+	  $params['qrcode'] = static::parseCodeComposition($params['qrcode'], $params);
+	  $qrCode = static::getCodeImage($codeConfigs, $params, 'qrcode');
+	  $template = str_replace('{qrcode}', $qrCode, $template);
+//	  return 'ooook';
+
+	  
+	  $params['barcode'] = static::parseCodeComposition($params['barcode'], $params);
     $barcode = static::getCodeImage($codeConfigs, $params, 'barcode');
     $template = str_replace('{barcode}', $barcode, $template);
-//echo '222'.PHP_EOL;
     // Fill  QR Code
-    $qrCode = static::getCodeImage($codeConfigs, $params, 'qrcode');
-    $template = str_replace('{qrcode}', $qrCode, $template);
-//echo '333'.PHP_EOL;
+    
     // Fill fields
     foreach($params as $key=>$value) {
       $template = str_replace( '{'.$key.'}', $value, $template);
     }
     
     // remove empty div
-	  // e.g. <div>&nbsp;</div>
+
 	  $template = str_replace('<div>&nbsp;</div>', '<div></div>', $template);
-	  
-//echo '444'.PHP_EOL;
-    //return 'ok';
     return $template;
   }
 
